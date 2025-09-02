@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  dengue-detection:
+    build: .
+    container_name: dengue-detection-app
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./results:/app/results
+      - ./configs:/app/configs
+    ports:
+      - "8888:8888"  # Jupyter
+      - "8080:8080"  # LabelStudio
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: tail -f /dev/null  # Mantener contenedor activo
+
+  labelstudio:
+    image: heartexlabs/label-studio:latest
+    container_name: labelstudio-dengue
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./labelstudio-data:/label-studio/data
+      - ./data:/app/data
+    environment:
+      - LABEL_STUDIO_LOCAL_FILES_SERVING_ENABLED=true
+      - LABEL_STUDIO_LOCAL_FILES_DOCUMENT_ROOT=/app/data

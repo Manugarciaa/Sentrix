@@ -1,0 +1,12 @@
+# Dataset configuration for Dengue Breeding Site Detection
+path: C:\Users\manolo\Documents\Tesis\Yolov11\data  # dataset root dir (absolute path)
+train: images/train  # train images (relative to 'path')
+val: images/val  # val images (relative to 'path')
+test: images/test  # test images (optional)
+
+# Classes for dengue breeding site detection
+names:
+  0: huecos                    # Holes/cavities that collect water
+  1: charcos_cumulos_agua      # Water puddles/stagnant water accumulations  
+  2: calles_rotas_mal_hechas   # Broken/poorly constructed streets that retain water
+  3: basura_basurales          # Garbage dumps/waste accumulations
