@@ -1,133 +1,113 @@
-#!/usr/bin/env python3
-"""
-Script para procesamiento en lote de detección de focos de dengue
-"""
+import argparse
 import os
-import sys
-import json
+import glob
 from pathlib import Path
-sys.path.append('..')
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import detect_breeding_sites, DENGUE_CLASSES
+from main import detect_breeding_sites, generate_report, save_report
+from utils import validate_model_file, validate_file_exists, get_image_extensions, ensure_directory, print_section_header
 
-def batch_detect_images(model_path, images_dir, output_dir='results/batch_detection'):
-    """
-    Procesa múltiples imágenes para detección de focos de dengue
-    """
-    images_path = Path(images_dir)
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+def process_image_directory(model_path, images_dir, output_dir, conf_threshold=0.5):
+    """Procesa todas las imágenes en un directorio"""
     
-    # Supported image formats
-    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff'}
+    # Usar extensiones desde utils
+    image_extensions = get_image_extensions()
+    image_files = []
     
-    all_results = []
-    total_images = 0
-    total_detections = 0
+    for ext in image_extensions:
+        image_files.extend(glob.glob(os.path.join(images_dir, ext)))
+        image_files.extend(glob.glob(os.path.join(images_dir, ext.upper())))
     
-    print(f"Processing images from: {images_dir}")
-    print(f"Using model: {model_path}")
-    print("-" * 50)
+    if not image_files:
+        print(f"No se encontraron imagenes en: {images_dir}")
+        return
     
-    for image_file in images_path.glob('*'):
-        if image_file.suffix.lower() in image_extensions:
-            total_images += 1
-            print(f"Processing: {image_file.name}")
+    ensure_directory(output_dir)
+    
+    print(f"Procesando {len(image_files)} imágenes...")
+    
+    results_summary = []
+    
+    for i, image_path in enumerate(image_files, 1):
+        print(f"[{i}/{len(image_files)}] Procesando: {os.path.basename(image_path)}")
+        
+        try:
+            detections = detect_breeding_sites(model_path, image_path, conf_threshold)
+            report = generate_report(image_path, detections)
             
-            try:
-                results, detections = detect_breeding_sites(
-                    model_path=model_path,
-                    source=str(image_file),
-                    save_results=False
-                )
-                
-                total_detections += len(detections)
-                
-                image_result = {
-                    'image': image_file.name,
-                    'detections_count': len(detections),
-                    'detections': detections
-                }
-                all_results.append(image_result)
-                
-                print(f"  Found {len(detections)} potential breeding sites")
-                
-            except Exception as e:
-                print(f"  Error processing {image_file.name}: {e}")
-    
-    # Save batch results
-    batch_report = {
-        'summary': {
-            'total_images': total_images,
-            'total_detections': total_detections,
-            'model_used': model_path,
-            'images_directory': str(images_dir)
-        },
-        'results': all_results
-    }
-    
-    report_file = output_path / 'batch_detection_report.json'
-    with open(report_file, 'w', encoding='utf-8') as f:
-        json.dump(batch_report, f, indent=2, ensure_ascii=False)
-    
-    print("-" * 50)
-    print(f"Batch processing complete!")
-    print(f"Total images processed: {total_images}")
-    print(f"Total detections found: {total_detections}")
-    print(f"Report saved to: {report_file}")
-    
-    return batch_report
-
-def generate_summary_report(batch_report):
-    """
-    Genera un reporte resumen de las detecciones
-    """
-    class_counts = {}
-    high_risk_images = []
-    
-    for result in batch_report['results']:
-        for detection in result['detections']:
-            class_name = detection['class']
-            class_counts[class_name] = class_counts.get(class_name, 0) + 1
-        
-        # Check for high-risk images  
-        from configs.classes import HIGH_RISK_CLASSES
-        high_risk_count = sum(1 for d in result['detections'] 
-                             if d['class'] in HIGH_RISK_CLASSES)
-        
-        if high_risk_count >= 2:
-            high_risk_images.append({
-                'image': result['image'],
-                'high_risk_sites': high_risk_count,
-                'total_sites': result['detections_count']
+            image_name = Path(image_path).stem
+            output_path = os.path.join(output_dir, f"{image_name}_report.json")
+            save_report(report, output_path)
+            
+            results_summary.append({
+                'image': os.path.basename(image_path),
+                'detections': len(detections),
+                'risk_level': report['risk_assessment']['level']
+            })
+            
+            print(f"  - Detecciones: {len(detections)}")
+            print(f"  - Riesgo: {report['risk_assessment']['level']}")
+            
+        except Exception as e:
+            print(f"  - Error: {e}")
+            results_summary.append({
+                'image': os.path.basename(image_path),
+                'error': str(e)
             })
     
-    print("\n=== REPORTE RESUMEN ===")
-    print("Tipos de focos detectados:")
-    for class_name, count in sorted(class_counts.items()):
-        print(f"  {class_name}: {count}")
+    # Resumen final
+    print("\n=== RESUMEN ===")
+    total_processed = len([r for r in results_summary if 'error' not in r])
+    total_errors = len([r for r in results_summary if 'error' in r])
     
-    print(f"\nImágenes de alto riesgo: {len(high_risk_images)}")
-    for img in high_risk_images:
-        print(f"  {img['image']}: {img['high_risk_sites']} focos de alto riesgo")
+    print(f"Imágenes procesadas: {total_processed}")
+    print(f"Errores: {total_errors}")
+    
+    if total_processed > 0:
+        risk_distribution = {}
+        total_detections = 0
+        
+        for result in results_summary:
+            if 'error' not in result:
+                risk = result['risk_level']
+                risk_distribution[risk] = risk_distribution.get(risk, 0) + 1
+                total_detections += result['detections']
+        
+        print(f"Total detecciones: {total_detections}")
+        print("Distribución de riesgo:")
+        for risk, count in risk_distribution.items():
+            print(f"  - {risk}: {count} imágenes")
 
-if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Batch detection of dengue breeding sites")
-    parser.add_argument("--model", required=True, help="Path to trained model")
-    parser.add_argument("--images", required=True, help="Directory with images to process")
-    parser.add_argument("--output", default="results/batch_detection", help="Output directory")
+def main():
+    parser = argparse.ArgumentParser(description='Procesamiento en lote de imágenes para detección de criaderos')
+    parser.add_argument('--model', type=str, required=True,
+                        help='Ruta al modelo entrenado (.pt)')
+    parser.add_argument('--images', type=str, required=True,
+                        help='Directorio con imágenes a procesar')
+    parser.add_argument('--output', type=str, default='results/batch_results',
+                        help='Directorio de salida para reportes')
+    parser.add_argument('--conf', type=float, default=0.5,
+                        help='Umbral de confianza (0-1)')
     
     args = parser.parse_args()
     
-    if not os.path.exists(args.model):
-        print(f"Error: Model file not found: {args.model}")
+    # Validar usando funciones utilitarias
+    try:
+        validate_model_file(args.model)
+        validate_file_exists(args.images, "Directorio de imagenes")
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error: {e}")
         sys.exit(1)
     
-    if not os.path.exists(args.images):
-        print(f"Error: Images directory not found: {args.images}")
-        sys.exit(1)
+    print_section_header("PROCESAMIENTO EN LOTE")
+    print(f"Modelo: {args.model}")
+    print(f"Directorio de imágenes: {args.images}")
+    print(f"Directorio de salida: {args.output}")
+    print(f"Umbral de confianza: {args.conf}")
+    print()
     
-    batch_report = batch_detect_images(args.model, args.images, args.output)
-    generate_summary_report(batch_report)
+    process_image_directory(args.model, args.images, args.output, args.conf)
+
+if __name__ == "__main__":
+    main()
