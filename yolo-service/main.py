@@ -1,129 +1,170 @@
-from ultralytics import YOLO
-import cv2
 import os
 import json
 from datetime import datetime
-
+import torch
+from ultralytics import YOLO
 from configs.classes import DENGUE_CLASSES, HIGH_RISK_CLASSES, MEDIUM_RISK_CLASSES
+from utils import detect_device, validate_file_exists, validate_model_file, ensure_directory, cleanup_unwanted_downloads
 
-def train_dengue_model(model_path='models/yolo11n.pt', data_config='configs/dataset.yaml', epochs=100):
-    """Train YOLOv11 model for dengue breeding site detection"""
-    model = YOLO(model_path)
-    results = model.train(
-        data=data_config, 
-        epochs=epochs, 
-        imgsz=640,
-        project='models',
-        name='dengue_detection'
-    )
-    return results
+def train_dengue_model(model_path='yolo11n-seg.pt', 
+                      data_config='configs/dataset.yaml', 
+                      epochs=100,
+                      experiment_name=None):
+    """Entrena modelo YOLOv11-seg para detección de criaderos"""
+    # Validar archivos usando funciones utilitarias
+    if os.path.exists(model_path):
+        validate_model_file(model_path)
+    validate_file_exists(data_config, "Configuración de dataset")
+    
+    # Detectar dispositivo automáticamente
+    device = detect_device()
+    
+    # Generar nombre del experimento
+    if experiment_name is None:
+        from datetime import datetime
+        model_size = 'unknown'
+        model_name = os.path.basename(model_path).lower()
+        
+        for size in ['n', 's', 'm', 'l', 'x']:
+            if f'{size}-seg' in model_name:
+                model_size = size
+                break
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        experiment_name = f"dengue_seg_{model_size}_{epochs}ep_{timestamp}"
+    
+    try:
+        print(f"Iniciando entrenamiento con {model_path}...")
+        print(f"Experimento: {experiment_name}")
+        # Evitar descargas innecesarias de YOLO
+        os.environ['YOLO_VERBOSE'] = 'False'
+        os.environ['YOLO_AUTODOWNLOAD'] = 'False'
+        
+        model = YOLO(model_path)
+        results = model.train(
+            data=data_config, 
+            task='segment',
+            epochs=epochs, 
+            imgsz=640,
+            batch=1,
+            device=device,
+            patience=50,
+            project='models',
+            name=experiment_name,
+            lr0=0.001,
+            weight_decay=0.001,
+            mosaic=0.5,
+            copy_paste=0.3,
+            amp=False  # Deshabilitar AMP para evitar descargas
+        )
+        print("Entrenamiento completado exitosamente")
+        # Limpiar descargas no deseadas inmediatamente
+        cleanup_unwanted_downloads()
+        return results
+    except Exception as e:
+        print(f"Error durante el entrenamiento: {e}")
+        raise
 
-def validate_dengue_model(model_path='models/dengue_detection/weights/best.pt', data_config='configs/dataset.yaml'):
-    """Validate dengue detection model"""
-    model = YOLO(model_path)
-    results = model.val(data=data_config, project='results', name='validation')
-    return results
-
-def detect_breeding_sites(model_path='models/dengue_detection/weights/best.pt', source='data/images/test.jpg', 
-                         conf_threshold=0.5, save_results=True):
-    """Detect dengue breeding sites in image/video"""
-    model = YOLO(model_path)
-    results = model(source, conf=conf_threshold, save=save_results, project='results', name='detections')
+def detect_breeding_sites(model_path, source, conf_threshold=0.5):
+    """Detecta sitios de cría en imágenes usando modelo entrenado"""
+    validate_model_file(model_path)
+    validate_file_exists(source, "Imagen/directorio")
     
-    # Process detections
-    detections = []
-    for result in results:
-        for box in result.boxes:
-            class_id = int(box.cls[0])
-            confidence = float(box.conf[0])
-            class_name = DENGUE_CLASSES.get(class_id, "unknown")
-            
-            detections.append({
-                'class': class_name,
-                'confidence': confidence,
-                'bbox': box.xyxy[0].tolist(),
-                'timestamp': datetime.now().isoformat()
-            })
-    
-    # Save detection report
-    if save_results and detections:
-        save_detection_report(detections, source)
-    
-    return results, detections
-
-def save_detection_report(detections, source_path):
-    """Save detection results to JSON report"""
-    os.makedirs('results/reports', exist_ok=True)
-    
-    report = {
-        'source': source_path,
-        'total_detections': len(detections),
-        'timestamp': datetime.now().isoformat(),
-        'detections': detections,
-        'risk_assessment': assess_dengue_risk(detections)
-    }
-    
-    filename = f"results/reports/detection_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    with open(filename, 'w', encoding='utf-8') as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
-    
-    print(f"Detection report saved: {filename}")
+    try:
+        os.environ['YOLO_VERBOSE'] = 'False'
+        model = YOLO(model_path)
+        results = model(source, conf=conf_threshold, task='segment')
+        
+        detections = []
+        for result in results:
+            if result.masks is not None:
+                for i, mask in enumerate(result.masks):
+                    class_id = int(result.boxes.cls[i])
+                    polygon_coords = mask.xy[0].tolist()
+                    detections.append({
+                        'class': DENGUE_CLASSES.get(class_id, f"Clase_{class_id}"),
+                        'class_id': class_id,
+                        'confidence': float(result.boxes.conf[i]),
+                        'polygon': polygon_coords,
+                        'mask_area': float(mask.data.sum())
+                    })
+        return detections
+    except Exception as e:
+        print(f"Error durante la detección: {e}")
+        raise
+    finally:
+        # Limpiar descargas no deseadas
+        cleanup_unwanted_downloads()
 
 def assess_dengue_risk(detections):
-    """Assess dengue risk based on detections"""
-    high_risk_classes = ['charco_agua', 'recipiente_agua', 'neumatico', 'desague']
-    medium_risk_classes = ['basural', 'contenedor_basura', 'botellas']
+    """Evalúa riesgo epidemiológico basado en detecciones"""
+    if not isinstance(detections, list):
+        raise ValueError("Las detecciones deben ser una lista")
     
-    high_risk_count = sum(1 for d in detections if d['class'] in high_risk_classes)
-    medium_risk_count = sum(1 for d in detections if d['class'] in medium_risk_classes)
+    high_risk_count = sum(1 for d in detections 
+                         if d.get('class') in HIGH_RISK_CLASSES)
+    medium_risk_count = sum(1 for d in detections 
+                           if d.get('class') in MEDIUM_RISK_CLASSES)
     
     if high_risk_count >= 3:
         risk_level = "ALTO"
+        recommendations = [
+            "Intervención inmediata requerida",
+            "Eliminar agua estancada inmediatamente"
+        ]
     elif high_risk_count >= 1 or medium_risk_count >= 3:
         risk_level = "MEDIO"
+        recommendations = [
+            "Monitoreo regular necesario",
+            "Limpiar recipientes y contenedores"
+        ]
     elif medium_risk_count >= 1:
         risk_level = "BAJO"
+        recommendations = [
+            "Mantenimiento preventivo",
+            "Limpieza regular del área"
+        ]
     else:
         risk_level = "MÍNIMO"
+        recommendations = ["Vigilancia rutinaria"]
     
     return {
         'level': risk_level,
         'high_risk_sites': high_risk_count,
         'medium_risk_sites': medium_risk_count,
-        'recommendations': get_risk_recommendations(risk_level)
+        'recommendations': recommendations
     }
 
-def get_risk_recommendations(risk_level):
-    """Get recommendations based on risk level"""
-    recommendations = {
-        'ALTO': [
-            "Intervención inmediata requerida",
-            "Eliminar agua estancada inmediatamente",
-            "Limpiar basurales y desagües",
-            "Inspección frecuente del área"
-        ],
-        'MEDIO': [
-            "Monitoreo regular necesario",
-            "Limpiar recipientes con agua",
-            "Mantener área libre de basura",
-            "Revisar drenajes"
-        ],
-        'BAJO': [
-            "Mantenimiento preventivo",
-            "Limpieza regular del área",
-            "Monitoreo periódico"
-        ],
-        'MÍNIMO': [
-            "Continuar con vigilancia rutinaria"
-        ]
+def generate_report(source, detections):
+    """Genera reporte JSON con detecciones y evaluación de riesgo"""
+    risk_assessment = assess_dengue_risk(detections)
+    
+    report = {
+        'source': os.path.basename(source),
+        'total_detections': len(detections),
+        'timestamp': datetime.now().isoformat(),
+        'detections': detections,
+        'risk_assessment': risk_assessment
     }
-    return recommendations.get(risk_level, [])
+    
+    return report
+
+def save_report(report, output_path='results/detection_report.json'):
+    """Guarda reporte en archivo JSON"""
+    ensure_directory(os.path.dirname(output_path))
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
-    print("Sistema de Detección de Focos de Dengue - YOLOv11")
-    print("=" * 50)
-    print("Funciones disponibles:")
-    print("- train_dengue_model(): Entrenar modelo para detección de focos")
-    print("- validate_dengue_model(): Validar modelo entrenado")
-    print("- detect_breeding_sites(): Detectar focos de reproducción del dengue")
-    print("- assess_dengue_risk(): Evaluar nivel de riesgo")
+    # Ejemplo de uso
+    print("Sistema de Detección de Criaderos de Dengue - YOLOv11")
+    
+    # Entrenar modelo
+    # train_results = train_dengue_model()
+    
+    # Detectar en imagen
+    # detections = detect_breeding_sites('models/best.pt', 'path/to/image.jpg')
+    # report = generate_report('path/to/image.jpg', detections)
+    # save_report(report)
+    # print(f"Detecciones: {len(detections)}")
+    # print(f"Riesgo: {report['risk_assessment']['level']}")

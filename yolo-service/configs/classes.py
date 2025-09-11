@@ -1,18 +1,29 @@
-"""
-Dengue breeding site detection classes configuration
-"""
-
-# Class mapping for dengue breeding sites
 DENGUE_CLASSES = {
-    0: "huecos",
-    1: "charcos_cumulos_agua",
-    2: "calles_rotas_mal_hechas",
-    3: "basura_basurales"
+    0: "Basura",
+    1: "Calles mal hechas",
+    2: "Charcos/Cumulo de agua",
+    3: "Huecos"
 }
 
-# Reverse mapping for LabelStudio conversion
-CLASS_NAME_TO_ID = {name: idx for idx, name in DENGUE_CLASSES.items()}
+HIGH_RISK_CLASSES = [
+    "Calles mal hechas",
+    "Charcos/Cumulo de agua", 
+    "Huecos"
+]
 
-# Risk levels
-HIGH_RISK_CLASSES = ["huecos", "charcos_cumulos_agua", "calles_rotas_mal_hechas"]
-MEDIUM_RISK_CLASSES = ["basura_basurales"]
+MEDIUM_RISK_CLASSES = [
+    "Basura"
+]
+
+CLASS_TO_ID = {v: k for k, v in DENGUE_CLASSES.items()}
+
+RISK_LEVEL_BY_ID = {}
+for class_id, class_name in DENGUE_CLASSES.items():
+    if class_name in HIGH_RISK_CLASSES:
+        RISK_LEVEL_BY_ID[class_id] = "ALTO"
+    elif class_name in MEDIUM_RISK_CLASSES:
+        RISK_LEVEL_BY_ID[class_id] = "MEDIO"
+    else:
+        RISK_LEVEL_BY_ID[class_id] = "BAJO"
+
+NUM_CLASSES = len(DENGUE_CLASSES)

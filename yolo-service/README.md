@@ -1,158 +1,272 @@
-# Dengue Breeding Site Detection System - YOLOv11
+# YOLO Dengue Detection Service
 
-This project uses YOLOv11 with Ultralytics to detect breeding sites of Aedes aegypti mosquito, vector of dengue, chikungunya and zika.
+Sistema automatizado de deteccion de criaderos de dengue mediante YOLOv11 con segmentacion de instancias.
 
-## Objective
+## Descripcion
 
-Automatically detect sites that can serve as breeding grounds for dengue vector mosquitoes:
-- Holes or cavities that accumulate water
-- Puddles and stagnant water accumulations
-- Broken or poorly constructed streets that retain water
-- Garbage and waste dumps where water accumulates
+Sistema de vision por computadora diseñado para la deteccion y clasificacion automatica de sitios potenciales de reproduccion del mosquito Aedes aegypti, vector principal de dengue, chikungunya y zika. Implementa el modelo YOLOv11 con segmentacion de instancias para identificar y segmentar:
 
-## Project Structure
+- **Basura** - Nivel de riesgo medio
+- **Calles deterioradas** - Nivel de riesgo alto  
+- **Acumulaciones de agua** - Nivel de riesgo alto
+- **Huecos y depresiones** - Nivel de riesgo alto
 
-```
-Yolov11/
-├── main.py                    # Main detection system
-├── requirements.txt           # Project dependencies
-├── configs/
-│   └── dataset.yaml           # Dataset configuration
-├── data/
-│   ├── images/                # Images organized by dataset split
-│   │   ├── train/             # Training images
-│   │   ├── val/               # Validation images
-│   │   └── test/              # Test images
-│   └── labels/                # YOLO format annotations
-│       ├── train/
-│       ├── val/
-│       └── test/
-├── models/                    # Trained models (created during training)
-├── results/                   # Detection outputs and reports (created during inference)
-│   └── reports/               # JSON reports with risk assessment
-└── scripts/                   # Utility tools
-    ├── prepare_dataset.py     # Dataset preparation and validation
-    ├── batch_detection.py     # Batch processing
-    └── train_dengue_model.py  # Model training
-```
+## Caracteristicas principales
 
-## Installation
+- **Segmentacion de instancias** con precisión a nivel de pixel
+- **Evaluacion automatica de riesgo epidemiologico** basada en criterios establecidos
+- **Generacion de reportes estructurados** en formato JSON
+- **Deteccion automatica de GPU/CPU** para optimizacion de rendimiento
+- **Procesamiento por lotes** para analisis de multiples imagenes
+- **Seleccion inteligente de modelos** segun capacidades de hardware
+- **Nomenclatura automatica de experimentos** con timestamp y configuracion
+
+## Instalacion
+
+### Requisitos del sistema
+
+- Python 3.8 o superior
+- CUDA 11.8+ (requerido para aceleracion GPU)
+- RAM: 4GB minimo, 8GB recomendado
+- Espacio en disco: 2GB para modelos y dependencias
+
+### Instalacion de dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Detection Classes
+**Nota**: Para entornos con GPU NVIDIA, verificar que las versiones de PyTorch sean compatibles con la version de CUDA instalada.
 
-| ID | Class | Risk Level | Description |
-|----|-------|------------|-------------|
-| 0 | huecos | High | Holes and cavities that accumulate water |
-| 1 | charcos_cumulos_agua | High | Stagnant water and accumulations |
-| 2 | calles_rotas_mal_hechas | High | Deteriorated roads that retain water |
-| 3 | basura_basurales | Medium | Waste accumulations |
+## Estructura del proyecto
 
-## Usage
+```
+yolo-service/
+├── configs/           # Configuraciones del modelo y dataset
+│   ├── classes.py     # Definicion de clases y niveles de riesgo
+│   └── dataset.yaml   # Configuracion del dataset YOLO
+├── data/              # Dataset de imagenes y anotaciones
+│   ├── images/        # Imagenes del dataset
+│   └── labels/        # Anotaciones en formato YOLO
+├── models/            # Modelos entrenados
+├── results/           # Resultados y reportes
+├── scripts/           # Scripts de entrenamiento y deteccion
+│   ├── train_dengue_model.py
+│   └── batch_detection.py
+├── tests/             # Tests unificados
+│   └── test_unified.py # Tests completos del sistema
+├── main.py            # Modulo principal con funciones core
+├── utils.py           # Funciones utilitarias compartidas
+└── requirements.txt   # Dependencias esenciales
+```
 
-### Single Image Detection
+## Uso del sistema
+
+### 1. Entrenamiento de modelos
+
+#### Seleccion automatica de modelo (recomendado)
+```bash
+python scripts/train_dengue_model.py --auto --epochs 100
+```
+El sistema selecciona automaticamente el modelo optimo segun las capacidades de hardware disponibles.
+
+#### Entrenamiento con modelo especifico
+```bash
+# Modelo Small (equilibrio velocidad/precision)
+python scripts/train_dengue_model.py --model s --epochs 100
+
+# Modelo Large (maxima precision)  
+python scripts/train_dengue_model.py --model l --epochs 100
+```
+
+#### Nomenclatura personalizada de experimentos
+```bash
+python scripts/train_dengue_model.py --auto --epochs 100 --name "experimento_final_v2"
+```
+
+**Formato automatico**: `dengue_seg_{tamaño}_{epocas}ep_{fecha}_{hora}`  
+**Ejemplo**: `models/dengue_seg_s_100ep_20250111_1430/`
+
+### 2. Deteccion en imagenes
+
+#### Deteccion individual:
 ```python
-from main import detect_breeding_sites
+from main import detect_breeding_sites, generate_report, save_report
 
-# Detect breeding sites in an image
-results, detections = detect_breeding_sites(
-    model_path='models/dengue_detection/weights/best.pt',
+# Detectar criaderos en una imagen
+detections = detect_breeding_sites(
+    model_path='models/best.pt',
     source='path/to/image.jpg',
     conf_threshold=0.5
 )
 
-# The system automatically generates:
-# - Risk assessment (HIGH/MEDIUM/LOW/MINIMAL)
-# - Specific recommendations
-# - JSON report with details
+# Generar y guardar reporte
+report = generate_report('path/to/image.jpg', detections)
+save_report(report, 'results/detection_report.json')
 ```
 
-### Model Training
+#### Deteccion por lotes:
 ```bash
-# Train nano model (fast)
-python scripts/train_dengue_model.py --model n --epochs 100
-
-# Train medium model (more accurate)
-python scripts/train_dengue_model.py --model m --epochs 150 --batch 8
+python scripts/batch_detection.py --model models/best.pt --source path/to/images/ --output results/
 ```
 
-### Batch Processing
+### 3. Evaluacion de riesgo
+
+```python
+from main import assess_dengue_risk
+
+# Evaluar riesgo epidemiologico
+risk_assessment = assess_dengue_risk(detections)
+print(f"Nivel de riesgo: {risk_assessment['level']}")
+print(f"Recomendaciones: {risk_assessment['recommendations']}")
+```
+
+## Clasificacion y evaluacion de riesgo
+
+### Clases de deteccion
+
+| ID | Clase | Nivel de Riesgo | Descripcion epidemiologica |
+|----|-------|----------------|---------------------------|
+| 0 | Basura | MEDIO | Acumulacion de desechos con potencial de retencion de agua |
+| 1 | Calles deterioradas | ALTO | Superficies irregulares que facilitan formacion de charcos |
+| 2 | Acumulaciones de agua | ALTO | Agua estancada visible, habitat directo de reproduccion |
+| 3 | Huecos y depresiones | ALTO | Cavidades que retienen agua de lluvia |
+
+### Algoritmo de evaluacion de riesgo epidemiologico
+
+**ALTO**: ≥3 sitios de riesgo alto, o ≥1 sitio alto + ≥3 sitios medio  
+**MEDIO**: ≥1 sitio de riesgo alto, o ≥3 sitios de riesgo medio  
+**BAJO**: ≥1 sitio de riesgo medio  
+**MINIMO**: Sin sitios de riesgo detectados
+
+## Configuracion
+
+### Dataset (configs/dataset.yaml)
+```yaml
+path: C:\Users\manolo\Documents\Tesis\yolo-service\data
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: Basura
+  1: Calles mal hechas
+  2: Charcos/Cumulo de agua
+  3: Huecos
+
+task: segment
+nc: 4
+```
+
+### Hiperparametros de entrenamiento
+- **Epochs**: 100 (con early stopping patience=50)
+- **Batch size**: 1 (ajustable segun GPU)
+- **Image size**: 640x640
+- **Learning rate**: 0.001
+- **Weight decay**: 0.001
+- **Data augmentation**: Mosaic (0.5), Copy-paste (0.3)
+
+## Formato de salida
+
+### Reporte de deteccion (JSON)
+```json
+{
+  "source": "image.jpg",
+  "total_detections": 3,
+  "timestamp": "2024-01-15T10:30:00",
+  "detections": [
+    {
+      "class": "Charcos/Cumulo de agua",
+      "class_id": 2,
+      "confidence": 0.87,
+      "polygon": [[x1,y1], [x2,y2], ...],
+      "mask_area": 1250.5
+    }
+  ],
+  "risk_assessment": {
+    "level": "ALTO",
+    "high_risk_sites": 2,
+    "medium_risk_sites": 1,
+    "recommendations": [
+      "Intervencion inmediata requerida",
+      "Eliminar agua estancada inmediatamente"
+    ]
+  }
+}
+```
+
+## Validacion del sistema
+
+### Ejecucion de tests completos
 ```bash
-# Process multiple images
-python scripts/batch_detection.py --model models/dengue_detection/weights/best.pt --images data/images/test/
+python tests/test_unified.py
 ```
 
-## Risk Assessment
+**Tests incluidos:**
+- Verificacion de compatibilidad de hardware (CPU/GPU)
+- Validacion de carga y funcionamiento de modelos YOLO
+- Comprobacion de funciones de evaluacion de riesgo
+- Tests de integridad del pipeline completo
 
-The system automatically classifies risk level:
+## Especificaciones de rendimiento
 
-- **HIGH**: ≥2 high-risk sites → Immediate intervention
-- **MEDIUM**: ≥1 high-risk or ≥2 medium-risk sites → Regular monitoring  
-- **LOW**: ≥1 medium-risk site → Preventive maintenance
-- **MINIMAL**: No significant sites → Routine surveillance
+### Configuraciones de hardware recomendadas
 
-## Dataset Preparation
+| Componente | Minimo | Recomendado | Optimo |
+|------------|--------|-------------|--------|
+| **GPU** | GTX 1050 (4GB) | GTX 1660 Ti (6GB) | RTX 3080+ (10GB+) |
+| **CPU** | Intel i3 / AMD R3 | Intel i5 / AMD R5 | Intel i7 / AMD R7 |
+| **RAM** | 4GB | 8GB | 16GB+ |
+| **Almacenamiento** | 5GB libres | 10GB libres | SSD recomendado |
 
-```bash
-# Organize images and labels
-python scripts/prepare_dataset.py --source /path/to/raw/data --target data
+### Metricas de rendimiento aproximadas
 
-# Validate annotations
-python scripts/prepare_dataset.py --validate
+| Operacion | GPU (GTX 1660 Ti) | CPU (i5) |
+|-----------|-------------------|----------|
+| **Entrenamiento** (100 epochs) | 2-3 horas | 12-24 horas |
+| **Inferencia** (por imagen) | 50-100ms | 300-800ms |
+| **Procesamiento por lotes** (100 imagenes) | 8-15 segundos | 45-120 segundos |
+
+## Solucion de problemas comunes
+
+### Verificacion de compatibilidad GPU
+```python
+import torch
+print(f"CUDA disponible: {torch.cuda.is_available()}")
+print(f"Version CUDA: {torch.version.cuda}")
+print(f"Dispositivos GPU: {torch.cuda.device_count()}")
 ```
 
-## Annotation Format
+### Problemas de configuracion del dataset
+- Verificar estructura de directorios en `data/images/` y `data/labels/`
+- Confirmar que `configs/dataset.yaml` contiene rutas validas
+- Asegurar que las anotaciones esten en formato YOLO
 
-Labels follow YOLO format (one .txt file per image):
+### Errores de memoria durante entrenamiento
+- Reducir el parametro `--batch` (valor por defecto: 1)
+- Utilizar modelos de menor tamaño (nano o small)
+- Verificar memoria GPU disponible con `nvidia-smi`
+
+## Informacion del proyecto
+
+### Proposito academico
+Este sistema ha sido desarrollado como parte de una investigacion academica enfocada en la aplicacion de tecnicas de vision por computadora para la vigilancia epidemiologica automatizada de vectores de dengue.
+
+### Limitaciones y consideraciones
+- **Uso como herramienta de apoyo**: Los resultados deben ser validados por personal especializado en salud publica
+- **Contexto geografico**: El modelo ha sido entrenado con datos especificos y puede requerir adaptacion para diferentes regiones
+- **Condiciones ambientales**: El rendimiento puede variar segun condiciones de iluminacion, clima y calidad de imagen
+
+### Estructura de archivos generados
 ```
-class_id center_x center_y width height
-```
-
-Example:
-```
-0 0.5 0.3 0.2 0.1  # hole in center-top
-1 0.8 0.7 0.15 0.1 # puddle in bottom-right corner
-```
-
-## Generated Reports
-
-The system generates JSON reports with:
-- Detected objects with coordinates and confidence scores
-- Automatic risk assessment
-- Specific recommendations by risk level
-- Timestamps and metadata
-
-## Applications
-
-- **Public Health**: Epidemiological surveillance
-- **Municipalities**: Automated urban inspection
-- **NGOs**: Community monitoring
-- **Research**: Environmental pattern analysis
-
-## Docker Setup
-
-### Build and Run
-```bash
-# Build and start services
-docker-compose up -d
-
-# Access the container
-docker-compose exec dengue-detection bash
-
-# Stop services
-docker-compose down
+models/
+├── experimento_nombre/
+│   ├── weights/
+│   │   ├── best.pt          # Modelo con mejores metricas
+│   │   └── last.pt          # Ultimo checkpoint
+│   ├── results.png          # Graficas de entrenamiento
+│   ├── confusion_matrix.png # Matriz de confusion
+│   └── args.yaml           # Configuracion utilizada
 ```
 
-### Available Services
-- **Port 8888**: Jupyter Notebook (if configured)
-- **Port 8080**: Main container
-- **Port 8081**: LabelStudio for annotations
-
-### Mounted Volumes
-- `./data` → `/app/data` (dataset)
-- `./models` → `/app/models` (trained models)
-- `./results` → `/app/results` (detection outputs)
-- `./configs` → `/app/configs` (configurations)
+**Nota tecnica**: El sistema implementa limpieza automatica de archivos temporales generados durante el proceso de entrenamiento para mantener la organizacion del proyecto.
