@@ -46,6 +46,7 @@ def main():
     detect_parser.add_argument('--model', required=True, help='Trained model path')
     detect_parser.add_argument('--source', required=True, help='Image or directory path')
     detect_parser.add_argument('--conf', type=float, default=0.5, help='Confidence threshold')
+    detect_parser.add_argument('--no-gps', action='store_true', help='Disable GPS metadata extraction')
 
     # Report command
     report_parser = subparsers.add_parser('report', help='Generate detection report')
@@ -53,6 +54,7 @@ def main():
     report_parser.add_argument('--source', required=True, help='Image path')
     report_parser.add_argument('--output', default='results/detection_report.json', help='Output path')
     report_parser.add_argument('--conf', type=float, default=0.5, help='Confidence threshold')
+    report_parser.add_argument('--no-gps', action='store_true', help='Disable GPS metadata extraction')
 
     args = parser.parse_args()
 
@@ -76,28 +78,39 @@ def main():
 
         elif args.command == 'detect':
             print_section_header("DETECCIÓN DE CRIADEROS")
+            include_gps = not args.no_gps
             detections = detect_breeding_sites(
                 model_path=args.model,
                 source=args.source,
-                conf_threshold=args.conf
+                conf_threshold=args.conf,
+                include_gps=include_gps
             )
             print(f"✓ Detecciones encontradas: {len(detections)}")
             for detection in detections:
-                print(f"  - {detection['class']}: {detection['confidence']:.2f}")
+                gps_info = ""
+                if include_gps and detection.get('location', {}).get('has_location', False):
+                    coords = detection['location']['coordinates']
+                    gps_info = f" [GPS: {coords}]"
+                print(f"  - {detection['class']}: {detection['confidence']:.2f}{gps_info}")
 
         elif args.command == 'report':
             print_section_header("GENERACIÓN DE REPORTE")
+            include_gps = not args.no_gps
             detections = detect_breeding_sites(
                 model_path=args.model,
                 source=args.source,
-                conf_threshold=args.conf
+                conf_threshold=args.conf,
+                include_gps=include_gps
             )
-            report = generate_report(args.source, detections)
+            report = generate_report(args.source, detections, include_gps=include_gps)
             save_report(report, args.output)
 
             print(f"✓ Reporte generado: {args.output}")
             print(f"  Detecciones: {report['total_detections']}")
             print(f"  Nivel de riesgo: {report['risk_assessment']['level']}")
+            if include_gps and any(d.get('location', {}).get('has_location', False) for d in detections):
+                gps_detections = sum(1 for d in detections if d.get('location', {}).get('has_location', False))
+                print(f"  Detecciones con GPS: {gps_detections}/{len(detections)}")
 
     except Exception as e:
         print(f"❌ Error: {e}")

@@ -25,6 +25,12 @@ from .paths import (
     get_default_dataset_config,
     get_default_model_paths
 )
+from .gps_metadata import (
+    extract_image_gps,
+    get_image_camera_info,
+    validate_gps_coordinates,
+    format_gps_for_maps
+)
 
 __all__ = [
     'detect_device',
@@ -47,5 +53,9 @@ __all__ = [
     'resolve_model_path',
     'ensure_project_directories',
     'get_default_dataset_config',
-    'get_default_model_paths'
+    'get_default_model_paths',
+    'extract_image_gps',
+    'get_image_camera_info',
+    'validate_gps_coordinates',
+    'format_gps_for_maps'
 ]
