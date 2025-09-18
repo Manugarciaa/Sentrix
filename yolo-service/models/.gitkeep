@@ -1,0 +1,3 @@
+# Keep this directory in version control
+# Pre-trained and trained models will be downloaded/generated here
+# Large model files (*.pt) are excluded by .gitignore

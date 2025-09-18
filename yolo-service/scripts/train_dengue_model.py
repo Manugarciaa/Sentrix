@@ -3,8 +3,9 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import train_dengue_model
-from utils import print_section_header, find_all_yolo_seg_models, get_yolo_model_specs, get_model_info, get_system_info
+from src.core import train_dengue_model
+from src.utils import find_all_yolo_seg_models, get_yolo_model_specs, get_model_info, get_system_info
+from src.utils.file_ops import print_section_header
 
 def show_available_models():
     """Muestra modelos disponibles y permite seleccionar"""
@@ -107,8 +108,8 @@ def main():
                         help='Número de épocas de entrenamiento')
     parser.add_argument('--batch', type=int, default=1,
                         help='Tamaño del lote')
-    parser.add_argument('--data', type=str, default='configs/dataset.yaml',
-                        help='Archivo de configuración del dataset')
+    parser.add_argument('--data', type=str, default=None,
+                        help='Archivo de configuración del dataset (default: configs/dataset.yaml)')
     parser.add_argument('--patience', type=int, default=50,
                         help='Paciencia para early stopping')
     parser.add_argument('--auto', action='store_true',
@@ -123,9 +124,10 @@ def main():
         # Modelo especificado por usuario
         if args.model in ['n', 's', 'm', 'l', 'x']:
             # Tamaño especificado, buscar el archivo correspondiente
+            from src.utils import get_models_dir, get_project_root
             possible_paths = [
-                f'models/yolo11{args.model}-seg.pt',
-                f'yolo11{args.model}-seg.pt'
+                str(get_models_dir() / f'yolo11{args.model}-seg.pt'),
+                str(get_project_root() / f'yolo11{args.model}-seg.pt')
             ]
             model_path = None
             for path in possible_paths:
