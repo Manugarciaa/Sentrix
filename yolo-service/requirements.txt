@@ -11,6 +11,7 @@ numpy>=1.21.0
 # Utilidades básicas
 PyYAML>=6.0
 tqdm>=4.64.0
+exifread>=3.0.0
 
 # Opcional: análisis y visualización
 matplotlib>=3.5.0

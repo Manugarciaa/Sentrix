@@ -1,0 +1,3 @@
+# Keep this directory in version control
+# Training results and reports will be generated here
+# Output files are excluded by .gitignore

@@ -5,8 +5,10 @@ from pathlib import Path
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from main import detect_breeding_sites, generate_report, save_report
-from utils import validate_model_file, validate_file_exists, get_image_extensions, ensure_directory, print_section_header
+from src.core import detect_breeding_sites
+from src.reports import generate_report, save_report
+from src.utils import validate_model_file, validate_file_exists, get_image_extensions, ensure_directory, get_results_dir
+from src.utils.file_ops import print_section_header
 
 def process_image_directory(model_path, images_dir, output_dir, conf_threshold=0.5):
     """Procesa todas las imágenes en un directorio"""

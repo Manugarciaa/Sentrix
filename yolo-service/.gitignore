@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# YOLO Models (large files - will be downloaded automatically)
+models/*.pt
+models/test_*/
+!models/.gitkeep
+
+# Training outputs
+runs/
+wandb/
+
+# Results and logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Test data (actual images not included in repo)
+data/images/train/
+data/images/val/
+data/images/test/
+data/labels/train/
+data/labels/val/
+data/labels/test/
+
+# Generated outputs
+predictions/*.jpg
+predictions/*.png
+predictions/*.json
+results/*.json
+results/*.txt

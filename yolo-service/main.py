@@ -1,170 +1,121 @@
+"""
+Main entry point for YOLO Dengue Detection Service
+Punto de entrada principal para el Servicio de Detección de Criaderos de Dengue
+
+Usage examples:
+    # Train model
+    python main.py train --model yolo11n-seg.pt --epochs 100
+
+    # Detect in image
+    python main.py detect --model models/best.pt --source image.jpg
+
+    # Generate report
+    python main.py report --model models/best.pt --source image.jpg --output results/
+"""
+
+import argparse
+import sys
 import os
-import json
-from datetime import datetime
-import torch
-from ultralytics import YOLO
-from configs.classes import DENGUE_CLASSES, HIGH_RISK_CLASSES, MEDIUM_RISK_CLASSES
-from utils import detect_device, validate_file_exists, validate_model_file, ensure_directory, cleanup_unwanted_downloads
 
-def train_dengue_model(model_path='yolo11n-seg.pt', 
-                      data_config='configs/dataset.yaml', 
-                      epochs=100,
-                      experiment_name=None):
-    """Entrena modelo YOLOv11-seg para detección de criaderos"""
-    # Validar archivos usando funciones utilitarias
-    if os.path.exists(model_path):
-        validate_model_file(model_path)
-    validate_file_exists(data_config, "Configuración de dataset")
-    
-    # Detectar dispositivo automáticamente
-    device = detect_device()
-    
-    # Generar nombre del experimento
-    if experiment_name is None:
-        from datetime import datetime
-        model_size = 'unknown'
-        model_name = os.path.basename(model_path).lower()
-        
-        for size in ['n', 's', 'm', 'l', 'x']:
-            if f'{size}-seg' in model_name:
-                model_size = size
-                break
-        
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        experiment_name = f"dengue_seg_{model_size}_{epochs}ep_{timestamp}"
-    
+# Add src to Python path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
+from src.core import train_dengue_model, detect_breeding_sites, assess_dengue_risk
+from src.reports import generate_report, save_report
+from src.utils import detect_device, validate_file_exists, get_default_dataset_config
+from src.utils.file_ops import print_section_header
+
+
+def main():
+    """Main CLI interface"""
+    parser = argparse.ArgumentParser(
+        description='YOLO Dengue Detection Service - Detección de criaderos de dengue'
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+
+    # Train command
+    train_parser = subparsers.add_parser('train', help='Train dengue detection model')
+    train_parser.add_argument('--model', default='yolo11n-seg.pt', help='Model path')
+    train_parser.add_argument('--data', default=None, help='Dataset config (default: configs/dataset.yaml)')
+    train_parser.add_argument('--epochs', type=int, default=100, help='Training epochs')
+    train_parser.add_argument('--name', help='Experiment name')
+
+    # Detect command
+    detect_parser = subparsers.add_parser('detect', help='Detect breeding sites')
+    detect_parser.add_argument('--model', required=True, help='Trained model path')
+    detect_parser.add_argument('--source', required=True, help='Image or directory path')
+    detect_parser.add_argument('--conf', type=float, default=0.5, help='Confidence threshold')
+    detect_parser.add_argument('--no-gps', action='store_true', help='Disable GPS metadata extraction')
+
+    # Report command
+    report_parser = subparsers.add_parser('report', help='Generate detection report')
+    report_parser.add_argument('--model', required=True, help='Trained model path')
+    report_parser.add_argument('--source', required=True, help='Image path')
+    report_parser.add_argument('--output', default='results/detection_report.json', help='Output path')
+    report_parser.add_argument('--conf', type=float, default=0.5, help='Confidence threshold')
+    report_parser.add_argument('--no-gps', action='store_true', help='Disable GPS metadata extraction')
+
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        return
+
     try:
-        print(f"Iniciando entrenamiento con {model_path}...")
-        print(f"Experimento: {experiment_name}")
-        # Evitar descargas innecesarias de YOLO
-        os.environ['YOLO_VERBOSE'] = 'False'
-        os.environ['YOLO_AUTODOWNLOAD'] = 'False'
-        
-        model = YOLO(model_path)
-        results = model.train(
-            data=data_config, 
-            task='segment',
-            epochs=epochs, 
-            imgsz=640,
-            batch=1,
-            device=device,
-            patience=50,
-            project='models',
-            name=experiment_name,
-            lr0=0.001,
-            weight_decay=0.001,
-            mosaic=0.5,
-            copy_paste=0.3,
-            amp=False  # Deshabilitar AMP para evitar descargas
-        )
-        print("Entrenamiento completado exitosamente")
-        # Limpiar descargas no deseadas inmediatamente
-        cleanup_unwanted_downloads()
-        return results
+        if args.command == 'train':
+            print_section_header("ENTRENAMIENTO YOLO DENGUE")
+            # Usar configuración por defecto si no se especifica
+            data_config = args.data if args.data else str(get_default_dataset_config())
+
+            results = train_dengue_model(
+                model_path=args.model,
+                data_config=data_config,
+                epochs=args.epochs,
+                experiment_name=args.name
+            )
+            print("✓ Entrenamiento completado exitosamente")
+
+        elif args.command == 'detect':
+            print_section_header("DETECCIÓN DE CRIADEROS")
+            include_gps = not args.no_gps
+            detections = detect_breeding_sites(
+                model_path=args.model,
+                source=args.source,
+                conf_threshold=args.conf,
+                include_gps=include_gps
+            )
+            print(f"✓ Detecciones encontradas: {len(detections)}")
+            for detection in detections:
+                gps_info = ""
+                if include_gps and detection.get('location', {}).get('has_location', False):
+                    coords = detection['location']['coordinates']
+                    gps_info = f" [GPS: {coords}]"
+                print(f"  - {detection['class']}: {detection['confidence']:.2f}{gps_info}")
+
+        elif args.command == 'report':
+            print_section_header("GENERACIÓN DE REPORTE")
+            include_gps = not args.no_gps
+            detections = detect_breeding_sites(
+                model_path=args.model,
+                source=args.source,
+                conf_threshold=args.conf,
+                include_gps=include_gps
+            )
+            report = generate_report(args.source, detections, include_gps=include_gps)
+            save_report(report, args.output)
+
+            print(f"✓ Reporte generado: {args.output}")
+            print(f"  Detecciones: {report['total_detections']}")
+            print(f"  Nivel de riesgo: {report['risk_assessment']['level']}")
+            if include_gps and any(d.get('location', {}).get('has_location', False) for d in detections):
+                gps_detections = sum(1 for d in detections if d.get('location', {}).get('has_location', False))
+                print(f"  Detecciones con GPS: {gps_detections}/{len(detections)}")
+
     except Exception as e:
-        print(f"Error durante el entrenamiento: {e}")
-        raise
+        print(f"❌ Error: {e}")
+        sys.exit(1)
 
-def detect_breeding_sites(model_path, source, conf_threshold=0.5):
-    """Detecta sitios de cría en imágenes usando modelo entrenado"""
-    validate_model_file(model_path)
-    validate_file_exists(source, "Imagen/directorio")
-    
-    try:
-        os.environ['YOLO_VERBOSE'] = 'False'
-        model = YOLO(model_path)
-        results = model(source, conf=conf_threshold, task='segment')
-        
-        detections = []
-        for result in results:
-            if result.masks is not None:
-                for i, mask in enumerate(result.masks):
-                    class_id = int(result.boxes.cls[i])
-                    polygon_coords = mask.xy[0].tolist()
-                    detections.append({
-                        'class': DENGUE_CLASSES.get(class_id, f"Clase_{class_id}"),
-                        'class_id': class_id,
-                        'confidence': float(result.boxes.conf[i]),
-                        'polygon': polygon_coords,
-                        'mask_area': float(mask.data.sum())
-                    })
-        return detections
-    except Exception as e:
-        print(f"Error durante la detección: {e}")
-        raise
-    finally:
-        # Limpiar descargas no deseadas
-        cleanup_unwanted_downloads()
-
-def assess_dengue_risk(detections):
-    """Evalúa riesgo epidemiológico basado en detecciones"""
-    if not isinstance(detections, list):
-        raise ValueError("Las detecciones deben ser una lista")
-    
-    high_risk_count = sum(1 for d in detections 
-                         if d.get('class') in HIGH_RISK_CLASSES)
-    medium_risk_count = sum(1 for d in detections 
-                           if d.get('class') in MEDIUM_RISK_CLASSES)
-    
-    if high_risk_count >= 3:
-        risk_level = "ALTO"
-        recommendations = [
-            "Intervención inmediata requerida",
-            "Eliminar agua estancada inmediatamente"
-        ]
-    elif high_risk_count >= 1 or medium_risk_count >= 3:
-        risk_level = "MEDIO"
-        recommendations = [
-            "Monitoreo regular necesario",
-            "Limpiar recipientes y contenedores"
-        ]
-    elif medium_risk_count >= 1:
-        risk_level = "BAJO"
-        recommendations = [
-            "Mantenimiento preventivo",
-            "Limpieza regular del área"
-        ]
-    else:
-        risk_level = "MÍNIMO"
-        recommendations = ["Vigilancia rutinaria"]
-    
-    return {
-        'level': risk_level,
-        'high_risk_sites': high_risk_count,
-        'medium_risk_sites': medium_risk_count,
-        'recommendations': recommendations
-    }
-
-def generate_report(source, detections):
-    """Genera reporte JSON con detecciones y evaluación de riesgo"""
-    risk_assessment = assess_dengue_risk(detections)
-    
-    report = {
-        'source': os.path.basename(source),
-        'total_detections': len(detections),
-        'timestamp': datetime.now().isoformat(),
-        'detections': detections,
-        'risk_assessment': risk_assessment
-    }
-    
-    return report
-
-def save_report(report, output_path='results/detection_report.json'):
-    """Guarda reporte en archivo JSON"""
-    ensure_directory(os.path.dirname(output_path))
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
 
 if __name__ == "__main__":
-    # Ejemplo de uso
-    print("Sistema de Detección de Criaderos de Dengue - YOLOv11")
-    
-    # Entrenar modelo
-    # train_results = train_dengue_model()
-    
-    # Detectar en imagen
-    # detections = detect_breeding_sites('models/best.pt', 'path/to/image.jpg')
-    # report = generate_report('path/to/image.jpg', detections)
-    # save_report(report)
-    # print(f"Detecciones: {len(detections)}")
-    # print(f"Riesgo: {report['risk_assessment']['level']}")
+    main()

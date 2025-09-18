@@ -1,4 +1,4 @@
-path: C:\Users\manolo\Documents\Tesis\yolo-service\data
+path: ./data
 train: images/train
 val: images/val
 test: images/test

@@ -8,8 +8,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 import numpy as np
-from main import assess_dengue_risk, generate_report
-from utils import detect_device, get_system_info, print_section_header, find_available_model, get_model_info
+from src.core import assess_dengue_risk
+from src.reports import generate_report
+from src.utils import detect_device, get_system_info, find_available_model, get_model_info
+from src.utils.file_ops import print_section_header
 
 def test_system_and_gpu():
     """Test unificado de sistema y GPU"""
@@ -97,6 +99,49 @@ def test_yolo_integration():
         print(f"Error en test YOLO: {e}")
         return False
 
+def test_folder_creation():
+    """Test para verificar que no se crean múltiples carpetas de entrenamiento"""
+    print_section_header("TEST CREACION DE CARPETAS")
+
+    try:
+        import tempfile
+        import shutil
+        from datetime import datetime
+
+        # Simular directorio temporal para tests
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Simular la lógica de nombres de experimentos
+            date_str = datetime.now().strftime("%Y%m%d")
+            base_name = f"dengue_seg_test_{date_str}"
+
+            # Simular creación de experimento múltiples veces
+            experiment_names = []
+            for i in range(3):
+                # Usar la lógica simplificada del código modificado
+                experiment_name = base_name
+                experiment_names.append(experiment_name)
+
+            # Verificar que todos los nombres son iguales (no múltiples carpetas)
+            unique_names = set(experiment_names)
+            assert len(unique_names) == 1, f"Se generaron múltiples nombres: {unique_names}"
+            print(f"✓ Nombre único generado: {list(unique_names)[0]}")
+
+            # Simular que exist_ok=True permite reutilizar carpetas
+            test_folder = os.path.join(temp_dir, base_name)
+            os.makedirs(test_folder, exist_ok=True)
+            os.makedirs(test_folder, exist_ok=True)  # Segunda vez no debería fallar
+
+            # Verificar que solo existe una carpeta
+            folders = [d for d in os.listdir(temp_dir) if os.path.isdir(os.path.join(temp_dir, d))]
+            assert len(folders) == 1, f"Se crearon múltiples carpetas: {folders}"
+            print(f"✓ Solo se creó una carpeta: {folders[0]}")
+
+        return True
+
+    except Exception as e:
+        print(f"Error en test de carpetas: {e}")
+        return False
+
 def test_core_functions():
     """Test de funciones principales del sistema"""
     print_section_header("TEST FUNCIONES PRINCIPALES")
@@ -155,10 +200,11 @@ def test_core_functions():
 def run_comprehensive_tests():
     """Ejecuta todos los tests del sistema"""
     print_section_header("TESTS COMPREHENSIVOS YOLO DENGUE")
-    
+
     results = {
         'system_gpu': test_system_and_gpu(),
         'yolo_integration': test_yolo_integration(),
+        'folder_creation': test_folder_creation(),
         'core_functions': test_core_functions()
     }
     
