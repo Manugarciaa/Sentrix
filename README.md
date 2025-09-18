@@ -40,9 +40,12 @@ El servicio central de IA para detección por visión por computadora y evaluaci
 **Características:**
 - Modelos de segmentación de instancias YOLOv11
 - Evaluación automatizada de riesgo epidemiológico
+- **Geolocalización GPS automática** en detecciones individuales
+- **Metadata de cámara** y trazabilidad completa
 - Soporte de aceleración GPU
 - Interfaces CLI y programáticas
 - Capacidades de procesamiento por lotes
+- **Formato optimizado para backend** con coordenadas precisas
 
 [**Ver documentación del servicio YOLO**](./yolo-service/README.md)
 
@@ -54,6 +57,8 @@ Servicio API RESTful para integrar Sentrix en sistemas más grandes.
 - Endpoints de API REST para integración con sistemas municipales
 - Autenticación de usuarios con roles (administrador, experto, técnico, usuario)
 - Base de datos PostgreSQL + PostGIS para datos geoespaciales
+- **Almacenamiento de detecciones georeferenciadas** desde el servicio YOLO
+- **Integración automática de metadata GPS** en base de datos
 - Gestión de almacenamiento de imágenes con metadatos EXIF
 - Integración con APIs meteorológicas (OpenWeatherMap, ClimaCell)
 - Procesamiento de trabajos por lotes y colas de tareas
@@ -63,12 +68,14 @@ Servicio API RESTful para integrar Sentrix en sistemas más grandes.
 Interfaz de usuario basada en web para interacción fácil con la plataforma.
 
 **Características Planificadas:**
-- Mapas interactivos con capas de riesgo y detecciones
+- **Mapas interactivos** con detecciones georeferenciadas automáticas
+- **Visualización GPS** de criaderos detectados en tiempo real
 - Carga manual de imágenes por usuarios con geolocalización
 - Mapas de calor para visualización de zonas críticas
 - Dashboards con estadísticas y series temporales
 - Sistema de alertas tempranas basado en índices de riesgo
-- Exportación de reportes en PDF/CSV
+- **URLs de verificación** integradas (Google Maps, Google Earth)
+- Exportación de reportes en PDF/CSV con coordenadas
 - Participación ciudadana con validación comunitaria
 
 ## Quick Start
@@ -80,8 +87,11 @@ git clone https://github.com/yourusername/sentrix.git
 cd sentrix/yolo-service
 pip install -r requirements.txt
 
-# Run detection on an image
+# Run detection with GPS integration
 python main.py detect --model yolo11s-seg.pt --source your_image.jpg
+
+# Generate report with geolocation data
+python main.py report --model yolo11s-seg.pt --source your_image.jpg --output report.json
 ```
 
 For detailed instructions, see the [YOLO Service README](./yolo-service/README.md).
@@ -108,16 +118,16 @@ The platform evaluates epidemiological risk based on detected breeding sites:
 
 | Componente | Estado | Descripción | Cronograma |
 |-----------|--------|-------------|------------|
-| **Servicio YOLO** | **Completo** | Detección IA con YOLOv11 funcional | ✅ Julio-Agosto 2024 |
+| **Servicio YOLO** | **✅ Completo + GPS** | Detección IA con geolocalización automática | ✅ Julio-Agosto 2024 + Sept 2025 |
 | **Backend API** | **En Desarrollo** | API REST + base de datos geoespacial | 🚧 Septiembre 2024 |
-| **Frontend Web** | **Planificado** | Mapas interactivos y dashboards | 📋 Octubre 2024 |
+| **Frontend Web** | **Planificado** | Mapas interactivos con GPS integrado | 📋 Octubre 2024 |
 | **Integración Meteorológica** | **Planificado** | APIs clima + índices de riesgo | 📋 Octubre 2024 |
 | **App Móvil** | **Futuro** | Aplicación para trabajo de campo | 🔮 2025 |
 
 ### Roadmap del Proyecto
 
-**Fase 1 (Completa):** Core IA - Detección automatizada de criaderos
-**Fase 2 (En Progreso):** Plataforma Web - Visualización y gestión de datos
+**Fase 1 (Completa + GPS):** Core IA - Detección automatizada con geolocalización automática
+**Fase 2 (En Progreso):** Plataforma Web - Visualización georeferenciada y gestión de datos
 **Fase 3 (Planificada):** Análisis Contextual - Integración meteorológica y alertas
 **Fase 4 (Futura):** Escalamiento - Apps móviles y participación ciudadana masiva
 
@@ -159,18 +169,25 @@ Al usar Sentrix en trabajo académico, por favor cita:
 
 ### Limitaciones y Consideraciones
 
-- **Especificidad Geográfica**: Modelos entrenados con datos regionales específicos
-- **Tamaño del Dataset**: Datos de entrenamiento limitados (73 imágenes total)
+- **Especificidad Geográfica**: Modelos entrenados con datos regionales específicos (Argentina)
+- **Tamaño del Dataset**: Datos de entrenamiento limitados (82 imágenes total, 46 con GPS)
+- **Cobertura GPS**: 56.1% de imágenes tienen geolocalización (principalmente Xiaomi)
 - **Dependencia Climática**: Restricciones legales y meteorológicas para uso de drones
 - **Validación Requerida**: Los resultados necesitan verificación por especialistas en salud pública
 - **Cobertura Logística**: Limitada a zonas con acceso para captura o carga de datos
 - **Calidad de Imágenes**: El rendimiento varía con condiciones de iluminación y clima
 
-### Resultados Esperados
+### Resultados Logrados y Esperados
 
-- Modelo de IA con alta precisión para detección de superficies con agua estancada
+**✅ Logrado en Fase 1:**
+- Modelo de IA funcional con detección de criaderos y geolocalización automática
+- Sistema de evaluación de riesgo epidemiológico validado
+- **56.1% de cobertura GPS** en dataset con coordenadas precisas de Argentina
+- **Detecciones georeferenciadas** listas para integración con backend
+
+**🎯 Esperado en Fases Futuras:**
 - Índice de riesgo contextualizado para anticipar zonas de alta probabilidad de proliferación
-- Plataforma web intuitiva para difusión de información y toma de decisiones
+- Plataforma web intuitiva con mapas interactivos y geolocalización
 - Sistema validado en condiciones reales, listo para implementación piloto
 - Herramientas de participación ciudadana para involucramiento comunitario
 

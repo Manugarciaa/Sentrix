@@ -315,12 +315,14 @@ El sistema ahora **evita crear múltiples carpetas** durante el entrenamiento:
 
 ### Ejecución de tests completos
 ```bash
-# Tests usando nueva estructura modular
+# Tests del sistema unificado
 python tests/test_unified.py
 
-# Tests específicos
-python -m pytest tests/unit/
-python -m pytest tests/integration/
+# Tests del sistema completo
+python tests/test_complete_system.py
+
+# Tests de metadata GPS
+python tests/test_gps_metadata.py
 ```
 
 **Tests incluidos:**
@@ -328,7 +330,8 @@ python -m pytest tests/integration/
 - Validación de carga y funcionamiento de modelos YOLO
 - Comprobación de funciones de evaluación de riesgo
 - Tests de integridad del pipeline completo
-- **Nuevo**: Test de prevención de carpetas múltiples
+- **GPS**: Extracción de metadata GPS en 56.1% del dataset (46/82 imágenes)
+- **GPS**: Detecciones individuales con geolocalización integrada
 
 ## Solución de problemas comunes
 
