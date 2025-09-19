@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+
+# FastAPI/Backend específico
+*.db
+*.sqlite
+*.sqlite3
+test.db
+
+# Database migrations (temporal - mantener solo las finales)
+alembic/versions/*.py~
+alembic/versions/.*.py
+
+# Logs y archivos temporales
+*.log
+*.tmp
+*.pid
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Desarrollo y testing
+test_simple.py
+test_api_simple.py
+test_summary.py
+TESTS_COMPLETE.md
+
+# Scripts outputs y logs
+scripts/*.log
+scripts/temp/
+scripts/output/
+
+# Archivos temporales de uploads (en producción usar S3/Supabase)
+uploads/
+temp/
+tmp/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Supabase local
+.supabase/
+
+# Certificates y keys (NUNCA commitear)
+*.pem
+*.key
+*.cert
+secrets/
+
+# Requirements temporales
+requirements-test.txt
+
+# Backup files
+*.bak
+*.backup

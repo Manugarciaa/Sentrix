@@ -1,0 +1,46 @@
+# Database configuration for Sentrix Backend
+# Configuración de base de datos para Sentrix Backend
+
+# Following yolo-service pattern for configuration files
+# Siguiendo el patrón de yolo-service para archivos de configuración
+
+database:
+  # PostgreSQL connection settings
+  host: localhost
+  port: 5432
+  name: sentrix
+  user: sentrix_user
+  password: sentrix_password
+
+  # Connection pool settings
+  pool_size: 10
+  max_overflow: 20
+  pool_pre_ping: true
+  pool_recycle: 300
+
+  # PostGIS extension
+  enable_postgis: true
+
+  # Backup settings
+  backup_retention_days: 30
+  auto_backup: true
+  backup_schedule: "0 2 * * *"  # Daily at 2 AM
+
+# Test database configuration
+test_database:
+  host: localhost
+  port: 5432
+  name: sentrix_test
+  user: sentrix_test_user
+  password: sentrix_test_password
+
+# Migration settings
+migrations:
+  auto_upgrade: true
+  create_backup_before_migration: true
+
+# Performance settings
+performance:
+  enable_query_logging: false
+  slow_query_threshold_ms: 1000
+  enable_connection_pooling: true
