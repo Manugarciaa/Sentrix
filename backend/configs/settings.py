@@ -31,6 +31,9 @@ class DatabaseSettings(BaseSettings):
     pool_recycle: int = 300
     enable_postgis: bool = True
 
+    class Config:
+        extra = "ignore"
+
 
 class APISettings(BaseSettings):
     """API configuration settings"""
@@ -45,6 +48,9 @@ class APISettings(BaseSettings):
     docs_url: str = "/docs"
     redoc_url: str = "/redoc"
 
+    class Config:
+        extra = "ignore"  # Ignore extra fields
+
 
 class ExternalServicesSettings(BaseSettings):
     """External services configuration"""
@@ -58,6 +64,9 @@ class ExternalServicesSettings(BaseSettings):
     supabase_key: str = os.getenv("SUPABASE_KEY", "")
     supabase_jwt_secret: str = os.getenv("SUPABASE_JWT_SECRET", "")
 
+    class Config:
+        extra = "ignore"
+
 
 class SecuritySettings(BaseSettings):
     """Security configuration"""
@@ -67,6 +76,9 @@ class SecuritySettings(BaseSettings):
 
     secret_key: str = os.getenv("SECRET_KEY", "development-secret-key")
 
+    class Config:
+        extra = "ignore"
+
 
 class FileHandlingSettings(BaseSettings):
     """File handling configuration"""
@@ -75,6 +87,9 @@ class FileHandlingSettings(BaseSettings):
     allowed_extensions: List[str] = ["jpg", "jpeg", "png", "tiff"]
     cleanup_temp_files: bool = True
     temp_file_retention_hours: int = 24
+
+    class Config:
+        extra = "ignore"
 
 
 class Settings(BaseSettings):
@@ -191,7 +206,7 @@ class Settings(BaseSettings):
             return settings
 
         except Exception as e:
-            print(f"❌ Error loading YAML configuration: {e}")
+            print(f"ERROR: Error loading YAML configuration: {e}")
             return cls()
 
     def load_database_config(self) -> DatabaseSettings:
@@ -219,7 +234,7 @@ class Settings(BaseSettings):
                 return DatabaseSettings(**db_config)
 
         except Exception as e:
-            print(f"❌ Error loading database configuration: {e}")
+            print(f"ERROR: Error loading database configuration: {e}")
 
         return self.database
 

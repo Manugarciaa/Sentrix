@@ -42,12 +42,12 @@ def limpiar_analisis_antiguos(dias=30):
             print("✓ No hay análisis antiguos para eliminar")
             return
 
-        print(f"⚠️  Se eliminarán {count_analisis} análisis anteriores al {fecha_limite.date()}")
+        print(f"WARNING:  Se eliminarán {count_analisis} análisis anteriores al {fecha_limite.date()}")
 
         # Confirmar acción
         respuesta = input("¿Continuar? (s/N): ").lower()
         if respuesta != 's':
-            print("❌ Operación cancelada")
+            print("ERROR: Operación cancelada")
             return
 
         # Eliminar análisis (las detecciones se eliminan por cascade)
@@ -56,7 +56,7 @@ def limpiar_analisis_antiguos(dias=30):
         ).delete()
 
         db.commit()
-        print(f"✅ {eliminados} análisis eliminados exitosamente")
+        print(f"OK: {eliminados} análisis eliminados exitosamente")
 
 
 def optimizar_base_datos():
@@ -79,10 +79,10 @@ def optimizar_base_datos():
             db.execute(text("REINDEX TABLE detections;"))
 
             db.commit()
-            print("✅ Optimización completada")
+            print("OK: Optimización completada")
 
         except Exception as e:
-            print(f"❌ Error durante optimización: {e}")
+            print(f"ERROR: Error durante optimización: {e}")
             db.rollback()
 
 
@@ -96,12 +96,12 @@ def generar_estadisticas():
         total_analisis = db.query(Analysis).count()
         total_detecciones = db.query(Detection).count()
 
-        print(f"📊 Usuarios registrados: {total_usuarios}")
-        print(f"📊 Total análisis: {total_analisis}")
-        print(f"📊 Total detecciones: {total_detecciones}")
+        print(f"DATA: Usuarios registrados: {total_usuarios}")
+        print(f"DATA: Total análisis: {total_analisis}")
+        print(f"DATA: Total detecciones: {total_detecciones}")
 
         # Análisis por mes (últimos 6 meses)
-        print("\n📈 Análisis por mes (últimos 6 meses):")
+        print("\nCHART: Análisis por mes (últimos 6 meses):")
         resultado = db.query(
             func.date_trunc('month', Analysis.created_at).label('mes'),
             func.count(Analysis.id).label('cantidad')
@@ -128,7 +128,7 @@ def generar_estadisticas():
                 print(f"  {tipo.value}: {cantidad} detecciones")
 
         # Estado de validaciones
-        print("\n✅ Estado de validaciones:")
+        print("\nOK: Estado de validaciones:")
         resultado = db.query(
             Detection.validation_status,
             func.count(Detection.id).label('cantidad')
@@ -155,7 +155,7 @@ def verificar_integridad():
         ).count()
 
         if analisis_huerfanos > 0:
-            errores.append(f"❌ {analisis_huerfanos} análisis sin usuario válido")
+            errores.append(f"ERROR: {analisis_huerfanos} análisis sin usuario válido")
 
         # Verificar detecciones huérfanas (sin análisis)
         detecciones_huerfanas = db.query(Detection).filter(
@@ -165,7 +165,7 @@ def verificar_integridad():
         ).count()
 
         if detecciones_huerfanas > 0:
-            errores.append(f"❌ {detecciones_huerfanas} detecciones sin análisis válido")
+            errores.append(f"ERROR: {detecciones_huerfanas} detecciones sin análisis válido")
 
         # Verificar consistencia de conteos
         for analisis in db.query(Analysis).limit(100):
@@ -175,14 +175,14 @@ def verificar_integridad():
 
             if analisis.total_detections != detecciones_reales:
                 errores.append(
-                    f"❌ Análisis {analisis.id}: cuenta {analisis.total_detections} "
+                    f"ERROR: Análisis {analisis.id}: cuenta {analisis.total_detections} "
                     f"pero tiene {detecciones_reales} detecciones"
                 )
 
         if not errores:
-            print("✅ No se encontraron problemas de integridad")
+            print("OK: No se encontraron problemas de integridad")
         else:
-            print("⚠️  Problemas encontrados:")
+            print("WARNING:  Problemas encontrados:")
             for error in errores[:10]:  # Mostrar solo los primeros 10
                 print(f"  {error}")
 
@@ -192,7 +192,7 @@ def verificar_integridad():
 
 def main():
     """Función principal del script"""
-    print("🔧 Script de Mantenimiento de Base de Datos - Sentrix Backend")
+    print("TOOL: Script de Mantenimiento de Base de Datos - Sentrix Backend")
     print("=" * 60)
 
     opciones = {
@@ -232,19 +232,19 @@ def main():
                             dias = int(input("📅 Días de antigüedad (default 30): ") or "30")
                             funcion(dias)
                         except ValueError:
-                            print("❌ Número de días inválido")
+                            print("ERROR: Número de días inválido")
                     else:
                         funcion()
                 else:
-                    print("❌ Opción no implementada")
+                    print("ERROR: Opción no implementada")
             else:
-                print("❌ Opción inválida. Intente nuevamente.")
+                print("ERROR: Opción inválida. Intente nuevamente.")
 
         except KeyboardInterrupt:
             print("\n\n👋 Operación cancelada por el usuario")
             break
         except Exception as e:
-            print(f"❌ Error inesperado: {e}")
+            print(f"ERROR: Error inesperado: {e}")
 
 
 if __name__ == "__main__":

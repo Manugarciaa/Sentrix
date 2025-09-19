@@ -26,10 +26,10 @@ def verificar_python():
     print(f"🐍 Python {version.major}.{version.minor}.{version.micro}")
 
     if version.major < 3 or (version.major == 3 and version.minor < 9):
-        print("❌ Se requiere Python 3.9 o superior")
+        print("ERROR: Se requiere Python 3.9 o superior")
         return False
 
-    print("✅ Versión de Python compatible")
+    print("OK: Versión de Python compatible")
     return True
 
 
@@ -55,16 +55,16 @@ def verificar_dependencias_sistema():
             )
             if resultado.returncode == 0:
                 version = resultado.stdout.strip().split('\n')[0]
-                print(f"✅ {nombre}: {version}")
+                print(f"OK: {nombre}: {version}")
             else:
-                print(f"❌ {nombre}: No disponible")
+                print(f"ERROR: {nombre}: No disponible")
                 todas_disponibles = False
         except (subprocess.TimeoutExpired, FileNotFoundError):
-            print(f"❌ {nombre}: No encontrado")
+            print(f"ERROR: {nombre}: No encontrado")
             todas_disponibles = False
 
     if not todas_disponibles:
-        print("\n⚠️  Algunas dependencias no están disponibles.")
+        print("\nWARNING:  Algunas dependencias no están disponibles.")
         print("   PostgreSQL y Redis son opcionales para desarrollo local.")
 
     return True  # No bloquear por dependencias opcionales
@@ -82,16 +82,16 @@ def configurar_entorno_virtual():
             print("🗑️  Eliminando entorno virtual existente...")
             shutil.rmtree(venv_path)
         else:
-            print("✅ Usando entorno virtual existente")
+            print("OK: Usando entorno virtual existente")
             return True
 
     print("🔨 Creando entorno virtual...")
     try:
         subprocess.run([sys.executable, "-m", "venv", "venv"], check=True)
-        print("✅ Entorno virtual creado")
+        print("OK: Entorno virtual creado")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error creando entorno virtual: {e}")
+        print(f"ERROR: Error creando entorno virtual: {e}")
         return False
 
 
@@ -106,20 +106,20 @@ def instalar_dependencias():
         pip_cmd = ["venv/bin/pip"]
 
     # Actualizar pip
-    print("📦 Actualizando pip...")
+    print("PACKAGE: Actualizando pip...")
     try:
         subprocess.run(pip_cmd + ["install", "--upgrade", "pip"], check=True)
-        print("✅ pip actualizado")
+        print("OK: pip actualizado")
     except subprocess.CalledProcessError as e:
-        print(f"⚠️  Error actualizando pip: {e}")
+        print(f"WARNING:  Error actualizando pip: {e}")
 
     # Instalar dependencias principales
-    print("📦 Instalando dependencias principales...")
+    print("PACKAGE: Instalando dependencias principales...")
     try:
         subprocess.run(pip_cmd + ["install", "-r", "requirements.txt"], check=True)
-        print("✅ Dependencias principales instaladas")
+        print("OK: Dependencias principales instaladas")
     except subprocess.CalledProcessError as e:
-        print(f"❌ Error instalando dependencias: {e}")
+        print(f"ERROR: Error instalando dependencias: {e}")
         return False
 
     return True
@@ -133,28 +133,28 @@ def configurar_archivo_env():
     env_example_path = Path(".env.example")
 
     if not env_example_path.exists():
-        print("❌ Archivo .env.example no encontrado")
+        print("ERROR: Archivo .env.example no encontrado")
         return False
 
     if env_path.exists():
         respuesta = input("🔄 El archivo .env ya existe. ¿Sobrescribir? (s/N): ")
         if respuesta.lower() != 's':
-            print("✅ Manteniendo archivo .env existente")
+            print("OK: Manteniendo archivo .env existente")
             return True
 
-    print("📝 Creando archivo .env desde plantilla...")
+    print("NOTES: Creando archivo .env desde plantilla...")
     try:
         shutil.copy(env_example_path, env_path)
-        print("✅ Archivo .env creado")
+        print("OK: Archivo .env creado")
 
-        print("\n⚠️  IMPORTANTE: Editar .env con valores reales:")
+        print("\nWARNING:  IMPORTANTE: Editar .env con valores reales:")
         print("   - DATABASE_URL: URL de PostgreSQL")
         print("   - YOLO_SERVICE_URL: URL del servicio YOLO")
         print("   - SUPABASE_URL y SUPABASE_KEY: Credenciales de Supabase")
 
         return True
     except Exception as e:
-        print(f"❌ Error creando .env: {e}")
+        print(f"ERROR: Error creando .env: {e}")
         return False
 
 
@@ -165,7 +165,7 @@ def configurar_base_datos():
     # Verificar si Alembic está disponible
     alembic_ini = Path("alembic.ini")
     if not alembic_ini.exists():
-        print("❌ Configuración de Alembic no encontrada")
+        print("ERROR: Configuración de Alembic no encontrada")
         return False
 
     respuesta = input("🗄️  ¿Ejecutar migraciones de base de datos? (s/N): ")
@@ -182,10 +182,10 @@ def configurar_base_datos():
     print("🔄 Ejecutando migraciones...")
     try:
         subprocess.run(python_cmd + ["run_migrations.py"], check=True)
-        print("✅ Migraciones ejecutadas")
+        print("OK: Migraciones ejecutadas")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"⚠️  Error en migraciones (posible si no hay DB): {e}")
+        print(f"WARNING:  Error en migraciones (posible si no hay DB): {e}")
         print("   Asegúrate de que PostgreSQL esté corriendo y configurado")
         return True  # No bloquear por esto
 
@@ -211,10 +211,10 @@ def ejecutar_tests():
             python_cmd + ["-m", "pytest", "tests/test_yolo_integration.py", "-v"],
             check=True
         )
-        print("✅ Tests básicos pasaron")
+        print("OK: Tests básicos pasaron")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"⚠️  Algunos tests fallaron: {e}")
+        print(f"WARNING:  Algunos tests fallaron: {e}")
         print("   Esto es normal si las dependencias externas no están configuradas")
         return True
 
@@ -252,7 +252,7 @@ def mostrar_instrucciones_finales():
 
 def main():
     """Función principal del script"""
-    print("🚀 Script de Configuración de Desarrollo - Sentrix Backend")
+    print("LAUNCH: Script de Configuración de Desarrollo - Sentrix Backend")
     print("=" * 60)
 
     pasos = [
@@ -273,9 +273,9 @@ def main():
         try:
             if funcion():
                 exitosos += 1
-                print(f"✅ {nombre} completado")
+                print(f"OK: {nombre} completado")
             else:
-                print(f"❌ {nombre} falló")
+                print(f"ERROR: {nombre} falló")
                 respuesta = input("¿Continuar con el siguiente paso? (s/N): ")
                 if respuesta.lower() != 's':
                     break
@@ -283,19 +283,19 @@ def main():
             print(f"\n\n👋 Configuración cancelada en: {nombre}")
             return False
         except Exception as e:
-            print(f"❌ Error inesperado en {nombre}: {e}")
+            print(f"ERROR: Error inesperado en {nombre}: {e}")
             respuesta = input("¿Continuar? (s/N): ")
             if respuesta.lower() != 's':
                 break
 
     # Mostrar resultado final
-    print(f"\n📊 Resultado: {exitosos}/{total} pasos completados")
+    print(f"\nDATA: Resultado: {exitosos}/{total} pasos completados")
 
     if exitosos >= total - 1:  # Permitir 1 fallo
         mostrar_instrucciones_finales()
         return True
     else:
-        print("⚠️  La configuración no se completó correctamente.")
+        print("WARNING:  La configuración no se completó correctamente.")
         print("   Revisar errores y ejecutar nuevamente.")
         return False
 

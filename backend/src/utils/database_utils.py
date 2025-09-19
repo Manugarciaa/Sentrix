@@ -53,10 +53,10 @@ def validate_connection():
             return result.fetchone() is not None
 
     except SQLAlchemyError as e:
-        print(f"❌ Error de conexión a la base de datos: {e}")
+        print(f"ERROR: Error de conexión a la base de datos: {e}")
         return False
     except Exception as e:
-        print(f"❌ Error inesperado: {e}")
+        print(f"ERROR: Error inesperado: {e}")
         return False
 
 

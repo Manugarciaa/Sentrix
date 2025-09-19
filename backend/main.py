@@ -104,7 +104,7 @@ async def main():
             await handle_validate_commands(args)
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"ERROR: Error: {e}")
         sys.exit(1)
 
 
@@ -115,18 +115,18 @@ async def handle_database_commands(args):
 
         # Test basic connection
         connection_ok = test_connection()
-        print(f"Conexión básica: {'✓' if connection_ok else '❌'}")
+        print(f"Conexión básica: {'✓' if connection_ok else 'ERROR:'}")
 
         if connection_ok:
             # Get detailed info
             db_info = get_database_info()
             print(f"URL: {db_info.get('database_url', 'N/A')}")
             print(f"Versión: {db_info.get('version', 'N/A')}")
-            print(f"PostGIS disponible: {'✓' if db_info.get('postgis_available') else '❌'}")
+            print(f"PostGIS disponible: {'✓' if db_info.get('postgis_available') else 'ERROR:'}")
 
         # Test utils validation
         utils_validation = validate_connection()
-        print(f"Validación utils: {'✓' if utils_validation else '❌'}")
+        print(f"Validación utils: {'✓' if utils_validation else 'ERROR:'}")
 
     elif args.db_action == 'migrate':
         print_section_header("EJECUTANDO MIGRACIONES")
@@ -189,7 +189,7 @@ async def handle_batch_command(args):
     ]
 
     if not image_paths:
-        print(f"❌ No se encontraron imágenes en: {args.directory}")
+        print(f"ERROR: No se encontraron imágenes en: {args.directory}")
         return
 
     print(f"Encontradas {len(image_paths)} imágenes")
@@ -211,7 +211,7 @@ async def handle_batch_command(args):
     print(f"  Total de análisis: {len(results['analyses'])}")
 
     if results['errors']:
-        print("❌ Errores encontrados:")
+        print("ERROR: Errores encontrados:")
         for error in results['errors']:
             print(f"  - {error['image_path']}: {error['error']}")
 
@@ -234,7 +234,7 @@ async def handle_validate_commands(args):
 
         print(f"Encontradas {len(pending)} detecciones pendientes:")
         for detection in pending:
-            gps_icon = "🌍" if detection['has_gps'] else "📷"
+            gps_icon = "LOCATION:" if detection['has_gps'] else "📷"
             print(f"  {gps_icon} ID: {detection['detection_id']} | "
                   f"Clase: {detection['class_name']} | "
                   f"Confianza: {detection['confidence']:.2f} | "
@@ -253,7 +253,7 @@ async def handle_validate_commands(args):
             expert_notes=args.notes
         )
 
-        status_icon = "✓" if is_valid else "❌"
+        status_icon = "✓" if is_valid else "ERROR:"
         print(f"{status_icon} Detección {args.detection_id} {action_text.lower()} por experto {args.expert_id}")
         if args.notes:
             print(f"  Notas: {args.notes}")

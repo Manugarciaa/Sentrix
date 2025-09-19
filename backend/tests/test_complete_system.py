@@ -539,15 +539,15 @@ def ejecutar_test_completo_sistema():
 
                 metodo()
                 tests_exitosos += 1
-                print(f"    ✅ {nombre_metodo}")
+                print(f"    OK: {nombre_metodo}")
 
             except Exception as e:
-                print(f"    ❌ {nombre_metodo}: {e}")
+                print(f"    ERROR: {nombre_metodo}: {e}")
 
     imprimir_encabezado_seccion("RESULTADOS DEL TEST DEL SISTEMA")
-    print(f"✅ Exitosos: {tests_exitosos}")
-    print(f"❌ Fallidos: {total_tests - tests_exitosos}")
-    print(f"📊 Tasa de éxito: {tests_exitosos/total_tests*100:.1f}%")
+    print(f"OK: Exitosos: {tests_exitosos}")
+    print(f"ERROR: Fallidos: {total_tests - tests_exitosos}")
+    print(f"DATA: Tasa de éxito: {tests_exitosos/total_tests*100:.1f}%")
 
     return tests_exitosos == total_tests
 

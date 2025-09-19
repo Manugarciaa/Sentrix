@@ -21,12 +21,14 @@ Este servicio constituye el **núcleo backend** de la plataforma Sentrix, propor
 - **Manejo robusto de errores** con códigos HTTP apropiados
 - **CORS configurado** para integración con frontend
 
-### Base de Datos Geoespacial
-- **PostgreSQL con PostGIS** para almacenamiento y consultas geoespaciales
-- **SQLAlchemy ORM** con migraciones Alembic automáticas
+### Base de Datos Supabase
+- **PostgreSQL en la nube** con Supabase para escalabilidad automática
+- **3 tablas principales** (user_profiles, analyses, detections) ya configuradas
+- **6 tipos enum** para consistencia de datos
 - **Modelos relacionales** optimizados para consultas epidemiológicas
 - **Soporte completo GPS** con extracción de metadatos EXIF
-- **Índices geoespaciales** para consultas de proximidad eficientes
+- **Índices optimizados** para consultas de alto rendimiento
+- **Real-time subscriptions** para actualizaciones en tiempo real
 
 ### Integración con YOLO Service
 - **Cliente HTTP asíncrono** para comunicación optimizada con servicio YOLO
@@ -35,11 +37,12 @@ Este servicio constituye el **núcleo backend** de la plataforma Sentrix, propor
 - **Validación de respuestas** y manejo de errores del servicio IA
 - **Caché inteligente** para optimizar rendimiento
 
-### Sistema de Autenticación y Autorización
-- **Integración Supabase** para autenticación robusta
-- **Roles granulares** (admin, expert, analyst, user) con permisos específicos
-- **JWT tokens** para autenticación stateless
-- **Middleware de seguridad** con rate limiting integrado
+### Sistema de Autenticación Supabase
+- **Supabase Auth** completamente integrado y funcional
+- **Roles granulares** (admin, expert, analyst, user) implementados en BD
+- **JWT tokens** gestionados automáticamente por Supabase
+- **Middleware de seguridad** con protección de rutas
+- **Gestión de usuarios** con metadatos personalizados
 
 ### Validación por Expertos
 - **Sistema de revisión** para validación manual de detecciones
@@ -52,10 +55,10 @@ Este servicio constituye el **núcleo backend** de la plataforma Sentrix, propor
 ### Requisitos del Sistema
 
 - Python 3.9 o superior
-- PostgreSQL 13+ con extensión PostGIS
-- Redis 6+ (para caché y tareas asíncronas)
-- Cuenta Supabase (para autenticación)
+- **Cuenta Supabase** (requerida - base de datos en la nube)
+- Redis 6+ (opcional - para caché y tareas asíncronas)
 - 4GB RAM mínimo, 8GB recomendado
+- Conexión a internet estable
 
 ### Instalación de Dependencias
 
@@ -76,38 +79,35 @@ pip install -r requirements.txt
 1. **Variables de entorno** - Copiar `.env.example` a `.env`:
 
 ```bash
-# Base de datos PostgreSQL
-DATABASE_URL=postgresql://user:password@localhost:5432/sentrix
+# Base de datos Supabase (requerido)
+DATABASE_URL=postgresql://postgres.project:password@aws-0-region.pooler.supabase.com:5432/postgres
+
+# Supabase Configuration (requerido)
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-public-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Servicios integrados
 YOLO_SERVICE_URL=http://localhost:8001
 REDIS_URL=redis://localhost:6379
-
-# Autenticación Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-SUPABASE_JWT_SECRET=your-jwt-secret
 
 # Configuración de API
 DEBUG=true
 SECRET_KEY=your-super-secret-key
 ```
 
-2. **Configurar PostgreSQL con PostGIS**:
-
-```sql
--- Crear base de datos
-CREATE DATABASE sentrix;
-
--- Conectar a la base de datos y habilitar PostGIS
-\\c sentrix;
-CREATE EXTENSION IF NOT EXISTS postgis;
-```
-
-3. **Ejecutar migraciones**:
+2. **Configurar Supabase Database**:
 
 ```bash
-python run_migrations.py
+# Ejecutar el script de configuración automática
+python scripts/setup_supabase_tables.py
+```
+
+3. **Verificar la conexión**:
+
+```bash
+# Test de conexión básica
+python tests/test_supabase_simple.py
 ```
 
 ## Estructura del Servicio
@@ -136,7 +136,7 @@ backend/
 │       └── integrations/       # Integraciones externas
 ├── configs/                    # Configuración del servicio
 │   └── settings.py             # Configuraciones principales
-├── app/                        # Aplicación FastAPI (legacy)
+├── app/                        # Aplicación FastAPI
 │   ├── api/                    # Endpoints REST estructurados
 │   │   └── v1/                 # API versión 1
 │   │       ├── health.py       # Health checks del sistema
@@ -146,21 +146,21 @@ backend/
 │   ├── env.py                  # Configuración Alembic
 │   └── versions/               # Versiones de migración
 ├── tests/                      # Suite completa de testing
-│   ├── unit/                   # Tests unitarios por módulo
-│   ├── integration/            # Tests de integración
 │   ├── test_models.py          # Tests de modelos de datos
 │   ├── test_yolo_integration.py # Tests de integración YOLO
 │   └── test_complete_system.py # Validación del sistema completo
 ├── scripts/                    # Scripts de utilidad y mantenimiento
 │   ├── setup_development.py   # Configuración de desarrollo
 │   ├── database_maintenance.py # Mantenimiento de BD
-│   └── test_yolo_integration.py # Test de integración YOLO
-├── logs/                       # Logs del sistema (auto-creado)
+│   ├── test_yolo_integration.py # Test de integración YOLO
+│   ├── run_migrations.py      # Ejecutor de migraciones
+│   ├── run_server.py          # Servidor de desarrollo
+│   └── run_tests.py           # Ejecutor de tests
 ├── main.py                     # CLI principal con subcomandos
-├── run_server.py               # Servidor de desarrollo
-├── run_migrations.py           # Ejecutor de migraciones
-├── run_tests.py                # Ejecutor de tests
-└── requirements.txt            # Dependencias Python
+├── requirements.txt            # Dependencias Python
+├── .env.example               # Ejemplo de variables de entorno
+├── .gitignore                 # Archivos ignorados por Git
+└── .coveragerc                # Configuración de cobertura de tests
 ```
 
 ## Uso del Sistema
@@ -426,12 +426,46 @@ pytest tests/test_yolo_integration.py -v
 ```
 
 **Tests incluidos:**
-- Verificación de modelos de base de datos y relaciones
-- Validación de endpoints API con autenticación
-- Tests de integración con YOLO service
-- Pruebas de procesamiento por lotes
-- Validación de extracción de metadatos GPS
-- Tests de sistema completo end-to-end
+- ✅ **Tests básicos** (test_simple.py, test_basic_*.py) - Funcionalidad core
+- ✅ **Tests de Supabase** (test_supabase_*.py) - Integración completa con BD
+- ✅ **Tests de modelos** (test_models.py) - Validación de estructura de datos
+- ✅ **Tests de API** (test_api_endpoints.py) - Endpoints REST
+- ✅ **Tests de integración YOLO** (test_yolo_*.py) - Comunicación con IA
+- ✅ **Tests de sistema completo** (test_complete_system.py) - End-to-end
+
+## Integración Supabase
+
+### Estado de la Integración: ✅ Completada
+
+La integración con Supabase está **100% funcional** con las siguientes características:
+
+**Base de Datos:**
+- **3 tablas principales**: user_profiles, analyses, detections
+- **6 tipos enum**: Para datos consistentes
+- **6 índices optimizados**: Para rendimiento
+- **Coordenadas GPS**: Almacenamiento georeferenciado
+- **Relaciones FK**: Integridad referencial
+
+**Funcionalidades Disponibles:**
+- ✅ **CRUD completo** en todas las tablas
+- ✅ **Autenticación de usuarios** con roles
+- ✅ **Consultas complejas** con joins y filtros
+- ✅ **Real-time subscriptions** disponibles
+- ✅ **Gestión automática** de timestamps
+- ✅ **Validación de datos** con enums
+
+**Scripts Útiles:**
+```bash
+# Configuración inicial (ya ejecutado)
+python scripts/setup_supabase_tables.py
+
+# Tests de conexión
+python tests/test_supabase_simple.py
+python tests/test_supabase_integration.py
+
+# Cliente de Supabase en código
+from src.utils.supabase_client import get_supabase_manager
+```
 
 ## Despliegue
 

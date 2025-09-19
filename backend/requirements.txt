@@ -9,7 +9,7 @@ asyncpg==0.29.0
 psycopg2-binary==2.9.9
 
 # PostGIS and Geospatial
-geoalchemy2==0.14.2
+geoalchemy2==0.18.0
 shapely==2.0.2
 
 # Authentication and Security
@@ -31,6 +31,13 @@ redis==5.0.1
 # Environment and configuration
 python-dotenv==1.0.0
 pydantic-settings==2.0.3
+
+# Supabase Integration
+supabase==2.19.0
+postgrest==2.19.0
+storage3==2.19.0
+realtime==2.19.0
+supabase-auth==2.19.0
 
 # Development and Testing
 pytest==7.4.3

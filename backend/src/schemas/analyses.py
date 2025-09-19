@@ -180,3 +180,38 @@ class AnalysisListResponse(BaseModel):
     limit: int
     offset: int
     has_next: bool
+
+
+# Legacy compatibility schemas
+class AnalysisCreate(BaseModel):
+    """Schema for creating analysis - legacy compatibility"""
+    image_filename: str
+    confidence_threshold: Optional[float] = 0.5
+    user_id: Optional[UUID] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+# Error schemas
+class ErrorResponse(BaseModel):
+    """Standard error response"""
+    error: str
+    message: str
+    details: Optional[Dict[str, Any]] = None
+
+
+class ValidationErrorResponse(BaseModel):
+    """Validation error response"""
+    error: str = "validation_error"
+    message: str
+    field_errors: List[Dict[str, str]] = []
+
+
+# Health check schema
+class HealthResponse(BaseModel):
+    """Health check response"""
+    status: str
+    timestamp: datetime
+    version: str
+    services: Dict[str, str]
+    uptime_seconds: float

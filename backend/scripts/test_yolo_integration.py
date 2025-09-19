@@ -30,21 +30,21 @@ async def verificar_conectividad():
     imprimir_encabezado("VERIFICACIÓN DE CONECTIVIDAD")
 
     cliente = YOLOServiceClient()
-    print(f"🔗 URL del servicio YOLO: {cliente.base_url}")
+    print(f"LINK: URL del servicio YOLO: {cliente.base_url}")
     print(f"⏱️  Timeout configurado: {cliente.timeout}s")
 
     try:
         # Intentar conexión básica
         resultado = await cliente.health_check()
         if resultado:
-            print("✅ Servicio YOLO disponible y respondiendo")
+            print("OK: Servicio YOLO disponible y respondiendo")
             return True
         else:
-            print("❌ Servicio YOLO no responde correctamente")
+            print("ERROR: Servicio YOLO no responde correctamente")
             return False
 
     except Exception as e:
-        print(f"❌ Error de conectividad: {e}")
+        print(f"ERROR: Error de conectividad: {e}")
         return False
 
 
@@ -111,22 +111,22 @@ def probar_parseo_respuesta():
     print("🧪 Probando validación de respuesta YOLO...")
     es_valida = validate_yolo_response(respuesta_ejemplo)
     if es_valida:
-        print("✅ Respuesta YOLO válida")
+        print("OK: Respuesta YOLO válida")
     else:
-        print("❌ Respuesta YOLO inválida")
+        print("ERROR: Respuesta YOLO inválida")
         return False
 
     print("\n🔄 Probando parseo de respuesta...")
     try:
         datos_parseados = parse_yolo_report(respuesta_ejemplo)
-        print("✅ Parseo exitoso")
+        print("OK: Parseo exitoso")
 
         # Verificar análisis parseado
         analisis = datos_parseados["analysis"]
-        print(f"📁 Archivo: {analisis['image_filename']}")
+        print(f"FOLDER: Archivo: {analisis['image_filename']}")
         print(f"🔢 Total detecciones: {analisis['total_detections']}")
-        print(f"🌍 Tiene GPS: {analisis['has_gps_data']}")
-        print(f"⚠️  Nivel de riesgo: {analisis['risk_level']}")
+        print(f"LOCATION: Tiene GPS: {analisis['has_gps_data']}")
+        print(f"WARNING:  Nivel de riesgo: {analisis['risk_level']}")
 
         # Verificar detecciones parseadas
         detecciones = datos_parseados["detections"]
@@ -141,7 +141,7 @@ def probar_parseo_respuesta():
         return True
 
     except Exception as e:
-        print(f"❌ Error durante parseo: {e}")
+        print(f"ERROR: Error durante parseo: {e}")
         return False
 
 
@@ -155,29 +155,29 @@ def verificar_mapeos_enums():
         YOLO_RISK_TO_DETECTION_RISK
     )
 
-    print("🏷️  Verificando mapeo de class_id a tipos de sitio de cría:")
+    print("TAG:  Verificando mapeo de class_id a tipos de sitio de cría:")
     mapeos_correctos = 0
     for class_id, tipo_sitio in CLASS_ID_TO_BREEDING_SITE.items():
         print(f"  ID {class_id} -> {tipo_sitio.value}")
         mapeos_correctos += 1
 
-    print(f"✅ {mapeos_correctos} mapeos de class_id configurados")
+    print(f"OK: {mapeos_correctos} mapeos de class_id configurados")
 
-    print("\n📝 Verificando mapeo de nombres de clase:")
+    print("\nNOTES: Verificando mapeo de nombres de clase:")
     mapeos_correctos = 0
     for nombre_clase, tipo_sitio in CLASS_NAME_TO_BREEDING_SITE.items():
         print(f"  '{nombre_clase}' -> {tipo_sitio.value}")
         mapeos_correctos += 1
 
-    print(f"✅ {mapeos_correctos} mapeos de nombres configurados")
+    print(f"OK: {mapeos_correctos} mapeos de nombres configurados")
 
-    print("\n⚠️  Verificando mapeo de niveles de riesgo:")
+    print("\nWARNING:  Verificando mapeo de niveles de riesgo:")
     mapeos_correctos = 0
     for riesgo_yolo, riesgo_backend in YOLO_RISK_TO_DETECTION_RISK.items():
         print(f"  '{riesgo_yolo}' -> {riesgo_backend.value}")
         mapeos_correctos += 1
 
-    print(f"✅ {mapeos_correctos} mapeos de riesgo configurados")
+    print(f"OK: {mapeos_correctos} mapeos de riesgo configurados")
 
     # Verificar que todos los enums necesarios estén cubiertos
     print("\n🔍 Verificando completitud de mapeos:")
@@ -188,9 +188,9 @@ def verificar_mapeos_enums():
 
     faltantes = set(tipos_esperados) - set(tipos_mapeados)
     if faltantes:
-        print(f"❌ Tipos de sitio sin mapear: {faltantes}")
+        print(f"ERROR: Tipos de sitio sin mapear: {faltantes}")
     else:
-        print("✅ Todos los tipos de sitio esperados están mapeados")
+        print("OK: Todos los tipos de sitio esperados están mapeados")
 
     # Verificar niveles de riesgo
     riesgos_esperados = ["BAJO", "MEDIO", "ALTO"]
@@ -198,9 +198,9 @@ def verificar_mapeos_enums():
 
     faltantes = set(riesgos_esperados) - set(riesgos_mapeados)
     if faltantes:
-        print(f"❌ Niveles de riesgo sin mapear: {faltantes}")
+        print(f"ERROR: Niveles de riesgo sin mapear: {faltantes}")
     else:
-        print("✅ Todos los niveles de riesgo están mapeados")
+        print("OK: Todos los niveles de riesgo están mapeados")
 
     return len(faltantes) == 0
 
@@ -224,7 +224,7 @@ async def probar_deteccion_imagen():
         )
 
         if resultado["success"]:
-            print("✅ Detección completada exitosamente")
+            print("OK: Detección completada exitosamente")
 
             # Mostrar información del resultado
             respuesta_yolo = resultado["yolo_response"]
@@ -243,11 +243,11 @@ async def probar_deteccion_imagen():
 
             return True
         else:
-            print(f"❌ Error en detección: {resultado.get('error', 'Error desconocido')}")
+            print(f"ERROR: Error en detección: {resultado.get('error', 'Error desconocido')}")
             return False
 
     except Exception as e:
-        print(f"❌ Error durante prueba de detección: {e}")
+        print(f"ERROR: Error durante prueba de detección: {e}")
         return False
 
 
@@ -275,7 +275,7 @@ async def main():
                 resultado = prueba()
             resultados.append((nombre, resultado))
         except Exception as e:
-            print(f"❌ Error en prueba {nombre}: {e}")
+            print(f"ERROR: Error en prueba {nombre}: {e}")
             resultados.append((nombre, False))
 
     # Resumen final
@@ -285,15 +285,15 @@ async def main():
     total = len(resultados)
 
     for nombre, resultado in resultados:
-        estado = "✅ EXITOSA" if resultado else "❌ FALLÓ"
+        estado = "OK: EXITOSA" if resultado else "ERROR: FALLÓ"
         print(f"  {nombre}: {estado}")
 
-    print(f"\n📊 Resultado final: {exitosas}/{total} pruebas exitosas")
+    print(f"\nDATA: Resultado final: {exitosas}/{total} pruebas exitosas")
 
     if exitosas == total:
         print("🎉 ¡Todas las pruebas pasaron! La integración YOLO está funcionando correctamente.")
     else:
-        print("⚠️  Algunas pruebas fallaron. Revisar configuración y conectividad.")
+        print("WARNING:  Algunas pruebas fallaron. Revisar configuración y conectividad.")
 
     return exitosas == total
 

@@ -110,7 +110,7 @@ def test_connection():
         db.close()
         return True
     except Exception as e:
-        print(f"❌ Error de conexión a la base de datos: {e}")
+        print(f"ERROR: Error de conexión a la base de datos: {e}")
         return False
 
 

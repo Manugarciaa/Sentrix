@@ -13,22 +13,22 @@ def run_command(command, description):
     print(f"\n{description}...")
     try:
         result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-        print(f"✅ {description} completed successfully")
+        print(f"OK: {description} completed successfully")
         if result.stdout:
             print(f"Output: {result.stdout}")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed!")
+        print(f"ERROR: {description} failed!")
         print(f"Error: {e.stderr}")
         return False
 
 def main():
     """Main function to run migrations."""
-    print("🚀 Starting Sentrix Database Migration")
+    print("LAUNCH: Starting Sentrix Database Migration")
 
     # Check if alembic.ini exists
     if not Path("alembic.ini").exists():
-        print("❌ alembic.ini not found. Make sure you're in the backend directory.")
+        print("ERROR: alembic.ini not found. Make sure you're in the backend directory.")
         sys.exit(1)
 
     # Check current migration status
@@ -42,7 +42,7 @@ def main():
     # Run migrations
     if run_command("alembic upgrade head", "Run migrations"):
         print("\n🎉 All migrations completed successfully!")
-        print("\n📊 Database schema is now up to date with:")
+        print("\nDATA: Database schema is now up to date with:")
         print("  - PostGIS extension enabled")
         print("  - user_profiles table")
         print("  - analyses table with GPS support")

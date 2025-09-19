@@ -157,7 +157,7 @@ class AnalysisProcessor:
             with open(log_file, 'w', encoding='utf-8') as f:
                 json.dump(log_data, f, indent=2, ensure_ascii=False)
         except Exception as e:
-            print(f"❌ Error saving batch log: {e}")
+            print(f"ERROR: Error saving batch log: {e}")
 
     async def get_batch_statistics(self, days: int = 30) -> Dict[str, Any]:
         """

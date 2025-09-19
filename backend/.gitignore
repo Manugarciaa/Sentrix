@@ -42,11 +42,14 @@ coverage.xml
 Thumbs.db
 Desktop.ini
 
-# Desarrollo y testing
+# Archivos de testing temporal (solo durante desarrollo)
 test_simple.py
-test_api_simple.py
-test_summary.py
+test_basic_*.py
+test_supabase_*.py
 TESTS_COMPLETE.md
+
+# Scripts de utilidad temporal
+scripts/clean_unicode.py
 
 # Scripts outputs y logs
 scripts/*.log
