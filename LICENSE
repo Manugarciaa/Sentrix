@@ -40,26 +40,3 @@ ADDITIONAL TERMS FOR ACADEMIC AND RESEARCH USE:
 5. GEOGRAPHIC LIMITATIONS: The training data and model performance may be
    specific to certain geographic regions. Users should validate performance
    in their specific use cases.
-
----
-
-TÉRMINOS ADICIONALES PARA USO ACADÉMICO E INVESTIGACIÓN (ESPAÑOL):
-
-1. ATRIBUCIÓN: Las publicaciones académicas que utilicen este software deben citar
-   la investigación original y reconocer el proyecto Sentrix.
-
-2. INVESTIGACIÓN NO COMERCIAL: Este software está destinado principalmente para
-   investigación académica y aplicaciones de salud pública. El uso comercial
-   requiere términos de licencia separados.
-
-3. PRIVACIDAD DE DATOS: Los usuarios son responsables de asegurar el cumplimiento
-   con las regulaciones locales de protección de datos al procesar imágenes que
-   puedan contener información de identificación personal.
-
-4. DESCARGO MÉDICO: Este software es una herramienta de investigación y no debe
-   usarse como base única para decisiones de salud pública. Todos los resultados
-   deben ser validados por profesionales calificados en salud pública.
-
-5. LIMITACIONES GEOGRÁFICAS: Los datos de entrenamiento y el rendimiento del modelo
-   pueden ser específicos para ciertas regiones geográficas. Los usuarios deben
-   validar el rendimiento en sus casos de uso específicos.

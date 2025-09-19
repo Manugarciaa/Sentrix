@@ -49,8 +49,8 @@ class SupabaseManager:
         Probar conexión a Supabase
         """
         try:
-            # Test basic connectivity by making a simple query
-            response = self.client.table('users').select('id').limit(1).execute()
+            # Test basic connectivity by making a simple query to analyses table
+            response = self.client.table('analyses').select('id').limit(1).execute()
 
             return {
                 "status": "connected",
@@ -156,6 +156,24 @@ class SupabaseManager:
         """
         try:
             response = self.client.table('detections').insert(detection_data).execute()
+
+            return {
+                "status": "success",
+                "data": response.data[0] if response.data else None
+            }
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": str(e)
+            }
+
+    def update_analysis(self, analysis_id: str, update_data: dict) -> dict:
+        """
+        Update analysis record in Supabase
+        Actualizar registro de análisis en Supabase
+        """
+        try:
+            response = self.client.table('analyses').update(update_data).eq('id', analysis_id).execute()
 
             return {
                 "status": "success",

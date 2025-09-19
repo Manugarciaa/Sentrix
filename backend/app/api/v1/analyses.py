@@ -14,7 +14,7 @@ from app.schemas.analyses import (
     AnalysisResponse, AnalysisListQuery, AnalysisListResponse,
     BatchUploadRequest, BatchUploadResponse
 )
-from app.services.yolo_service import YOLOServiceClient
+from app.services.analysis_service import analysis_service
 from app.config import get_settings
 
 router = APIRouter()
@@ -27,18 +27,16 @@ MOCK_ANALYSES = {}
 @router.post("/analyses", response_model=AnalysisUploadResponse)
 async def create_analysis(
     file: Optional[UploadFile] = File(None),
-    image_url: Optional[str] = Form(None),
     latitude: Optional[float] = Form(None),
     longitude: Optional[float] = Form(None),
     confidence_threshold: Optional[float] = Form(0.5),
     include_gps: bool = Form(True)
 ):
     """
-    Upload imagen para análisis de criaderos de dengue con GPS automático
+    Cargar imagen para análisis de criaderos de dengue con procesamiento real
 
     Args:
         file: Archivo de imagen (multipart/form-data)
-        image_url: URL alternativa a file
         latitude: Coordenada manual (opcional, sobrescribe EXIF)
         longitude: Coordenada manual (opcional, sobrescribe EXIF)
         confidence_threshold: Umbral de confianza (default: 0.5)
@@ -48,74 +46,81 @@ async def create_analysis(
         AnalysisUploadResponse con analysis_id y status
     """
 
-    # Validation
-    if not file and not image_url:
+    # Validación de archivo
+    if not file:
         raise HTTPException(
             status_code=400,
-            detail="Either 'file' or 'image_url' must be provided"
+            detail="Se requiere un archivo de imagen"
         )
 
-    if file and image_url:
+    # Validar extensión
+    if not file.filename:
         raise HTTPException(
             status_code=400,
-            detail="Provide either 'file' or 'image_url', not both"
+            detail="El archivo debe tener un nombre válido"
         )
 
-    # Validate coordinates if provided
+    allowed_extensions = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'}
+    file_ext = file.filename.split('.')[-1].lower()
+    if f'.{file_ext}' not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Extensión no permitida. Use: {', '.join(allowed_extensions)}"
+        )
+
+    # Validar coordenadas si se proporcionan
     if (latitude is not None and longitude is None) or (longitude is not None and latitude is None):
         raise HTTPException(
             status_code=400,
-            detail="If providing coordinates, both latitude and longitude are required"
+            detail="Si proporciona coordenadas, tanto latitud como longitud son requeridas"
         )
 
-    # Generate analysis ID
-    analysis_id = uuid.uuid4()
+    # Validar umbral de confianza
+    if not 0.1 <= confidence_threshold <= 1.0:
+        raise HTTPException(
+            status_code=400,
+            detail="confidence_threshold debe estar entre 0.1 y 1.0"
+        )
 
-    # Mock GPS detection (will be replaced with actual EXIF extraction)
-    has_gps_data = include_gps and (latitude is not None or bool(uuid.uuid4().int % 2))
+    try:
+        # Leer datos del archivo
+        image_data = await file.read()
 
-    # Mock camera detection
-    camera_detected = None
-    if file:
-        # Mock camera info extraction from filename
-        filename = file.filename or "unknown.jpg"
-        if "xiaomi" in filename.lower():
-            camera_detected = "Xiaomi 220333QL"
-        elif "samsung" in filename.lower():
-            camera_detected = "Samsung Galaxy"
-        else:
-            camera_detected = "Unknown Camera"
+        # Validar tamaño
+        max_size = 50 * 1024 * 1024  # 50MB
+        if len(image_data) > max_size:
+            raise HTTPException(
+                status_code=413,
+                detail="El archivo es demasiado grande. Máximo 50MB"
+            )
 
-    # Store mock analysis (replace with database insert)
-    mock_analysis = {
-        "id": analysis_id,
-        "status": "pending",
-        "image_filename": file.filename if file else image_url.split("/")[-1],
-        "image_size_bytes": None,  # Will be filled when processing
-        "has_gps_data": has_gps_data,
-        "camera_detected": camera_detected,
-        "confidence_threshold": confidence_threshold,
-        "include_gps": include_gps,
-        "manual_coordinates": {
-            "latitude": latitude,
-            "longitude": longitude
-        } if latitude and longitude else None,
-        "created_at": datetime.utcnow()
-    }
+        # Procesar imagen con servicio de análisis
+        result = await analysis_service.process_image_analysis(
+            image_data=image_data,
+            filename=file.filename,
+            confidence_threshold=confidence_threshold,
+            include_gps=include_gps,
+            manual_latitude=latitude,
+            manual_longitude=longitude
+        )
 
-    MOCK_ANALYSES[str(analysis_id)] = mock_analysis
+        return AnalysisUploadResponse(
+            analysis_id=uuid.UUID(result["analysis_id"]),
+            status=result["status"],
+            has_gps_data=result.get("has_gps_data", False),
+            camera_detected=result.get("camera_detected"),
+            estimated_processing_time=f"{result.get('processing_time_ms', 0)}ms",
+            message="Análisis completado exitosamente" if result["status"] == "completed"
+                   else "Análisis en proceso"
+        )
 
-    # TODO: Queue job for processing with Celery
-    # celery_task = process_analysis.delay(analysis_id, image_data, settings)
-
-    return AnalysisUploadResponse(
-        analysis_id=analysis_id,
-        status="pending",
-        has_gps_data=has_gps_data,
-        camera_detected=camera_detected,
-        estimated_processing_time="30-60 seconds",
-        message="Analysis queued for processing"
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error procesando imagen: {str(e)}"
+        )
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisResponse)

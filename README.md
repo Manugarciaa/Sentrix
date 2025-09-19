@@ -80,21 +80,37 @@ Interfaz de usuario basada en web para interacción fácil con la plataforma.
 
 ## Quick Start
 
-Currently, the YOLO service is fully functional. To get started:
+La plataforma Sentrix está completamente funcional con integración YOLO + Backend:
 
+### Opción 1: API Completa (Recomendado)
 ```bash
-git clone https://github.com/yourusername/sentrix.git
-cd sentrix/yolo-service
-pip install -r requirements.txt
+# Terminal 1: Iniciar servidor YOLO
+cd yolo-service && python server.py
 
-# Run detection with GPS integration
-python main.py detect --model yolo11s-seg.pt --source your_image.jpg
+# Terminal 2: Iniciar backend
+cd backend && python main.py
 
-# Generate report with geolocation data
-python main.py report --model yolo11s-seg.pt --source your_image.jpg --output report.json
+# Terminal 3: Usar API
+curl -X POST "http://localhost:8000/api/v1/analyses" \
+  -F "file=@imagen.jpg" \
+  -F "confidence_threshold=0.5"
 ```
 
-For detailed instructions, see the [YOLO Service README](./yolo-service/README.md).
+### Opción 2: Solo YOLO Service
+```bash
+cd yolo-service
+pip install -r requirements.txt
+
+# Detección directa
+python main.py detect --model yolo11s-seg.pt --source imagen.jpg
+
+# Servidor HTTP
+python server.py
+```
+
+Ver documentación detallada en cada componente:
+- [YOLO Service](./yolo-service/README.md) - Core de IA
+- [Backend API](./backend/README.md) - API REST y base de datos
 
 ## Detection Capabilities
 
@@ -116,20 +132,20 @@ The platform evaluates epidemiological risk based on detected breeding sites:
 
 ## Estado de Desarrollo
 
-| Componente | Estado | Descripción | Cronograma |
-|-----------|--------|-------------|------------|
-| **Servicio YOLO** | **✅ Completo + GPS** | Detección IA con geolocalización automática | ✅ Julio-Agosto 2024 + Sept 2025 |
-| **Backend API** | **En Desarrollo** | API REST + base de datos geoespacial | 🚧 Septiembre 2024 |
-| **Frontend Web** | **Planificado** | Mapas interactivos con GPS integrado | 📋 Octubre 2024 |
-| **Integración Meteorológica** | **Planificado** | APIs clima + índices de riesgo | 📋 Octubre 2024 |
-| **App Móvil** | **Futuro** | Aplicación para trabajo de campo | 🔮 2025 |
+| Componente | Estado | Descripción | Última Actualización |
+|-----------|--------|-------------|---------------------|
+| **Servicio YOLO** | **✓ Completo + HTTP API** | Detección IA con servidor FastAPI | ✓ Enero 2025 |
+| **Backend API** | **✓ Completo + Integración YOLO** | API REST + base de datos + integración YOLO | ✓ Enero 2025 |
+| **Frontend Web** | **Planificado** | Mapas interactivos con GPS integrado | Próximo |
+| **Integración Meteorológica** | **Planificado** | APIs clima + índices de riesgo | Próximo |
+| **App Móvil** | **Futuro** | Aplicación para trabajo de campo | 2025+ |
 
 ### Roadmap del Proyecto
 
-**Fase 1 (Completa + GPS):** Core IA - Detección automatizada con geolocalización automática
-**Fase 2 (En Progreso):** Plataforma Web - Visualización georeferenciada y gestión de datos
-**Fase 3 (Planificada):** Análisis Contextual - Integración meteorológica y alertas
-**Fase 4 (Futura):** Escalamiento - Apps móviles y participación ciudadana masiva
+**Fase 1 (✓ Completa):** Core IA - Detección automatizada con geolocalización + servidor HTTP
+**Fase 2 (✓ Completa):** Backend Integrado - API REST + integración YOLO + base de datos
+**Fase 3 (Planificada):** Frontend Web - Mapas interactivos y dashboards
+**Fase 4 (Futura):** Análisis Contextual - Integración meteorológica y alertas
 
 ## Investigación y Uso Académico
 
@@ -179,15 +195,17 @@ Al usar Sentrix en trabajo académico, por favor cita:
 
 ### Resultados Logrados y Esperados
 
-**✅ Logrado en Fase 1:**
+**Logrado en Fases 1-2:**
 - Modelo de IA funcional con detección de criaderos y geolocalización automática
 - Sistema de evaluación de riesgo epidemiológico validado
 - **56.1% de cobertura GPS** en dataset con coordenadas precisas de Argentina
-- **Detecciones georeferenciadas** listas para integración con backend
+- **Servidor HTTP FastAPI** en yolo-service para integración
+- **Backend API REST** completamente integrado con YOLO
+- **Base de datos Supabase** configurada para almacenamiento geoespacial
 
-**🎯 Esperado en Fases Futuras:**
-- Índice de riesgo contextualizado para anticipar zonas de alta probabilidad de proliferación
+**Esperado en Fases Futuras:**
 - Plataforma web intuitiva con mapas interactivos y geolocalización
+- Índice de riesgo contextualizado para anticipar zonas de alta probabilidad de proliferación
 - Sistema validado en condiciones reales, listo para implementación piloto
 - Herramientas de participación ciudadana para involucramiento comunitario
 

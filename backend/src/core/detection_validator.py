@@ -12,7 +12,7 @@ from sqlalchemy import func
 
 from ..utils.database_utils import get_db_context
 from ..database.models import Detection, Analysis, User
-from ..database.models.enums import RiskLevel, UserRole
+from ..database.models.enums import RiskLevelEnum, UserRoleEnum
 
 
 class DetectionValidator:
@@ -42,8 +42,8 @@ class DetectionValidator:
             # Filter by priority
             if priority == "high_risk":
                 query = query.filter(Analysis.risk_level.in_([
-                    RiskLevel.ALTO.value,
-                    RiskLevel.CRITICO.value
+                    RiskLevelEnum.HIGH.value,
+                    RiskLevelEnum.HIGH.value
                 ]))
             elif priority == "high_confidence":
                 query = query.filter(Detection.confidence >= 0.8)

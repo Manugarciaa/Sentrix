@@ -718,6 +718,37 @@ python tests/test_complete_system.py
 ---
 
 **Versión**: 2.0.0 - Backend Integrado de la Plataforma Sentrix
-**Estado**: Fase 1 Completa - Integración con YOLO Service activa
-**Próximas fases**: GraphQL API, WebSocket notifications, Analytics avanzado
+**Estado**: Fase 2 Completa - Integración YOLO + Backend + Base de datos activa
+**Próximas fases**: Frontend web, GraphQL API, WebSocket notifications
 **Última actualización**: Enero 2025
+
+## Integración YOLO + Backend Completada
+
+✓ **Servidor YOLO FastAPI** funcionando en puerto 8001
+✓ **Backend API REST** funcionando en puerto 8000
+✓ **Cliente HTTP asíncrono** conectando ambos servicios
+✓ **Base de datos Supabase** configurada para almacenamiento
+✓ **Procesamiento completo** de imágenes con resultados almacenados
+✓ **Esquemas Pydantic** validando todos los datos
+✓ **Tests de integración** verificando funcionalidad end-to-end
+
+### Flujo de Trabajo Actual:
+```
+Usuario → Backend (8000) → YOLO Service (8001) → Base de Datos
+                ↓
+            Respuesta con análisis completo
+```
+
+### Para usar el sistema integrado:
+```bash
+# Terminal 1: YOLO Service
+cd yolo-service && python server.py
+
+# Terminal 2: Backend
+cd backend && python main.py
+
+# Terminal 3: API call
+curl -X POST "http://localhost:8000/api/v1/analyses" \
+  -F "file=@imagen.jpg" \
+  -F "confidence_threshold=0.5"
+```

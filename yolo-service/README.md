@@ -1,6 +1,6 @@
 # Sentrix YOLO Service - Core de Detección IA
 
-Servicio central de inteligencia artificial para la detección automatizada de criaderos de *Aedes aegypti* como parte de la plataforma integral Sentrix.
+Servicio central de inteligencia artificial para la detección automatizada de criaderos de *Aedes aegypti*. Incluye servidor HTTP FastAPI para integración con el backend de Sentrix.
 
 ## Descripción
 
@@ -33,6 +33,7 @@ Este servicio constituye el **núcleo de IA** de la plataforma Sentrix, proporci
 
 ### Interfaces de Uso
 - **CLI avanzado** con subcomandos intuitivos para diferentes flujos de trabajo
+- **Servidor HTTP FastAPI** para integración con backend (puerto 8001)
 - **API programática** para integración con aplicaciones externas
 - **Detección automática** de formato de entrada (imagen individual, directorio, video)
 - **Validación de entrada** con manejo robusto de errores
@@ -139,6 +140,17 @@ python main.py detect --model models/best.pt --source image.jpg --conf 0.6
 python main.py report --model models/best.pt --source image.jpg --output results/reporte.json
 ```
 
+#### 4. Servidor HTTP (Nuevo)
+```bash
+# Iniciar servidor FastAPI
+python server.py
+
+# El servidor estará disponible en:
+# http://localhost:8001 - API principal
+# http://localhost:8001/docs - Documentación Swagger
+# http://localhost:8001/health - Health check
+```
+
 ### Scripts especializados
 
 #### Entrenamiento con selección automática de modelo
@@ -238,11 +250,36 @@ El servicio implementa un algoritmo de clasificación de riesgo basado en criter
 - **BAJO**: ≥1 sitio de riesgo medio
 - **MÍNIMO**: Sin sitios de riesgo detectados
 
+## API Endpoints HTTP
+
+El servidor FastAPI expone los siguientes endpoints:
+
+| Endpoint | Método | Descripción | Parámetros |
+|----------|--------|-------------|------------|
+| `/health` | GET | Estado del servicio | Ninguno |
+| `/detect` | POST | Detectar criaderos en imagen | `file`, `confidence_threshold`, `include_gps` |
+| `/models` | GET | Listar modelos disponibles | Ninguno |
+
+### Ejemplo de uso con curl:
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# Detectar criaderos
+curl -X POST "http://localhost:8001/detect" \
+  -F "file=@imagen.jpg" \
+  -F "confidence_threshold=0.5" \
+  -F "include_gps=true"
+
+# Ver modelos disponibles
+curl http://localhost:8001/models
+```
+
 ### Integración con Plataforma Sentrix
 
 Este servicio está diseñado para integrarse con los otros componentes de Sentrix:
 
-- **Backend API**: Recibe resultados vía endpoints REST para almacenamiento geoespacial
+- **Backend API**: ✓ Completamente integrado vía HTTP endpoints
 - **Frontend Web**: Visualiza detecciones en mapas interactivos y dashboards
 - **Análisis Ambiental**: Combina resultados con datos meteorológicos para índices contextuales
 - **Participación Ciudadana**: Procesa imágenes cargadas manualmente por usuarios

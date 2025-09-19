@@ -54,67 +54,68 @@ class YOLOServiceClient:
 
     async def detect_image(
         self,
-        image_data: bytes = None,
-        image_url: str = None,
-        model: str = "yolo11s-seg.pt",
+        image_data: bytes,
+        filename: str = "image.jpg",
         confidence_threshold: float = 0.5,
         include_gps: bool = True
     ) -> Dict[str, Any]:
         """
-        Send image to YOLO service for detection
+        Enviar imagen al servicio YOLO para detección
 
         Args:
-            image_data: Binary image data
-            image_url: URL to image (alternative to image_data)
-            model: Model name to use
-            confidence_threshold: Detection confidence threshold
-            include_gps: Whether to include GPS metadata extraction
+            image_data: Datos binarios de la imagen
+            filename: Nombre del archivo (para determinar tipo)
+            confidence_threshold: Umbral de confianza para detección
+            include_gps: Si extraer metadatos GPS
 
         Returns:
-            Dict with detection results parsed for backend
+            Dict con resultados de detección procesados para backend
         """
 
-        if not image_data and not image_url:
-            raise ValueError("Either image_data or image_url must be provided")
+        if not image_data:
+            raise ValueError("image_data es requerido")
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                # Prepare request data
-                data = {
-                    "model": model,
+                # Preparar datos de formulario
+                form_data = {
                     "confidence_threshold": confidence_threshold,
                     "include_gps": include_gps
                 }
 
-                # Prepare files/data for request
-                if image_data:
-                    files = {"file": ("image.jpg", image_data, "image/jpeg")}
-                    response = await client.post(
-                        f"{self.base_url}/detect",
-                        data=data,
-                        files=files
-                    )
-                else:
-                    data["image_url"] = image_url
-                    response = await client.post(
-                        f"{self.base_url}/detect",
-                        data=data
-                    )
+                # Determinar tipo MIME basado en extensión
+                content_type = "image/jpeg"
+                if filename.lower().endswith(('.png',)):
+                    content_type = "image/png"
+                elif filename.lower().endswith(('.tiff', '.tif')):
+                    content_type = "image/tiff"
+
+                # Preparar archivo para envío
+                files = {"file": (filename, image_data, content_type)}
+
+                response = await client.post(
+                    f"{self.base_url}/detect",
+                    data=form_data,
+                    files=files
+                )
 
                 response.raise_for_status()
                 yolo_response = response.json()
 
-                # Validate response format
-                if not validate_yolo_response(yolo_response):
-                    raise ValueError("Invalid YOLO service response format")
-
-                # Parse response to backend format
-                parsed_data = parse_yolo_report(yolo_response)
+                logger.info(f"YOLO service responded successfully for {filename}")
 
                 return {
                     "success": True,
-                    "yolo_response": yolo_response,
-                    "parsed_data": parsed_data
+                    "analysis_id": yolo_response.get("analysis_id"),
+                    "status": yolo_response.get("status"),
+                    "detections": yolo_response.get("detections", []),
+                    "total_detections": yolo_response.get("total_detections", 0),
+                    "risk_assessment": yolo_response.get("risk_assessment", {}),
+                    "location": yolo_response.get("location"),
+                    "camera_info": yolo_response.get("camera_info"),
+                    "processing_time_ms": yolo_response.get("processing_time_ms", 0),
+                    "model_used": yolo_response.get("model_used"),
+                    "confidence_threshold": yolo_response.get("confidence_threshold")
                 }
 
         except httpx.HTTPStatusError as e:
@@ -142,59 +143,22 @@ class YOLOServiceClient:
                 detail=f"Internal error processing image: {str(e)}"
             )
 
-    async def detect_image_from_url(
-        self,
-        image_url: str,
-        model: str = "yolo11s-seg.pt",
-        confidence_threshold: float = 0.5,
-        include_gps: bool = True
-    ) -> Dict[str, Any]:
+    async def get_available_models(self) -> Dict[str, Any]:
         """
-        Convenience method to detect from URL
-
-        Args:
-            image_url: URL to image
-            model: Model name to use
-            confidence_threshold: Detection confidence threshold
-            include_gps: Whether to include GPS metadata
+        Obtener lista de modelos disponibles en el servicio YOLO
 
         Returns:
-            Dict with detection results
+            Dict con modelos disponibles
         """
-        return await self.detect_image(
-            image_url=image_url,
-            model=model,
-            confidence_threshold=confidence_threshold,
-            include_gps=include_gps
-        )
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(f"{self.base_url}/models")
+                response.raise_for_status()
+                return response.json()
 
-    async def detect_image_from_file(
-        self,
-        image_data: bytes,
-        filename: str = "image.jpg",
-        model: str = "yolo11s-seg.pt",
-        confidence_threshold: float = 0.5,
-        include_gps: bool = True
-    ) -> Dict[str, Any]:
-        """
-        Convenience method to detect from file data
-
-        Args:
-            image_data: Binary image data
-            filename: Original filename (for metadata)
-            model: Model name to use
-            confidence_threshold: Detection confidence threshold
-            include_gps: Whether to include GPS metadata
-
-        Returns:
-            Dict with detection results
-        """
-        return await self.detect_image(
-            image_data=image_data,
-            model=model,
-            confidence_threshold=confidence_threshold,
-            include_gps=include_gps
-        )
+        except Exception as e:
+            logger.error(f"Error getting available models: {e}")
+            return {"available_models": [], "current_model": "unknown"}
 
 
 # Singleton instance
