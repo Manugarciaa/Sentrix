@@ -21,6 +21,10 @@ import sys
 import os
 import asyncio
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Add src to Python path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
@@ -182,7 +186,7 @@ async def handle_batch_command(args):
         raise FileNotFoundError(f"Directory not found: {args.directory}")
 
     # Find images
-    image_extensions = ['.jpg', '.jpeg', '.png', '.tiff']
+    image_extensions = ['.jpg', '.jpeg', '.png', '.tiff', '.heic']
     image_paths = [
         str(img) for img in directory.iterdir()
         if img.suffix.lower() in image_extensions

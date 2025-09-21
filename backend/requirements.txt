@@ -19,6 +19,7 @@ python-multipart==0.0.6
 
 # Image processing and metadata
 pillow==10.1.0
+pillow-heif==1.1.0
 exifread==3.0.0
 
 # HTTP client

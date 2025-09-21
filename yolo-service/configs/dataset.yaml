@@ -6,7 +6,7 @@ test: images/test
 names:
   0: Basura
   1: Calles mal hechas
-  2: Charcos/Cumulo de agua
+  2: Charcos/Cumulos de agua
   3: Huecos
 
 task: segment

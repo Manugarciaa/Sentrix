@@ -7,7 +7,7 @@ Basado en app/database.py original pero siguiendo patrones de yolo-service
 """
 
 import os
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -106,7 +106,7 @@ def test_connection():
     try:
         db = SessionLocal()
         # Simple query to test connection
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         db.close()
         return True
     except Exception as e:
@@ -123,14 +123,14 @@ def get_database_info():
         db = SessionLocal()
 
         # Get database version
-        result = db.execute("SELECT version()").fetchone()
+        result = db.execute(text("SELECT version()")).fetchone()
         version = result[0] if result else "Unknown"
 
         # Check PostGIS availability (for PostgreSQL)
         postgis_available = False
         try:
             result = db.execute(
-                "SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')"
+                text("SELECT EXISTS(SELECT 1 FROM pg_extension WHERE extname = 'postgis')")
             ).fetchone()
             postgis_available = result[0] if result else False
         except Exception:

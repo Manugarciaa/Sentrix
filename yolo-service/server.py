@@ -20,8 +20,9 @@ from pydantic import BaseModel
 # Agregar src al path para imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.core import detect_breeding_sites, assess_dengue_risk
-from src.utils import validate_file_exists
+from src.core.detector import detect_breeding_sites
+from src.core.evaluator import assess_dengue_risk, process_image_for_detection
+from src.utils.file_ops import validate_file_exists
 
 app = FastAPI(
     title="YOLO Dengue Detection Service",
@@ -29,13 +30,24 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
+# CORS middleware - Configuración segura
+allowed_origins = [
+    "http://localhost:8000",  # Backend service
+    "http://localhost:3000",  # Frontend development
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:3000",
+]
+
+# Add production origins from environment if available
+if production_origins := os.getenv("ALLOWED_ORIGINS"):
+    allowed_origins.extend(production_origins.split(","))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En producción, especificar dominios
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Configuración del modelo (usar el modelo entrenado disponible)
@@ -134,13 +146,16 @@ async def detect_dengue_breeding_sites(
     if not file.filename:
         raise HTTPException(status_code=400, detail="No se proporcionó nombre de archivo")
 
-    # Validar extensión
-    allowed_extensions = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'}
+    # Validar extensión usando shared library
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
+
     file_ext = Path(file.filename).suffix.lower()
-    if file_ext not in allowed_extensions:
+    if not is_format_supported(file_ext):
+        supported_formats = list(SUPPORTED_IMAGE_FORMATS.keys())
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {', '.join(allowed_extensions)}"
+            detail=f"Formato no soportado: {file_ext}. Formatos soportados: {', '.join(supported_formats)}"
         )
 
     # Validar umbral de confianza
@@ -161,10 +176,25 @@ async def detect_dengue_breeding_sites(
             temp_file_path = temp_file.name
 
         try:
+            # Process image with automatic conversion if needed
+            image_processing_result = process_image_for_detection(
+                temp_file_path,
+                target_dir=os.path.dirname(temp_file_path)
+            )
+
+            if not image_processing_result['success']:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Error procesando imagen: {'; '.join(image_processing_result['errors'])}"
+                )
+
+            # Use the processed image path for detection
+            processed_image_path = image_processing_result['processed_path']
+
             # Ejecutar detección usando funciones existentes
             detections_raw = detect_breeding_sites(
                 model_path=MODEL_PATH,
-                source=temp_file_path,
+                source=processed_image_path,
                 conf_threshold=confidence_threshold,
                 include_gps=include_gps
             )
@@ -172,12 +202,14 @@ async def detect_dengue_breeding_sites(
             # Procesar detecciones al formato de respuesta
             detections = []
             for det in detections_raw:
+                class_name = det.get('class', 'unknown')
+
                 detection_result = DetectionResult(
-                    class_name=det.get('class', 'unknown'),
+                    class_name=class_name,
                     class_id=det.get('class_id', 0),
                     confidence=det.get('confidence', 0.0),
                     risk_level=det.get('risk_level', 'BAJO'),
-                    breeding_site_type=det.get('class', 'unknown'),
+                    breeding_site_type=class_name,  # Usar directamente el nombre de clase
                     polygon=det.get('polygon', []),
                     mask_area=det.get('mask_area', 0.0)
                 )
@@ -186,30 +218,41 @@ async def detect_dengue_breeding_sites(
             # Evaluación de riesgo usando función existente
             risk_assessment = assess_dengue_risk(detections_raw)
 
-            # Extraer información de ubicación del primer resultado (si existe)
+            # Extraer información GPS y de cámara directamente del archivo (no depende de detecciones)
             location_info = None
             camera_info = None
 
-            if detections_raw and include_gps:
-                first_detection = detections_raw[0]
-                location_data = first_detection.get('location', {})
+            if include_gps:
+                # Extraer GPS directamente del archivo temporal
+                from src.utils.gps_metadata import extract_image_gps, get_image_camera_info
 
-                if location_data and location_data.get('has_location'):
+                gps_data = extract_image_gps(temp_file_path)
+                camera_data = get_image_camera_info(temp_file_path)
+
+                # Procesar datos GPS
+                if gps_data and gps_data.get('has_gps'):
                     location_info = LocationInfo(
                         has_location=True,
-                        latitude=location_data.get('latitude'),
-                        longitude=location_data.get('longitude'),
-                        altitude_meters=location_data.get('altitude_meters'),
-                        location_source=location_data.get('location_source', 'EXIF_GPS')
+                        latitude=gps_data.get('latitude'),
+                        longitude=gps_data.get('longitude'),
+                        altitude_meters=gps_data.get('altitude'),
+                        location_source=gps_data.get('location_source', 'EXIF_GPS')
+                    )
+                else:
+                    location_info = LocationInfo(
+                        has_location=False,
+                        latitude=None,
+                        longitude=None,
+                        altitude_meters=None,
+                        location_source=None
                     )
 
-                image_metadata = first_detection.get('image_metadata', {})
-                camera_data = image_metadata.get('camera_info', {})
+                # Procesar información de cámara
                 if camera_data:
                     camera_info = CameraInfo(
-                        camera_make=camera_data.get('make'),
-                        camera_model=camera_data.get('model'),
-                        camera_datetime=camera_data.get('datetime'),
+                        camera_make=camera_data.get('camera_make'),
+                        camera_model=camera_data.get('camera_model'),
+                        camera_datetime=camera_data.get('datetime_original'),
                         camera_software=camera_data.get('software')
                     )
 
@@ -270,16 +313,33 @@ async def list_available_models():
 
 if __name__ == "__main__":
     import uvicorn
+    import sys
+    import os
 
-    print("Iniciando servidor YOLO Dengue Detection...")
-    print(f"Modelo: {MODEL_PATH}")
-    print("Servidor disponible en: http://localhost:8001")
-    print("Documentación: http://localhost:8001/docs")
+    # Setup logging
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+    from shared.logging_utils import setup_yolo_logging, log_system_info, log_model_info
+
+    logger = setup_yolo_logging('INFO')
+
+    # Log system info
+    log_system_info(logger, "YOLO Dengue Detection Service", "1.0.0")
+
+    # Log model info
+    if os.path.exists(MODEL_PATH):
+        model_size_mb = os.path.getsize(MODEL_PATH) / (1024 * 1024)
+        log_model_info(logger, MODEL_PATH, model_size_mb)
+    else:
+        logger.warning(f"Model not found at: {MODEL_PATH}")
+
+    logger.info("Starting YOLO Dengue Detection server...")
+    logger.info("Server will be available at: http://localhost:8002")
+    logger.info("API documentation: http://localhost:8002/docs")
 
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8001,
+        port=8002,
         reload=True,
         log_level="info"
     )

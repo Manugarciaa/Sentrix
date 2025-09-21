@@ -8,9 +8,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import torch
 import numpy as np
-from src.core import assess_dengue_risk
-from src.reports import generate_report
-from src.utils import detect_device, get_system_info, find_available_model, get_model_info
+from src.core.evaluator import assess_dengue_risk
+from src.reports.generator import generate_report
+from src.utils.device import detect_device, get_system_info
+from src.utils.model_utils import find_available_model, get_model_info
 from src.utils.file_ops import print_section_header
 
 def test_system_and_gpu():
@@ -150,7 +151,7 @@ def test_core_functions():
         # Test de evaluación de riesgo - Alto
         detections_high = [
             {'class': 'Huecos', 'confidence': 0.9},
-            {'class': 'Charcos/Cumulo de agua', 'confidence': 0.8},
+            {'class': 'Charcos/Cumulos de agua', 'confidence': 0.8},
             {'class': 'Calles mal hechas', 'confidence': 0.7}
         ]
         
@@ -194,7 +195,9 @@ def test_core_functions():
         return True
         
     except Exception as e:
+        import traceback
         print(f"Error en test de funciones: {e}")
+        print(f"Traceback completo: {traceback.format_exc()}")
         return False
 
 def run_comprehensive_tests():

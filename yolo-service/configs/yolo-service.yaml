@@ -1,0 +1,75 @@
+# Sentrix YOLO Service Configuration
+# Configuración del Servicio YOLO de Sentrix
+
+service_name: "sentrix-yolo"
+version: "1.0.0"
+debug: true
+
+# CORS configuration
+cors:
+  allowed_origins:
+    - "http://localhost:8000"
+    - "http://localhost:3000"
+    - "http://127.0.0.1:8000"
+    - "http://127.0.0.1:3000"
+  allow_credentials: true
+  allowed_methods:
+    - "GET"
+    - "POST"
+  allowed_headers:
+    - "Content-Type"
+    - "Authorization"
+
+# Security configuration
+security:
+  max_file_size_mb: 50
+  allowed_file_types:
+    - ".jpg"
+    - ".jpeg"
+    - ".png"
+    - ".tiff"
+    - ".bmp"
+    - ".heic"
+  rate_limit_per_minute: 30
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_logging: true
+  console_logging: true
+  max_file_size_mb: 10
+  backup_count: 5
+
+# YOLO-specific settings
+model:
+  default_path: "models/best.pt"
+  fallback_models:
+    - "models/yolo11n-seg.pt"
+    - "models/yolo11s-seg.pt"
+  confidence_threshold: 0.5
+  device: "auto"  # auto, cpu, cuda
+
+detection:
+  max_detections_per_image: 100
+  enable_gps_extraction: true
+  enable_camera_info: true
+  save_results: true
+
+server:
+  host: "0.0.0.0"
+  port: 8002
+  workers: 1
+  reload: true
+  log_level: "info"
+
+processing:
+  batch_size: 10
+  max_concurrent_requests: 5
+  timeout_seconds: 120
+
+paths:
+  data_dir: "data"
+  models_dir: "models"
+  results_dir: "results"
+  temp_dir: "temp"

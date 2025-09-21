@@ -4,6 +4,8 @@ Endpoints de análisis para procesamiento de imágenes y detección de criaderos
 """
 
 import uuid
+import asyncio
+import httpx
 from datetime import datetime
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
@@ -20,8 +22,6 @@ from app.config import get_settings
 router = APIRouter()
 settings = get_settings()
 
-# Mock storage for development (replace with actual database later)
-MOCK_ANALYSES = {}
 
 
 @router.post("/analyses", response_model=AnalysisUploadResponse)
@@ -53,19 +53,24 @@ async def create_analysis(
             detail="Se requiere un archivo de imagen"
         )
 
-    # Validar extensión
+    # Validar extensión usando shared library
+    import sys
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    from shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
+
     if not file.filename:
         raise HTTPException(
             status_code=400,
             detail="El archivo debe tener un nombre válido"
         )
 
-    allowed_extensions = {'.jpg', '.jpeg', '.png', '.tiff', '.bmp'}
-    file_ext = file.filename.split('.')[-1].lower()
-    if f'.{file_ext}' not in allowed_extensions:
+    file_ext = '.' + file.filename.split('.')[-1].lower()
+    if not is_format_supported(file_ext):
+        supported_formats = list(SUPPORTED_IMAGE_FORMATS.keys())
         raise HTTPException(
             status_code=400,
-            detail=f"Extensión no permitida. Use: {', '.join(allowed_extensions)}"
+            detail=f"Formato no soportado: {file_ext}. Formatos soportados: {', '.join(supported_formats)}"
         )
 
     # Validar coordenadas si se proporcionan
@@ -94,8 +99,11 @@ async def create_analysis(
                 detail="El archivo es demasiado grande. Máximo 50MB"
             )
 
+        # Import analysis service at the top level to avoid circular imports
+        from app.services.analysis_service import analysis_service as service_instance
+
         # Procesar imagen con servicio de análisis
-        result = await analysis_service.process_image_analysis(
+        result = await service_instance.process_image_analysis(
             image_data=image_data,
             filename=file.filename,
             confidence_threshold=confidence_threshold,
@@ -135,93 +143,95 @@ async def get_analysis(analysis_id: str):
         AnalysisResponse con información completa
     """
 
-    # Check if analysis exists in mock storage
-    if analysis_id not in MOCK_ANALYSES:
+    from app.services.analysis_service import analysis_service as service_instance
+
+    # Obtener análisis real desde base de datos
+    analysis_data = await service_instance.get_analysis_by_id(analysis_id)
+
+    if not analysis_data:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    mock_analysis = MOCK_ANALYSES[analysis_id]
+    # Construir ubicación desde datos del análisis
+    location_data = {"has_location": False}
+    if analysis_data.get("has_gps_data"):
+        # Extract GPS coordinates from Google Maps URL or PostGIS location field
+        google_maps_url = analysis_data.get("google_maps_url")
+        if google_maps_url and "q=" in google_maps_url:
+            # Extract coordinates from Google Maps URL: https://maps.google.com/?q=lat,lng
+            coords_part = google_maps_url.split("q=")[1]
+            if "," in coords_part:
+                lat_str, lng_str = coords_part.split(",", 1)
+                try:
+                    lat = float(lat_str)
+                    lng = float(lng_str)
+                    location_data = {
+                        "has_location": True,
+                        "latitude": lat,
+                        "longitude": lng,
+                        "coordinates": f"{lat},{lng}",
+                        "location_source": analysis_data.get("location_source", "UNKNOWN"),
+                        "google_maps_url": google_maps_url,
+                        "google_earth_url": analysis_data.get("google_earth_url")
+                    }
+                except ValueError:
+                    pass
 
-    # Mock complete analysis response
-    # In real implementation, this would fetch from database with joins
+    # Construir información de cámara
+    camera_info = None
+    if analysis_data.get("camera_make"):
+        camera_info = {
+            "camera_make": analysis_data.get("camera_make"),
+            "camera_model": analysis_data.get("camera_model"),
+            "camera_datetime": analysis_data.get("camera_datetime"),
+            "camera_software": None
+        }
+
+    # Procesar detecciones
+    processed_detections = []
+    for detection in analysis_data.get("detections", []):
+        processed_detection = {
+            "id": uuid.UUID(detection["id"]),
+            "class_id": detection.get("class_id", 0),
+            "class_name": detection.get("class_name", "Unknown"),
+            "confidence": detection.get("confidence", 0.0),
+            "risk_level": detection.get("risk_level", "LOW"),
+            "breeding_site_type": detection.get("breeding_site_type", "Unknown"),
+            "polygon": detection.get("polygon", []),
+            "mask_area": detection.get("mask_area", 0.0),
+            "area_square_pixels": detection.get("mask_area", 0.0),
+            "location": location_data,
+            "source_filename": analysis_data.get("image_filename"),
+            "camera_info": camera_info,
+            "validation_status": "pending",
+            "validation_notes": None,
+            "validated_at": None,
+            "created_at": detection.get("created_at")
+        }
+        processed_detections.append(processed_detection)
 
     response = AnalysisResponse(
-        id=uuid.UUID(analysis_id),
-        status=mock_analysis["status"],
-        image_filename=mock_analysis["image_filename"],
-        image_size_bytes=1024000,  # Mock size
-
-        # Mock location data
-        location={
-            "has_location": mock_analysis["has_gps_data"],
-            "latitude": -26.831314 if mock_analysis["has_gps_data"] else None,
-            "longitude": -65.195539 if mock_analysis["has_gps_data"] else None,
-            "coordinates": "-26.831314,-65.195539" if mock_analysis["has_gps_data"] else None,
-            "altitude_meters": 458.2 if mock_analysis["has_gps_data"] else None,
-            "location_source": "EXIF_GPS" if mock_analysis["has_gps_data"] else None,
-            "google_maps_url": "https://maps.google.com/?q=-26.831314,-65.195539" if mock_analysis["has_gps_data"] else None,
-            "google_earth_url": "https://earth.google.com/web/search/-26.831314,-65.195539" if mock_analysis["has_gps_data"] else None
-        } if mock_analysis["has_gps_data"] else {"has_location": False},
-
-        # Mock camera info
-        camera_info={
-            "camera_make": "Xiaomi",
-            "camera_model": "220333QL",
-            "camera_datetime": "2025:08:29 15:19:08",
-            "camera_software": "Unknown"
-        } if mock_analysis["camera_detected"] else None,
-
-        # Mock processing info
-        model_used="yolo11s-seg.pt",
-        confidence_threshold=mock_analysis["confidence_threshold"],
-        processing_time_ms=1234,
+        id=uuid.UUID(analysis_data["id"]),
+        status=analysis_data.get("status", "completed"),
+        image_filename=analysis_data.get("image_filename"),
+        image_size_bytes=analysis_data.get("image_size_bytes", 0),
+        location=location_data,
+        camera_info=camera_info,
+        model_used=analysis_data.get("model_used", "unknown"),
+        confidence_threshold=analysis_data.get("confidence_threshold", 0.5),
+        processing_time_ms=analysis_data.get("processing_time_ms", 0),
         yolo_service_version="2.0.0",
-
-        # Mock risk assessment
         risk_assessment={
-            "level": "MEDIUM",
-            "risk_score": 0.75,
-            "total_detections": 2,
-            "high_risk_count": 1,
-            "medium_risk_count": 1,
-            "recommendations": ["Monitoreo regular", "Eliminación de desechos"]
+            "level": analysis_data.get("risk_level") or "BAJO",
+            "risk_score": analysis_data.get("risk_score", 0.0),
+            "total_detections": analysis_data.get("total_detections", 0),
+            "high_risk_count": sum(1 for d in processed_detections if d["risk_level"] == "ALTO"),
+            "medium_risk_count": sum(1 for d in processed_detections if d["risk_level"] == "MEDIO"),
+            "recommendations": ["Verificar detecciones", "Seguir protocolos de seguridad"]
         },
-
-        # Mock detections
-        detections=[
-            {
-                "id": uuid.uuid4(),
-                "class_id": 0,
-                "class_name": "Basura",
-                "confidence": 0.364,
-                "risk_level": "MEDIO",
-                "breeding_site_type": "Basura",
-                "polygon": [[3837.75, 1336.25], [3837.75, 1502.0], [4002.0, 1502.0], [4002.0, 1336.25]],
-                "mask_area": 1718.0,
-                "area_square_pixels": 1718.0,
-                "location": {
-                    "has_location": mock_analysis["has_gps_data"],
-                    "latitude": -26.831314 if mock_analysis["has_gps_data"] else None,
-                    "longitude": -65.195539 if mock_analysis["has_gps_data"] else None,
-                    "coordinates": "-26.831314,-65.195539" if mock_analysis["has_gps_data"] else None,
-                    "google_maps_url": "https://maps.google.com/?q=-26.831314,-65.195539" if mock_analysis["has_gps_data"] else None
-                } if mock_analysis["has_gps_data"] else {"has_location": False},
-                "source_filename": mock_analysis["image_filename"],
-                "camera_info": {
-                    "camera_make": "Xiaomi",
-                    "camera_model": "220333QL",
-                    "camera_datetime": "2025:08:29 15:19:08"
-                } if mock_analysis["camera_detected"] else None,
-                "validation_status": "pending",
-                "validation_notes": None,
-                "validated_at": None,
-                "created_at": mock_analysis["created_at"]
-            }
-        ],
-
-        # Timestamps
-        image_taken_at=datetime.utcnow(),
-        created_at=mock_analysis["created_at"],
-        updated_at=datetime.utcnow()
+        detections=processed_detections,
+        image_taken_at=datetime.fromisoformat(analysis_data["created_at"].replace("Z", "+00:00")) if analysis_data.get("created_at") else datetime.utcnow(),
+        created_at=datetime.fromisoformat(analysis_data["created_at"].replace("Z", "+00:00")) if analysis_data.get("created_at") else datetime.utcnow(),
+        updated_at=datetime.fromisoformat(analysis_data["updated_at"].replace("Z", "+00:00")) if analysis_data.get("updated_at") else datetime.utcnow()
     )
 
     return response
@@ -251,44 +261,86 @@ async def list_analyses(
         limit/offset: Paginación
     """
 
-    # Mock filtering and pagination
-    filtered_analyses = []
+    from app.services.analysis_service import analysis_service as service_instance
 
-    for analysis_id, analysis_data in MOCK_ANALYSES.items():
-        # Apply filters (mock implementation)
-        if has_gps is not None and analysis_data["has_gps_data"] != has_gps:
-            continue
-
-        # Create mock response for each analysis
-        mock_response = AnalysisResponse(
-            id=uuid.UUID(analysis_id),
-            status=analysis_data["status"],
-            image_filename=analysis_data["image_filename"],
-            location={"has_location": analysis_data["has_gps_data"]} if analysis_data["has_gps_data"] else {"has_location": False},
-            camera_info={
-                "camera_make": "Xiaomi" if analysis_data["camera_detected"] else None
-            } if analysis_data["camera_detected"] else None,
-            risk_assessment={
-                "level": "MEDIUM",
-                "total_detections": 1
-            },
-            detections=[],
-            created_at=analysis_data["created_at"],
-            updated_at=datetime.utcnow()
-        )
-
-        filtered_analyses.append(mock_response)
-
-    # Apply pagination
-    total = len(filtered_analyses)
-    paginated = filtered_analyses[offset:offset + limit]
-
-    return AnalysisListResponse(
-        analyses=paginated,
-        total=total,
+    # Obtener análisis desde base de datos con filtros
+    result = await service_instance.list_analyses(
         limit=limit,
         offset=offset,
-        has_next=offset + limit < total
+        user_id=user_id,
+        has_gps=has_gps,
+        risk_level=risk_level
+    )
+
+    # Convertir análisis a formato de respuesta
+    analyses_responses = []
+    for analysis in result.get("analyses", []):
+        # Construir ubicación con coordenadas si están disponibles
+        location_data = {"has_location": False}
+        if analysis.get("has_gps_data"):
+            # Extract GPS coordinates from Google Maps URL stored in analysis
+            google_maps_url = analysis.get("google_maps_url")
+            if google_maps_url and "q=" in google_maps_url:
+                coords_part = google_maps_url.split("q=")[1]
+                if "," in coords_part:
+                    lat_str, lng_str = coords_part.split(",", 1)
+                    try:
+                        lat = float(lat_str)
+                        lng = float(lng_str)
+                        location_data = {
+                            "has_location": True,
+                            "latitude": lat,
+                            "longitude": lng,
+                            "coordinates": f"{lat},{lng}",
+                            "location_source": analysis.get("location_source", "UNKNOWN"),
+                            "google_maps_url": google_maps_url,
+                            "google_earth_url": analysis.get("google_earth_url")
+                        }
+                    except ValueError:
+                        pass
+
+        # Construir información de cámara
+        camera_info = None
+        if analysis.get("camera_make"):
+            camera_info = {
+                "camera_make": analysis.get("camera_make"),
+                "camera_model": analysis.get("camera_model"),
+                "camera_datetime": analysis.get("camera_datetime"),
+                "camera_software": None
+            }
+
+        analysis_response = AnalysisResponse(
+            id=uuid.UUID(analysis["id"]),
+            status="completed",
+            image_filename=analysis.get("image_filename"),
+            image_size_bytes=analysis.get("image_size_bytes", 0),
+            location=location_data,
+            camera_info=camera_info,
+            model_used=analysis.get("model_used", "unknown"),
+            confidence_threshold=analysis.get("confidence_threshold", 0.5),
+            processing_time_ms=analysis.get("processing_time_ms", 0),
+            yolo_service_version="2.0.0",
+            risk_assessment={
+                "level": analysis.get("risk_level") or "BAJO",
+                "risk_score": analysis.get("risk_score", 0.0),
+                "total_detections": analysis.get("total_detections", 0),
+                "high_risk_count": 0,  # Calculated from detections if needed
+                "medium_risk_count": 0,
+                "recommendations": []
+            },
+            detections=[],  # Empty for list view (performance)
+            image_taken_at=datetime.fromisoformat(analysis["created_at"].replace("Z", "+00:00")) if analysis.get("created_at") else datetime.utcnow(),
+            created_at=datetime.fromisoformat(analysis["created_at"].replace("Z", "+00:00")) if analysis.get("created_at") else datetime.utcnow(),
+            updated_at=datetime.fromisoformat(analysis["updated_at"].replace("Z", "+00:00")) if analysis.get("updated_at") else datetime.utcnow()
+        )
+        analyses_responses.append(analysis_response)
+
+    return AnalysisListResponse(
+        analyses=analyses_responses,
+        total=result.get("total", 0),
+        limit=limit,
+        offset=offset,
+        has_next=result.get("has_next", False)
     )
 
 
@@ -313,36 +365,76 @@ async def create_batch_analysis(request: BatchUploadRequest):
     batch_id = uuid.uuid4()
     analyses = []
 
-    # Process each image URL
-    for image_url in request.image_urls:
-        analysis_id = uuid.uuid4()
+    # Process images concurrently for better performance
+    async def process_single_image(image_url: str) -> AnalysisUploadResponse:
+        """Process a single image from URL"""
+        try:
+            # Download image from URL
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(image_url)
+                response.raise_for_status()
+                image_data = response.content
 
-        # Mock analysis creation
-        mock_analysis = {
-            "id": analysis_id,
-            "status": "pending",
-            "image_filename": image_url.split("/")[-1],
-            "has_gps_data": bool(uuid.uuid4().int % 2),  # Random GPS availability
-            "confidence_threshold": request.confidence_threshold,
-            "created_at": datetime.utcnow()
-        }
+                # Extract filename from URL
+                filename = image_url.split("/")[-1]
+                if not filename.endswith(('.jpg', '.jpeg', '.png', '.tiff', '.heic')):
+                    filename += '.jpg'
 
-        MOCK_ANALYSES[str(analysis_id)] = mock_analysis
+                # Process image using existing analysis service
+                result = await analysis_service.process_image_from_data(
+                    image_data=image_data,
+                    filename=filename,
+                    user_id=1,  # Default user for batch processing
+                    confidence_threshold=0.5,
+                    latitude=None,
+                    longitude=None
+                )
 
-        analyses.append(AnalysisUploadResponse(
-            analysis_id=analysis_id,
-            status="pending",
-            has_gps_data=mock_analysis["has_gps_data"],
-            camera_detected=None,  # Will be detected during processing
-            message="Queued for batch processing"
-        ))
+                return AnalysisUploadResponse(
+                    analysis_id=result["analysis_id"],
+                    status="completed",
+                    has_gps_data=result.get("has_gps_data", False),
+                    camera_detected=result.get("camera_make"),
+                    message="Processed successfully"
+                )
 
-    # Estimate completion time based on batch size
-    estimated_minutes = len(request.image_urls) * 1  # 1 minute per image
+        except httpx.HTTPError as e:
+            # Return error response for failed downloads
+            return AnalysisUploadResponse(
+                analysis_id=uuid.uuid4(),
+                status="failed",
+                has_gps_data=False,
+                camera_detected=None,
+                message=f"Failed to download image: {str(e)}"
+            )
+        except Exception as e:
+            # Return error response for processing failures
+            return AnalysisUploadResponse(
+                analysis_id=uuid.uuid4(),
+                status="failed",
+                has_gps_data=False,
+                camera_detected=None,
+                message=f"Processing failed: {str(e)}"
+            )
+
+    # Process all images concurrently (max 10 at a time to avoid overwhelming)
+    semaphore = asyncio.Semaphore(10)
+
+    async def process_with_semaphore(image_url: str):
+        async with semaphore:
+            return await process_single_image(image_url)
+
+    # Execute all processing tasks
+    tasks = [process_with_semaphore(url) for url in request.image_urls]
+    analyses = await asyncio.gather(*tasks, return_exceptions=False)
+
+    # Calculate actual completion stats
+    successful = sum(1 for analysis in analyses if analysis.status == "completed")
+    failed = sum(1 for analysis in analyses if analysis.status == "failed")
 
     return BatchUploadResponse(
         batch_id=batch_id,
         total_images=len(request.image_urls),
         analyses=analyses,
-        estimated_completion_time=f"{estimated_minutes}-{estimated_minutes*2} minutes"
+        estimated_completion_time=f"Completed: {successful} successful, {failed} failed"
     )

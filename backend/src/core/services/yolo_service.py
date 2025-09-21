@@ -89,6 +89,8 @@ class YOLOServiceClient:
                     content_type = "image/png"
                 elif filename.lower().endswith(('.tiff', '.tif')):
                     content_type = "image/tiff"
+                elif filename.lower().endswith(('.heic',)):
+                    content_type = "image/heic"
 
                 # Preparar archivo para envío
                 files = {"file": (filename, image_data, content_type)}

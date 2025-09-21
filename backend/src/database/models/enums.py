@@ -1,25 +1,31 @@
 import enum
+import sys
+import os
 from sqlalchemy import Enum
 
+# Import shared data models
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+from shared.data_models import (
+    DetectionRiskEnum as SharedDetectionRiskEnum,
+    BreedingSiteTypeEnum as SharedBreedingSiteTypeEnum,
+    AnalysisStatusEnum as SharedAnalysisStatusEnum,
+    ValidationStatusEnum as SharedValidationStatusEnum
+)
 
+
+# Use shared enums but maintain backward compatibility
 class RiskLevelEnum(enum.Enum):
-    MINIMAL = "MINIMAL"
-    LOW = "LOW"
-    MEDIUM = "MEDIUM"
-    HIGH = "HIGH"
-
-
-class DetectionRiskEnum(enum.Enum):
+    """Backward compatibility for RiskLevelEnum"""
+    MINIMO = "MINIMO"  # Fixed spelling to match shared enum
     BAJO = "BAJO"
     MEDIO = "MEDIO"
     ALTO = "ALTO"
 
 
-class BreedingSiteTypeEnum(enum.Enum):
-    BASURA = "Basura"
-    CALLES_MAL_HECHAS = "Calles mal hechas"
-    CHARCOS_CUMULO_AGUA = "Charcos/Cumulo de agua"
-    HUECOS = "Huecos"
+# Alias shared enums for direct use
+DetectionRiskEnum = SharedDetectionRiskEnum
+BreedingSiteTypeEnum = SharedBreedingSiteTypeEnum
+AnalysisStatusEnum = SharedAnalysisStatusEnum
 
 
 class UserRoleEnum(enum.Enum):
@@ -34,10 +40,16 @@ class LocationSourceEnum(enum.Enum):
     ESTIMATED = "ESTIMATED"
 
 
+# Keep local validation status for database compatibility
 class ValidationStatusEnum(enum.Enum):
     PENDING = "pending"
     CONFIRMED = "confirmed"
     REJECTED = "rejected"
+    # Add shared enum values for compatibility
+    PENDING_VALIDATION = "pending_validation"
+    VALIDATED_POSITIVE = "validated_positive"
+    VALIDATED_NEGATIVE = "validated_negative"
+    REQUIRES_REVIEW = "requires_review"
 
 
 # SQLAlchemy Enum types

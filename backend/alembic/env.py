@@ -8,8 +8,8 @@ import sys
 # Add the app directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.models.base import Base
-from app.models.models import UserProfile, Analysis, Detection
+from src.database.models.base import Base
+from src.database.models.models import UserProfile, Analysis, Detection
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
