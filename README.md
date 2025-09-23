@@ -1,266 +1,191 @@
-# Sentrix - Plataforma de Detección de Vectores de Enfermedad con IA
+# Sentrix - Detección IA de Criaderos de Aedes aegypti
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![YOLO v11](https://img.shields.io/badge/YOLO-v11-brightgreen.svg)](https://github.com/ultralytics/ultralytics)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 
-Sentrix es una plataforma integral para la detección automatizada y evaluación de riesgo de criaderos de mosquitos del dengue, utilizando inteligencia artificial, análisis ambiental y participación ciudadana para la prevención de enfermedades vectoriales.
+Plataforma de inteligencia artificial para la detección automatizada de criaderos de mosquitos del dengue usando visión por computadora y evaluación de riesgo epidemiológico.
 
-## Descripción General
+## Descripción
 
-Sentrix combina visión por computadora avanzada con análisis ambiental contextual para identificar y evaluar sitios de reproducción del mosquito *Aedes aegypti*. La plataforma procesa imágenes aéreas (drones) y terrestres (usuarios), calcula índices de riesgo basados en variables meteorológicas, y proporciona herramientas de visualización y alerta temprana para autoridades de salud pública y comunidades.
+Sistema completo de detección de sitios de reproducción de *Aedes aegypti* que combina:
 
-### Problema que Resuelve
-
-La detección tradicional de criaderos de dengue depende de inspecciones manuales limitadas en cobertura y velocidad de respuesta. Sentrix automatiza este proceso mediante:
-
-- **Análisis masivo** de imágenes aéreas y terrestres
-- **Evaluación contextual** con datos meteorológicos en tiempo real
-- **Geolocalización precisa** de focos identificados
-- **Índices de riesgo** personalizados por zona geográfica
-- **Participación ciudadana** activa en la prevención
+- **Detección IA** - Modelos YOLOv11 para identificar criaderos en imágenes
+- **Evaluación de riesgo** - Algoritmos epidemiológicos para clasificación automática
+- **API REST** - Backend completo con base de datos PostgreSQL
+- **Geolocalización** - Extracción automática de coordenadas GPS desde metadatos EXIF
 
 ## Arquitectura
 
-Sentrix está construido como una plataforma modular con tres componentes principales:
-
 ```
 sentrix/
-├── yolo-service/              # Servicio de Detección IA
-├── backend/                   # Backend API (Próximamente)
-├── frontend/                  # Interfaz Web (Próximamente)
-├── docs/                      # Documentación
-└── README.md                  # Este archivo
+├── backend/                # API REST + Base de datos
+├── yolo-service/          # Servicio de detección IA
+├── shared/                # Librería compartida
+├── scripts/               # Scripts de configuración
+└── frontend/              # Interfaz web (próximamente)
 ```
 
-### Servicio YOLO
+## Inicio Rápido
 
-El servicio central de IA para detección por visión por computadora y evaluación de riesgo.
+### 1. Configuración del Entorno
 
-**Características:**
-- Modelos de segmentación de instancias YOLOv11
-- Evaluación automatizada de riesgo epidemiológico
-- **Geolocalización GPS automática** en detecciones individuales
-- **Metadata de cámara** y trazabilidad completa
-- Soporte de aceleración GPU
-- Interfaces CLI y programáticas
-- Capacidades de procesamiento por lotes
-- **Formato optimizado para backend** con coordenadas precisas
-
-[**Ver documentación del servicio YOLO**](./yolo-service/README.md)
-
-### Backend API *(Próximamente)*
-
-Servicio API RESTful para integrar Sentrix en sistemas más grandes.
-
-**Características Planificadas:**
-- Endpoints de API REST para integración con sistemas municipales
-- Autenticación de usuarios con roles (administrador, experto, técnico, usuario)
-- Base de datos PostgreSQL + PostGIS para datos geoespaciales
-- **Almacenamiento de detecciones georeferenciadas** desde el servicio YOLO
-- **Integración automática de metadata GPS** en base de datos
-- Gestión de almacenamiento de imágenes con metadatos EXIF
-- Integración con APIs meteorológicas (OpenWeatherMap, ClimaCell)
-- Procesamiento de trabajos por lotes y colas de tareas
-
-### Interfaz Frontend *(Próximamente)*
-
-Interfaz de usuario basada en web para interacción fácil con la plataforma.
-
-**Características Planificadas:**
-- **Mapas interactivos** con detecciones georeferenciadas automáticas
-- **Visualización GPS** de criaderos detectados en tiempo real
-- Carga manual de imágenes por usuarios con geolocalización
-- Mapas de calor para visualización de zonas críticas
-- Dashboards con estadísticas y series temporales
-- Sistema de alertas tempranas basado en índices de riesgo
-- **URLs de verificación** integradas (Google Maps, Google Earth)
-- Exportación de reportes en PDF/CSV con coordenadas
-- Participación ciudadana con validación comunitaria
-
-## Quick Start
-
-La plataforma Sentrix está completamente funcional con integración YOLO + Backend:
-
-### Opción 1: API Completa (Recomendado)
 ```bash
-# Terminal 1: Iniciar servidor YOLO
+# Configurar variables de entorno
+python scripts/setup-env.py
+
+# Editar configuración
+cp .env.example .env
+```
+
+### 2. Ejecutar Servicios
+
+```bash
+# Terminal 1: Servicio YOLO (puerto 8001)
 cd yolo-service && python server.py
 
-# Terminal 2: Iniciar backend
-cd backend && python main.py
+# Terminal 2: Backend API (puerto 8000)
+cd backend && python scripts/run_server.py
+```
 
-# Terminal 3: Usar API
+### 3. Probar Detección
+
+```bash
+# API completa con almacenamiento
 curl -X POST "http://localhost:8000/api/v1/analyses" \
   -F "file=@imagen.jpg" \
   -F "confidence_threshold=0.5"
+
+# Detección directa YOLO
+curl -X POST "http://localhost:8001/detect" \
+  -F "file=@imagen.jpg"
 ```
 
-### Opción 2: Solo YOLO Service
+## Capacidades de Detección
+
+| Tipo de Criadero | Nivel de Riesgo | Descripción |
+|------------------|-----------------|-------------|
+| **Basura** | Medio | Acumulación de residuos con retención de agua |
+| **Calles deterioradas** | Alto | Superficies irregulares que forman charcos |
+| **Acumulaciones de agua** | Alto | Agua estancada visible, hábitat directo |
+| **Huecos/depresiones** | Alto | Cavidades que retienen agua de lluvia |
+
+## Componentes
+
+### 🤖 [YOLO Service](./yolo-service/README.md)
+- Detección con modelos YOLOv11 optimizados
+- Servidor FastAPI en puerto 8001
+- Extracción automática de GPS/EXIF
+- Soporte para JPEG, PNG, HEIC, TIFF
+
+### 🔧 [Backend](./backend/README.md)
+- API REST con FastAPI
+- Base de datos PostgreSQL/Supabase
+- Autenticación y gestión de usuarios
+- Integración automática con YOLO service
+
+### 📚 [Shared Library](./shared/README.md)
+- Enums unificados para consistencia
+- Algoritmos de evaluación de riesgo
+- Utilidades de archivos e imágenes
+- Sistema de logging centralizado
+
+### ⚙️ Scripts de Configuración
+- `scripts/setup-env.py` - Configuración automática del entorno
+- `scripts/simple-validation.py` - Validación de integración
+- Configuración centralizada de puertos y servicios
+
+## Estado del Proyecto
+
+| Componente | Estado | Puerto |
+|-----------|--------|--------|
+| **YOLO Service** | ✅ Completo | 8001 |
+| **Backend API** | ✅ Completo | 8000 |
+| **Shared Library** | ✅ Completo | - |
+| **Frontend Web** | 🔄 En desarrollo | 3000 |
+
+## Configuración
+
+El proyecto utiliza configuración centralizada a través de variables de entorno:
+
 ```bash
-cd yolo-service
-pip install -r requirements.txt
+# Puertos estandarizados
+BACKEND_PORT=8000
+YOLO_SERVICE_PORT=8001
 
-# Detección directa
-python main.py detect --model yolo11s-seg.pt --source imagen.jpg
+# Base de datos
+DATABASE_URL=postgresql://...
+SUPABASE_URL=tu_url_supabase
 
-# Servidor HTTP
-python server.py
+# IA y modelos
+YOLO_MODEL_PATH=models/best.pt
+YOLO_CONFIDENCE_THRESHOLD=0.5
 ```
 
-Ver documentación detallada en cada componente:
-- [YOLO Service](./yolo-service/README.md) - Core de IA
-- [Backend API](./backend/README.md) - API REST y base de datos
+## Requisitos
 
-## Detection Capabilities
+- **Python 3.8+**
+- **4GB RAM** (8GB recomendado)
+- **GPU NVIDIA** (opcional, para acelerar detección)
+- **PostgreSQL** (o cuenta Supabase)
 
-| Class | Risk Level | Description |
-|-------|------------|-------------|
-| Trash/Debris | Medium | Waste accumulation with water retention potential |
-| Deteriorated Streets | High | Irregular surfaces facilitating puddle formation |
-| Water Accumulations | High | Visible stagnant water, direct breeding habitat |
-| Holes/Depressions | High | Cavities that retain rainwater |
+## Instalación
 
-## Risk Assessment
+```bash
+# Clonar repositorio
+git clone https://github.com/tu-usuario/sentrix.git
+cd sentrix
 
-The platform evaluates epidemiological risk based on detected breeding sites:
+# Configurar entorno
+python scripts/setup-env.py
 
-- **HIGH**: ≥3 high-risk sites OR ≥1 high-risk + ≥3 medium-risk sites
-- **MEDIUM**: ≥1 high-risk site OR ≥3 medium-risk sites
-- **LOW**: ≥1 medium-risk site
-- **MINIMAL**: No risk sites detected
+# Instalar dependencias
+pip install -r backend/requirements.txt
+pip install -r yolo-service/requirements.txt
 
-## Estado de Desarrollo
-
-| Componente | Estado | Descripción | Última Actualización |
-|-----------|--------|-------------|---------------------|
-| **Servicio YOLO** | **✓ Completo + HTTP API** | Detección IA con servidor FastAPI | ✓ Enero 2025 |
-| **Backend API** | **✓ Completo + Integración YOLO** | API REST + base de datos + integración YOLO | ✓ Enero 2025 |
-| **Frontend Web** | **Planificado** | Mapas interactivos con GPS integrado | Próximo |
-| **Integración Meteorológica** | **Planificado** | APIs clima + índices de riesgo | Próximo |
-| **App Móvil** | **Futuro** | Aplicación para trabajo de campo | 2025+ |
-
-### Roadmap del Proyecto
-
-**Fase 1 (✓ Completa):** Core IA - Detección automatizada con geolocalización + servidor HTTP
-**Fase 2 (✓ Completa):** Backend Integrado - API REST + integración YOLO + base de datos
-**Fase 3 (Planificada):** Frontend Web - Mapas interactivos y dashboards
-**Fase 4 (Futura):** Análisis Contextual - Integración meteorológica y alertas
-
-## Investigación y Uso Académico
-
-Sentrix fue desarrollado como proyecto de investigación aplicada en inteligencia artificial para salud pública, enfocado en la prevención del dengue mediante tecnología accesible y escalable.
-
-### Objetivos de Investigación
-
-**Objetivo General:** Desarrollar e implementar un sistema de inteligencia artificial y plataforma web para la detección, geolocalización y análisis de focos de *Aedes aegypti* en zonas urbanas.
-
-**Objetivos Específicos:**
-- Implementar modelos YOLOv11/YOLOv12 para detección de criaderos
-- Integrar variables ambientales (temperatura, humedad, precipitaciones)
-- Desarrollar índices de riesgo contextualizados por zona geográfica
-- Validar el sistema mediante comparación con inspecciones humanas
-- Crear herramientas de participación ciudadana efectivas
-
-### Metodología de Investigación
-
-1. **Recolección de Datos:** Imágenes aéreas (drones) y terrestres con diversidad de condiciones
-2. **Entrenamiento IA:** Arquitecturas CNN con técnicas de data augmentation
-3. **Integración Ambiental:** APIs meteorológicas para calcular índices de riesgo
-4. **Validación en Campo:** Comparación con inspecciones manuales de expertos
-5. **Implementación Piloto:** Pruebas en zonas urbanas reales
-
-### Publicaciones y Citas
-
-Al usar Sentrix en trabajo académico, por favor cita:
-
-```bibtex
-@software{sentrix2025,
-  title={Sentrix: AI-Powered Disease Vector Detection Platform},
-  author={[Your Name]},
-  year={2025},
-  url={https://github.com/yourusername/sentrix}
-}
+# Configurar base de datos
+cd backend && alembic upgrade head
 ```
 
-### Limitaciones y Consideraciones
+## Testing
 
-- **Especificidad Geográfica**: Modelos entrenados con datos regionales específicos (Argentina)
-- **Tamaño del Dataset**: Datos de entrenamiento limitados (82 imágenes total, 46 con GPS)
-- **Cobertura GPS**: 56.1% de imágenes tienen geolocalización (principalmente Xiaomi)
-- **Dependencia Climática**: Restricciones legales y meteorológicas para uso de drones
-- **Validación Requerida**: Los resultados necesitan verificación por especialistas en salud pública
-- **Cobertura Logística**: Limitada a zonas con acceso para captura o carga de datos
-- **Calidad de Imágenes**: El rendimiento varía con condiciones de iluminación y clima
+```bash
+# Validación completa del sistema
+python scripts/simple-validation.py
 
-### Resultados Logrados y Esperados
+# Tests por componente
+cd backend && python -m pytest tests/ -v
+cd yolo-service && python -m pytest tests/ -v
+```
 
-**Logrado en Fases 1-2:**
-- Modelo de IA funcional con detección de criaderos y geolocalización automática
-- Sistema de evaluación de riesgo epidemiológico validado
-- **56.1% de cobertura GPS** en dataset con coordenadas precisas de Argentina
-- **Servidor HTTP FastAPI** en yolo-service para integración
-- **Backend API REST** completamente integrado con YOLO
-- **Base de datos Supabase** configurada para almacenamiento geoespacial
+## Evaluación de Riesgo
 
-**Esperado en Fases Futuras:**
-- Plataforma web intuitiva con mapas interactivos y geolocalización
-- Índice de riesgo contextualizado para anticipar zonas de alta probabilidad de proliferación
-- Sistema validado en condiciones reales, listo para implementación piloto
-- Herramientas de participación ciudadana para involucramiento comunitario
+El sistema calcula automáticamente el nivel de riesgo epidemiológico:
 
-## Contribuciones
+- **ALTO**: ≥3 sitios de alto riesgo O ≥1 alto + ≥3 medio
+- **MEDIO**: ≥1 sitio de alto riesgo O ≥3 sitios de riesgo medio
+- **BAJO**: ≥1 sitio de riesgo medio
+- **MÍNIMO**: Sin sitios de riesgo detectados
 
-¡Damos la bienvenida a contribuciones en cualquier componente de la plataforma Sentrix!
+## Proyecto de Investigación
 
-- **Mejoras AI/ML**: Mejorar modelos de detección y algoritmos
-- **Desarrollo Backend**: Ayudar a construir el servicio API
-- **Desarrollo Frontend**: Crear interfaces web amigables
-- **Documentación**: Mejorar guías y tutoriales
-- **Testing**: Agregar cobertura de pruebas y validación
+**Objetivo**: Desarrollar un sistema de IA para la detección, geolocalización y análisis de focos de *Aedes aegypti* en zonas urbanas.
 
-Ver [CONTRIBUTING.md](CONTRIBUTING.md) para guías detalladas.
+**Metodología**: Modelos YOLOv11 + algoritmos epidemiológicos + integración ambiental
 
-## Impacto en Salud Pública
+**Resultados**: Sistema funcional con 56.1% de cobertura GPS en dataset argentino
 
-Sentrix busca apoyar:
+## Documentación
 
-- **Vigilancia automatizada** de sitios de reproducción de vectores de enfermedad
-- **Sistemas de alerta temprana** para brotes de enfermedades
-- **Optimización de recursos** para intervenciones de salud pública
-- **Toma de decisiones basada en datos** en planificación urbana
-- **Conciencia y educación** en salud comunitaria
+- [Backend API](./backend/README.md) - Documentación completa del backend
+- [YOLO Service](./yolo-service/README.md) - Servicio de detección IA
+- [Shared Library](./shared/README.md) - Librería compartida
+- [Import Conventions](./shared/IMPORT_CONVENTIONS.md) - Convenciones de código
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT con términos adicionales para uso académico. Ver [LICENSE](LICENSE) para detalles.
-
-## Contacto y Soporte
-
-- **Issues y Bugs**: [GitHub Issues](https://github.com/yourusername/sentrix/issues)
-- **Discusiones**: [GitHub Discussions](https://github.com/yourusername/sentrix/discussions)
-- **Colaboración Académica**: [your.email@institution.edu]
-- **Documentación**: [Project Wiki](https://github.com/yourusername/sentrix/wiki)
-
-## Agradecimientos
-
-- Equipo de Ultralytics por el framework YOLOv11
-- Organizaciones de salud pública que proporcionan experiencia en el dominio
-- Comunidades de investigación en visión por computadora y epidemiología
-- Contribuidores y colaboradores de código abierto
+MIT License - Ver [LICENSE](LICENSE) para detalles.
 
 ---
 
-**Versión Actual**: 2.0.0 (Servicio YOLO)
-**Estado del Proyecto**: Fase 1 completa, desarrollando Fase 2 (Backend + Frontend)
-**Cronograma**: Julio 2024 - Octubre 2024 (4 meses de desarrollo)
-**Última Actualización**: Enero 2025
-
-### Cronograma de Desarrollo
-
-| Mes | Actividad Principal |
-|-----|-------------------|
-| **Julio 2024** | ✅ Organización dataset + diseño modelo IA |
-| **Agosto 2024** | ✅ Entrenamiento modelo + desarrollo inicial web |
-| **Septiembre 2024** | 🚧 Integración IA + plataforma + pruebas preliminares |
-| **Octubre 2024** | 📋 Validación + mejoras + documentación final |
+**Versión**: 2.1.0 | **Estado**: Sistema completo backend + YOLO | **Actualizado**: Enero 2025
