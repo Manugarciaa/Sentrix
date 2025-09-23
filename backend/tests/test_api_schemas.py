@@ -29,7 +29,7 @@ def test_import_schemas():
 def test_settings_configuration():
     """Probar que las configuraciones se pueden cargar sin errores"""
     try:
-        from configs.settings import get_settings
+        from config.settings import get_settings
         settings = get_settings()
         print("[OK] Configuraciones cargadas correctamente")
         print(f"   URL de base de datos configurada: {'Sí' if settings.database.url else 'No'}")

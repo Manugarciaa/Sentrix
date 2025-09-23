@@ -6,7 +6,7 @@ Cliente de Supabase para Sentrix Backend
 import os
 from typing import Optional
 from supabase import create_client, Client
-from configs.settings import get_settings
+from config.settings import get_settings
 
 
 class SupabaseManager:

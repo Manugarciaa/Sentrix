@@ -4,7 +4,7 @@ Utilidades para integrar con las respuestas del servicio YOLO
 """
 
 from typing import Dict, List, Any, Optional
-from app.models.enums import DetectionRiskEnum, BreedingSiteTypeEnum
+from shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
 
 
 # Mapeo de class_id del YOLO service a enum de backend

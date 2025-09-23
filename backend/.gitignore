@@ -3,63 +3,82 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Virtual environments
+# Virtual Environment
 .env
 .venv
 env/
 venv/
+ENV/
+env.bak/
+venv.bak/
 
-# FastAPI/Backend específico
-*.db
-*.sqlite
-*.sqlite3
-test.db
-
-# Database migrations (temporal - mantener solo las finales)
-alembic/versions/*.py~
-alembic/versions/.*.py
-
-# Logs y archivos temporales
-*.log
-*.tmp
-*.pid
-
-# Coverage reports
-htmlcov/
-.coverage
-coverage.xml
-.pytest_cache/
-
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
-.DS_Store
-Thumbs.db
-Desktop.ini
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
 
-# Archivos de testing temporal (solo durante desarrollo)
-test_simple.py
-test_basic_*.py
-test_supabase_*.py
-TESTS_COMPLETE.md
+# Database
+*.db
+*.sqlite3
+test.db
 
-# Scripts de utilidad temporal
-scripts/clean_unicode.py
+# Logs
+logs/
+*.log
 
-# Scripts outputs y logs
-scripts/*.log
-scripts/temp/
-scripts/output/
-
-# Archivos temporales de uploads (en producción usar S3/Supabase)
-uploads/
+# Temporary files
 temp/
 tmp/
+*.tmp
+
+# Uploads (development)
+uploads/
+data/images/
+data/temp/
+
+# Configuration secrets
+.env.production
+.env.local
+secrets/
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Alembic
+alembic/versions/*.pyc
 
 # Docker
 .dockerignore
@@ -67,15 +86,6 @@ docker-compose.override.yml
 
 # Supabase local
 .supabase/
-
-# Certificates y keys (NUNCA commitear)
-*.pem
-*.key
-*.cert
-secrets/
-
-# Requirements temporales
-requirements-test.txt
 
 # Backup files
 *.bak

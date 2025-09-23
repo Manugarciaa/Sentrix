@@ -2,7 +2,7 @@
 Configuration compatibility layer for app
 """
 
-from configs.settings import get_settings as _get_settings
+from config.settings import get_settings as _get_settings
 
 # Re-export for compatibility
 def get_settings():
@@ -10,6 +10,6 @@ def get_settings():
     return _get_settings()
 
 # Export the main settings class for convenience
-from configs.settings import Settings
+from config.settings import Settings
 
 __all__ = ["get_settings", "Settings"]

@@ -9,7 +9,8 @@ from shared.data_models import (
     DetectionRiskEnum as SharedDetectionRiskEnum,
     BreedingSiteTypeEnum as SharedBreedingSiteTypeEnum,
     AnalysisStatusEnum as SharedAnalysisStatusEnum,
-    ValidationStatusEnum as SharedValidationStatusEnum
+    ValidationStatusEnum as SharedValidationStatusEnum,
+    UserRoleEnum as SharedUserRoleEnum
 )
 
 
@@ -26,12 +27,7 @@ class RiskLevelEnum(enum.Enum):
 DetectionRiskEnum = SharedDetectionRiskEnum
 BreedingSiteTypeEnum = SharedBreedingSiteTypeEnum
 AnalysisStatusEnum = SharedAnalysisStatusEnum
-
-
-class UserRoleEnum(enum.Enum):
-    ADMIN = "admin"
-    EXPERT = "expert"
-    USER = "user"
+UserRoleEnum = SharedUserRoleEnum
 
 
 class LocationSourceEnum(enum.Enum):

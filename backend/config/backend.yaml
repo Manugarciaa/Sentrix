@@ -15,7 +15,7 @@ database:
 
 # YOLO Service integration
 yolo_service:
-  url: "http://localhost:8002"
+  url: "http://localhost:8001"
   timeout_seconds: 60.0
   max_retries: 3
   confidence_threshold: 0.5

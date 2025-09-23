@@ -6,10 +6,11 @@ Endpoints de análisis para procesamiento de imágenes y detección de criaderos
 import uuid
 import asyncio
 import httpx
+import os
 from datetime import datetime
 from typing import Optional, List
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 
 from app.schemas.analyses import (
     AnalysisUploadRequest, AnalysisUploadResponse,
@@ -143,6 +144,8 @@ async def get_analysis(analysis_id: str):
         AnalysisResponse con información completa
     """
 
+    print(f"ENDPOINT CALLED: get_analysis for ID {analysis_id}")
+
     from app.services.analysis_service import analysis_service as service_instance
 
     # Obtener análisis real desde base de datos
@@ -151,30 +154,37 @@ async def get_analysis(analysis_id: str):
     if not analysis_data:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Construir ubicación desde datos del análisis
+    # Construir ubicación desde datos del análisis - SIMPLIFIED
     location_data = {"has_location": False}
-    if analysis_data.get("has_gps_data"):
-        # Extract GPS coordinates from Google Maps URL or PostGIS location field
+    print(f"ENDPOINT DEBUG: Building location for {analysis_id}")
+    print(f"ENDPOINT DEBUG: has_gps_data = {analysis_data.get('has_gps_data')}")
+    print(f"ENDPOINT DEBUG: google_maps_url = {analysis_data.get('google_maps_url')}")
+
+    if analysis_data.get("has_gps_data") and analysis_data.get("google_maps_url"):
         google_maps_url = analysis_data.get("google_maps_url")
-        if google_maps_url and "q=" in google_maps_url:
-            # Extract coordinates from Google Maps URL: https://maps.google.com/?q=lat,lng
-            coords_part = google_maps_url.split("q=")[1]
-            if "," in coords_part:
-                lat_str, lng_str = coords_part.split(",", 1)
-                try:
+        if "q=" in google_maps_url:
+            try:
+                coords_part = google_maps_url.split("q=")[1]
+                if "," in coords_part:
+                    lat_str, lng_str = coords_part.split(",", 1)
                     lat = float(lat_str)
                     lng = float(lng_str)
+
                     location_data = {
                         "has_location": True,
                         "latitude": lat,
                         "longitude": lng,
                         "coordinates": f"{lat},{lng}",
-                        "location_source": analysis_data.get("location_source", "UNKNOWN"),
+                        "altitude_meters": analysis_data.get("gps_altitude_meters"),
+                        "location_source": analysis_data.get("location_source"),
                         "google_maps_url": google_maps_url,
                         "google_earth_url": analysis_data.get("google_earth_url")
                     }
-                except ValueError:
-                    pass
+                    print(f"ENDPOINT DEBUG: Successfully built location data with lat={lat}, lng={lng}")
+            except Exception as e:
+                print(f"ENDPOINT DEBUG: Error parsing coordinates: {e}")
+    else:
+        print(f"ENDPOINT DEBUG: No GPS data or google_maps_url missing")
 
     # Construir información de cámara
     camera_info = None
@@ -437,4 +447,48 @@ async def create_batch_analysis(request: BatchUploadRequest):
         total_images=len(request.image_urls),
         analyses=analyses,
         estimated_completion_time=f"Completed: {successful} successful, {failed} failed"
+    )
+
+
+@router.get("/analyses/{analysis_id}/image")
+async def get_analysis_image(analysis_id: str):
+    """
+    Servir imagen del análisis
+
+    Args:
+        analysis_id: UUID del análisis
+
+    Returns:
+        FileResponse con la imagen
+    """
+    from app.services.analysis_service import analysis_service as service_instance
+
+    # Obtener datos del análisis para verificar que existe
+    analysis_data = await service_instance.get_analysis_by_id(analysis_id)
+
+    if not analysis_data:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    # Path donde se guardan las imágenes (ajustar según tu configuración)
+    # Por ahora usar un path temporal o mockup
+    image_filename = analysis_data.get("image_filename", "default.jpg")
+
+    # TODO: Implementar storage real de imágenes
+    # Por ahora retornar una imagen de ejemplo o 404
+    image_path = f"/tmp/sentrix_images/{analysis_id}_{image_filename}"
+
+    if not os.path.exists(image_path):
+        # Crear directorio si no existe
+        os.makedirs(os.path.dirname(image_path), exist_ok=True)
+
+        # Por ahora, retornar 404 ya que no tenemos storage implementado
+        raise HTTPException(
+            status_code=404,
+            detail="Image file not found. Image storage not implemented yet."
+        )
+
+    return FileResponse(
+        path=image_path,
+        media_type="image/jpeg",
+        filename=image_filename
     )

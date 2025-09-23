@@ -10,18 +10,31 @@ from geoalchemy2.types import Geometry
 from .base import Base
 from .enums import (
     risk_level_enum, detection_risk_enum, breeding_site_type_enum,
-    user_role_enum, location_source_enum, validation_status_enum
+    user_role_enum, location_source_enum, validation_status_enum,
+    UserRoleEnum
 )
 
 
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
-    role = Column(user_role_enum, default="user")
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+
+    # Authentication fields
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+
+    # Profile fields
+    role = Column(user_role_enum, default=UserRoleEnum.USER)
     display_name = Column(Text)
     organization = Column(Text)
+
+    # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    last_login = Column(DateTime(timezone=True))
 
     # Relationships
     analyses = relationship("Analysis", back_populates="user")

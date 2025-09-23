@@ -47,7 +47,7 @@ def test_database_models():
 def test_core_settings():
     """Probar funcionalidad de configuraciones principales"""
     try:
-        from configs.settings import get_settings, get_database_settings, get_api_settings
+        from config.settings import get_settings, get_database_settings, get_api_settings
 
         settings = get_settings()
         db_settings = get_database_settings()

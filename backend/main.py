@@ -33,6 +33,7 @@ from src.core import SentrixAPIManager, AnalysisProcessor, DetectionValidator
 from src.database.connection import test_connection, get_database_info
 from src.utils import get_project_root, validate_connection
 from src.schemas.analyses import AnalysisCreate
+from src.database.models.enums import UserRoleEnum
 
 
 def print_section_header(title: str):
@@ -279,7 +280,7 @@ async def create_sample_data(include_sample: bool = False):
             sample_user = User(
                 email="test@sentrix.com",
                 full_name="Test User",
-                role="user"
+                role=UserRoleEnum.USER
             )
             db.add(sample_user)
             db.flush()

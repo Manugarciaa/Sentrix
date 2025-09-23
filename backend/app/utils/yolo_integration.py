@@ -17,6 +17,13 @@ def calculate_risk_assessment(detections: list) -> Dict[str, Any]:
     # Use unified risk assessment function
     return assess_dengue_risk(detections)
 
+def parse_yolo_detection(yolo_response: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Parse YOLO service response into standardized format
+    Alias for parse_yolo_report for backward compatibility
+    """
+    return parse_yolo_report(yolo_response)
+
 def parse_yolo_report(yolo_response: Dict[str, Any]) -> Dict[str, Any]:
     """
     Parse YOLO service response into standardized format

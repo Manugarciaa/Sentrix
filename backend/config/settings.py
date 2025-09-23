@@ -54,7 +54,7 @@ class APISettings(BaseSettings):
 
 class ExternalServicesSettings(BaseSettings):
     """External services configuration"""
-    yolo_service_url: str = os.getenv("YOLO_SERVICE_URL", "http://localhost:8002")
+    yolo_service_url: str = os.getenv("YOLO_SERVICE_URL", "http://localhost:8001")
     yolo_service_timeout: int = 30
 
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379")
@@ -124,7 +124,7 @@ class Settings(BaseSettings):
     supabase_key: str = os.getenv("SUPABASE_KEY", "")
     supabase_service_role_key: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-    yolo_service_url: str = os.getenv("YOLO_SERVICE_URL", "http://localhost:8002")
+    yolo_service_url: str = os.getenv("YOLO_SERVICE_URL", "http://localhost:8001")
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     allowed_extensions: str = ".jpg,.jpeg,.png,.tiff,.bmp"
 

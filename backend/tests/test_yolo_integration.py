@@ -11,7 +11,7 @@ from app.utils.yolo_integration import (
     CLASS_ID_TO_BREEDING_SITE, CLASS_NAME_TO_BREEDING_SITE,
     YOLO_RISK_TO_DETECTION_RISK
 )
-from app.models.enums import DetectionRiskEnum, BreedingSiteTypeEnum
+from shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
 
 
 class TestYOLOIntegrationMapping:

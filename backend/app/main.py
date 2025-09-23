@@ -3,10 +3,15 @@ Main FastAPI application for Sentrix Backend
 Aplicación principal FastAPI para Sentrix Backend
 """
 
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.api.v1 import health, analyses
+from app.api.v1 import health, analyses, auth, reports
+
+# Load environment variables
+load_dotenv()
 
 settings = get_settings()
 
@@ -22,8 +27,10 @@ app = FastAPI(
 # CORS middleware - Configuración segura
 allowed_origins = [
     "http://localhost:3000",  # Frontend development
+    "http://localhost:3002",  # Current frontend port
     "http://localhost:8080",  # Alternative frontend port
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:3002",
     "http://127.0.0.1:8080",
 ]
 
@@ -42,7 +49,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(health.router, prefix="/api/v1", tags=["health"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(analyses.router, prefix="/api/v1", tags=["analyses"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["reports"])
 
 @app.get("/")
 async def root():

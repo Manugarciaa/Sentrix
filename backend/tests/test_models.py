@@ -23,8 +23,8 @@ except ImportError:
         def __init__(self, x, y):
             self.x, self.y = x, y
 
-from app.models.models import UserProfile, Analysis, Detection
-from app.models.enums import (
+from src.database.models.models import UserProfile, Analysis, Detection
+from src.database.models.enums import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
     UserRoleEnum, LocationSourceEnum, ValidationStatusEnum
 )

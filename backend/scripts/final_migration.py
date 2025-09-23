@@ -146,8 +146,8 @@ def main():
         print("Sistema listo para pruebas")
 
         print("\nSERVICIOS DISPONIBLES:")
-        print("- YOLO Service: http://localhost:8002")
-        print("- Backend API: http://localhost:8001")
+        print("- YOLO Service: http://localhost:8001")
+        print("- Backend API: http://localhost:8000")
         print("- Frontend: http://localhost:3000")
 
         print("\nPUEDES COMENZAR LAS PRUEBAS!")

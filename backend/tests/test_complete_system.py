@@ -17,9 +17,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.main import app
 from app.config import get_settings
-from app.models.enums import (
+from shared.data_models import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
-    UserRoleEnum, LocationSourceEnum, ValidationStatusEnum
+    UserRoleEnum, LocationSourceEnum, ValidationStatusEnum,
+    AnalysisStatusEnum
 )
 from app.utils.yolo_integration import (
     parse_yolo_detection, parse_yolo_report, validate_yolo_response
