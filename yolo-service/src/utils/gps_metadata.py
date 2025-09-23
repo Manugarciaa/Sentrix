@@ -105,3 +105,31 @@ def extract_complete_metadata(image_path):
 def get_gps_verification_urls(latitude, longitude):
     """Alias for backward compatibility"""
     return generate_verification_urls(latitude, longitude)
+
+
+def format_gps_for_maps(gps_data):
+    """
+    Formats GPS data for maps integration
+    Formatea datos GPS para integración con mapas
+
+    Args:
+        gps_data (dict): GPS data from extract_image_gps
+
+    Returns:
+        dict: Formatted GPS data with maps URLs
+    """
+    if not gps_data or not gps_data.get('has_gps'):
+        return {'has_gps': False, 'maps_urls': {}}
+
+    # Use shared maps URL generation
+    maps_urls = shared_generate_maps_urls(
+        gps_data['latitude'],
+        gps_data['longitude']
+    )
+
+    return {
+        'has_gps': True,
+        'latitude': gps_data['latitude'],
+        'longitude': gps_data['longitude'],
+        'maps_urls': maps_urls
+    }

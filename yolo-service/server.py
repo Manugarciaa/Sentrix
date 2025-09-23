@@ -13,6 +13,10 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -51,7 +55,7 @@ app.add_middleware(
 )
 
 # Configuración del modelo (usar el modelo entrenado disponible)
-MODEL_PATH = "models/best.pt"  # Ajustar según modelo disponible
+MODEL_PATH = os.getenv("YOLO_MODEL_PATH", "models/best.pt")
 if not os.path.exists(MODEL_PATH):
     # Fallback a modelos base si no hay entrenado
     available_models = [
@@ -332,14 +336,17 @@ if __name__ == "__main__":
     else:
         logger.warning(f"Model not found at: {MODEL_PATH}")
 
+    # Get port from environment variable
+    port = int(os.getenv("YOLO_SERVICE_PORT", "8001"))
+
     logger.info("Starting YOLO Dengue Detection server...")
-    logger.info("Server will be available at: http://localhost:8002")
-    logger.info("API documentation: http://localhost:8002/docs")
+    logger.info(f"Server will be available at: http://localhost:{port}")
+    logger.info(f"API documentation: http://localhost:{port}/docs")
 
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8002,
-        reload=True,
-        log_level="info"
+        port=port,
+        reload=os.getenv("RELOAD_ON_CHANGE", "true").lower() == "true",
+        log_level=os.getenv("LOG_LEVEL", "info").lower()
     )

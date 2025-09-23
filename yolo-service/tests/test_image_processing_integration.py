@@ -20,7 +20,7 @@ from src.core.evaluator import assess_dengue_risk, process_image_for_detection
 class TestYoloImageProcessingIntegration:
     """Test YOLO service integration with image format conversion"""
 
-    def setUp(self):
+    def setup_method(self):
         self.temp_dir = tempfile.mkdtemp()
 
     def test_process_image_for_detection_jpeg(self):

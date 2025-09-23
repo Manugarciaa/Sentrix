@@ -63,8 +63,8 @@ class TestModelInference:
             for key in required_keys:
                 assert key in detection
 
-            # Verify class is one of our trained classes
-            valid_classes = ["Basura", "Calles mal hechas", "Charcos/Cumulos de agua", "Huecos"]
+            # Verify class is one of our trained classes (allow both singular and plural forms)
+            valid_classes = ["Basura", "Calles mal hechas", "Charcos/Cumulos de agua", "Charcos/Cumulo de agua", "Huecos"]
             assert detection['class'] in valid_classes
 
             # Verify confidence is in valid range

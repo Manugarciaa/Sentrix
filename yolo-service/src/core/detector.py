@@ -102,11 +102,12 @@ def _create_detection_location(gps_data, camera_info, detection):
         }
 
     # Crear ubicación específica para esta detección
+    coordinates_string = f"{gps_data['latitude']}, {gps_data['longitude']}"
     location = {
         'has_location': True,
         'latitude': gps_data['latitude'],
         'longitude': gps_data['longitude'],
-        'coordinates': gps_data['coordinates'],
+        'coordinates': coordinates_string,
         'altitude_meters': gps_data.get('altitude'),
         'gps_date': gps_data.get('gps_date'),
         'location_source': gps_data['location_source'],
@@ -125,7 +126,7 @@ def _create_detection_location(gps_data, camera_info, detection):
             'verification_urls': {
                 'google_maps': f"https://maps.google.com/?q={gps_data['latitude']},{gps_data['longitude']}",
                 'google_earth': f"https://earth.google.com/web/search/{gps_data['latitude']},{gps_data['longitude']}",
-                'coordinates_string': gps_data['coordinates']
+                'coordinates_string': coordinates_string
             }
         }
     }

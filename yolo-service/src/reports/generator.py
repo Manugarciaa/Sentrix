@@ -9,7 +9,7 @@ from datetime import datetime
 
 from ..core.evaluator import assess_dengue_risk
 from ..utils.file_ops import ensure_directory
-from ..utils import resolve_path, get_results_dir, extract_image_gps, get_image_camera_info, format_gps_for_maps
+from ..utils import resolve_path, get_results_dir, extract_image_gps, get_image_camera_info
 
 
 def generate_report(source, detections, include_gps=True):
