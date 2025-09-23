@@ -47,7 +47,7 @@ class DatabaseConfig:
 @dataclass
 class YoloServiceConfig:
     """YOLO service configuration"""
-    url: str = "http://localhost:8002"
+    url: str = "http://localhost:8001"
     timeout_seconds: float = 60.0
     max_retries: int = 3
     model_path: str = "models/best.pt"

@@ -37,10 +37,33 @@ class AnalysisStatusEnum(str, Enum):
 
 class ValidationStatusEnum(str, Enum):
     """Status of expert validation"""
+    PENDING = "pending"  # For backward compatibility
     PENDING_VALIDATION = "pending_validation"
     VALIDATED_POSITIVE = "validated_positive"
     VALIDATED_NEGATIVE = "validated_negative"
     REQUIRES_REVIEW = "requires_review"
+
+
+class UserRoleEnum(str, Enum):
+    """User roles for authentication and authorization"""
+    USER = "USER"
+    ADMIN = "ADMIN"
+    EXPERT = "EXPERT"
+
+
+class RiskLevelEnum(str, Enum):
+    """General risk levels - backward compatibility"""
+    MINIMO = "MINIMO"
+    BAJO = "BAJO"
+    MEDIO = "MEDIO"
+    ALTO = "ALTO"
+
+
+class LocationSourceEnum(str, Enum):
+    """Source of location data"""
+    EXIF_GPS = "EXIF_GPS"
+    MANUAL = "MANUAL"
+    ESTIMATED = "ESTIMATED"
 
 
 # Class ID mappings for YOLO model compatibility
