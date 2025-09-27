@@ -1,0 +1,95 @@
+# API configuration for Sentrix Backend
+# Configuración de API para Sentrix Backend
+
+api:
+  # Server settings
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+  reload: false
+
+  # Documentation
+  title: "Sentrix API"
+  description: "Sistema de Detección de Criaderos de Aedes aegypti"
+  version: "1.0.0"
+  docs_url: "/docs"
+  redoc_url: "/redoc"
+
+  # CORS settings
+  cors:
+    allow_origins:
+      - "http://localhost:3000"
+      - "http://localhost:3001"
+      - "https://app.sentrix.com"
+      - "https://admin.sentrix.com"
+    allow_credentials: true
+    allow_methods: ["*"]
+    allow_headers: ["*"]
+
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    requests_per_hour: 1000
+    burst_size: 10
+
+# External services
+external_services:
+  yolo_service:
+    url: "http://localhost:8001"
+    timeout: 30
+    retry_attempts: 3
+    health_check_interval: 60
+
+  redis:
+    url: "redis://localhost:6379"
+    ttl: 3600
+    max_connections: 20
+
+  supabase:
+    url: "https://your-project.supabase.co"
+    anon_key: "your-anon-key"
+    jwt_secret: "your-jwt-secret"
+
+# File handling
+file_handling:
+  upload_dir: "./uploads"
+  max_file_size_mb: 50
+  allowed_extensions:
+    - "jpg"
+    - "jpeg"
+    - "png"
+    - "tiff"
+  cleanup_temp_files: true
+  temp_file_retention_hours: 24
+
+# Security
+security:
+  jwt:
+    secret_key: "your-super-secret-key"
+    algorithm: "HS256"
+    expiration_hours: 24
+
+  password:
+    min_length: 8
+    require_special_chars: true
+    require_numbers: true
+
+  api_keys:
+    enabled: false
+    header_name: "X-API-Key"
+
+# Logging
+logging:
+  level: "INFO"
+  format: "detailed"  # simple, detailed, json
+  file: "./logs/backend.log"
+  max_size_mb: 100
+  backup_count: 5
+
+  # Structured logging for production
+  structured_logging:
+    enabled: false
+    include_request_id: true
+    include_user_id: true
+    include_timing: true
