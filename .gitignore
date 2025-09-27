@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Node.js (for future frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs (for future frontend)
+/frontend/build/
+/frontend/dist/
+
+# Large YOLO model files and datasets (use Git LFS or external storage)
+yolo-service/models/*.pt
+yolo-service/models/*.pth
+yolo-service/data/images/
+yolo-service/models/dengue_production_v2/
+!yolo-service/models/.gitkeep
+!yolo-service/data/.gitkeep
+
+# Results and temporary files
+yolo-service/results/
+yolo-service/predictions/
+yolo-service/resultados/
+backend/uploads/
+backend/temp/
+*/logs/
+*.tmp
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+test.db
+
+# Configuration secrets
+.env.local
+.env.production
+secrets/
+
+# PowerShell scripts outputs
+*.ps1.log
