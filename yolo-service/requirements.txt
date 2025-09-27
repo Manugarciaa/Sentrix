@@ -11,6 +11,7 @@ numpy>=1.21.0
 # Utilidades básicas
 PyYAML>=6.0
 tqdm>=4.64.0
+exifread>=3.0.0
 
 # Opcional: análisis y visualización
 matplotlib>=3.5.0
@@ -23,6 +24,7 @@ matplotlib>=3.5.0
 # jupyter>=1.0.0
 # notebook>=6.4.0
 
-# Opcional: API web
-# fastapi>=0.103.0
-# uvicorn>=0.23.2
+# API web (habilitado para integración)
+fastapi>=0.103.0
+uvicorn>=0.23.2
+python-multipart>=0.0.6

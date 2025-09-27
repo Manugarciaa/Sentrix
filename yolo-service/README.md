@@ -1,272 +1,376 @@
-# YOLO Dengue Detection Service
+# Sentrix YOLO Service - Servicio de Detección IA
 
-Sistema automatizado de deteccion de criaderos de dengue mediante YOLOv11 con segmentacion de instancias.
+Servicio de inteligencia artificial para la detección automatizada de criaderos de *Aedes aegypti* usando modelos YOLOv11. Incluye servidor HTTP FastAPI para integración con el backend.
 
-## Descripcion
+## Descripción
 
-Sistema de vision por computadora diseñado para la deteccion y clasificacion automatica de sitios potenciales de reproduccion del mosquito Aedes aegypti, vector principal de dengue, chikungunya y zika. Implementa el modelo YOLOv11 con segmentacion de instancias para identificar y segmentar:
+Este servicio constituye el **núcleo de IA** de la plataforma Sentrix, proporcionando capacidades avanzadas de visión por computadora para detectar sitios de reproducción del mosquito *Aedes aegypti*:
 
 - **Basura** - Nivel de riesgo medio
-- **Calles deterioradas** - Nivel de riesgo alto  
+- **Calles deterioradas** - Nivel de riesgo alto
 - **Acumulaciones de agua** - Nivel de riesgo alto
 - **Huecos y depresiones** - Nivel de riesgo alto
+- **Generación de imágenes procesadas** - Con marcadores azules de detecciones
+- **Integración con nomenclatura estandarizada** - Nombres profesionales para archivos
 
-## Caracteristicas principales
+## Arquitectura
 
-- **Segmentacion de instancias** con precisión a nivel de pixel
-- **Evaluacion automatica de riesgo epidemiologico** basada en criterios establecidos
-- **Generacion de reportes estructurados** en formato JSON
-- **Deteccion automatica de GPU/CPU** para optimizacion de rendimiento
-- **Procesamiento por lotes** para analisis de multiples imagenes
-- **Seleccion inteligente de modelos** segun capacidades de hardware
-- **Nomenclatura automatica de experimentos** con timestamp y configuracion
-
-## Instalacion
-
-### Requisitos del sistema
-
-- Python 3.8 o superior
-- CUDA 11.8+ (requerido para aceleracion GPU)
-- RAM: 4GB minimo, 8GB recomendado
-- Espacio en disco: 2GB para modelos y dependencias
-
-### Instalacion de dependencias
-
-```bash
-pip install -r requirements.txt
-```
-
-**Nota**: Para entornos con GPU NVIDIA, verificar que las versiones de PyTorch sean compatibles con la version de CUDA instalada.
-
-## Estructura del proyecto
+### Estructura del Proyecto
 
 ```
 yolo-service/
-├── configs/           # Configuraciones del modelo y dataset
-│   ├── classes.py     # Definicion de clases y niveles de riesgo
-│   └── dataset.yaml   # Configuracion del dataset YOLO
-├── data/              # Dataset de imagenes y anotaciones
-│   ├── images/        # Imagenes del dataset
-│   └── labels/        # Anotaciones en formato YOLO
-├── models/            # Modelos entrenados
-├── results/           # Resultados y reportes
-├── scripts/           # Scripts de entrenamiento y deteccion
-│   ├── train_dengue_model.py
-│   └── batch_detection.py
-├── tests/             # Tests unificados
-│   └── test_unified.py # Tests completos del sistema
-├── main.py            # Modulo principal con funciones core
-├── utils.py           # Funciones utilitarias compartidas
-└── requirements.txt   # Dependencias esenciales
+├── src/                   # Código fuente principal
+│   ├── core/             # Lógica central de detección
+│   │   ├── detector.py   # Motor de detección YOLO
+│   │   ├── evaluator.py  # Evaluación de riesgo
+│   │   └── trainer.py    # Entrenamiento de modelos
+│   ├── utils/            # Utilidades del servicio
+│   │   ├── device.py     # Gestión GPU/CPU
+│   │   ├── file_ops.py   # Operaciones de archivos
+│   │   ├── gps_metadata.py # Extracción GPS/EXIF
+│   │   └── model_utils.py # Utilidades de modelos
+│   └── reports/          # Generación de reportes
+├── configs/              # Configuración del servicio
+├── scripts/              # Scripts de utilidad
+│   ├── batch_detection.py # Detección por lotes
+│   ├── predict_new_images.py # Predicción individual
+│   └── train_dengue_model.py # Entrenamiento
+├── models/               # Modelos YOLO entrenados
+├── tests/                # Tests automatizados
+├── main.py               # CLI para detección
+└── server.py             # Servidor FastAPI
 ```
 
-## Uso del sistema
+## Características Principales
 
-### 1. Entrenamiento de modelos
+### Core de IA
+- **Modelos YOLOv11** optimizados para detección de criaderos
+- **Segmentación de instancias** con precisión a nivel de pixel
+- **Múltiples arquitecturas** (nano, small, medium, large)
+- **Selección automática** según capacidades de hardware
+- **Generación de imágenes procesadas** con marcadores azules de detecciones
+- **OpenCV integrado** para visualización y post-procesamiento
 
-#### Seleccion automatica de modelo (recomendado)
+### Evaluación de Riesgo
+- **Algoritmo epidemiológico** para clasificación de riesgo
+- **Análisis contextual** de tipos de criaderos detectados
+- **Métricas de confianza** por detección
+- **Reportes estructurados** en JSON
+
+### Optimización
+- **Aceleración GPU** automática con CUDA
+- **Procesamiento por lotes** para múltiples imágenes
+- **Arquitectura modular** para mantenimiento
+- **Paths portables** multiplataforma
+
+### Funcionalidades Avanzadas
+- **Imágenes Procesadas**: Generación automática con marcadores azules de detecciones
+- **Visualización de Polígonos**: Dibujo preciso de boundaries de detección
+- **Etiquetas Informativas**: Clase y confianza mostradas en cada detección
+- **Integración con Nomenclatura**: Soporte para sistema estandarizado de archivos
+
+## Configuración
+
+### Variables de Entorno
+
 ```bash
-python scripts/train_dengue_model.py --auto --epochs 100
-```
-El sistema selecciona automaticamente el modelo optimo segun las capacidades de hardware disponibles.
+# Puerto del servicio
+YOLO_SERVICE_PORT=8001
 
-#### Entrenamiento con modelo especifico
+# Configuración del modelo
+YOLO_MODEL_PATH=models/best.pt
+YOLO_CONFIDENCE_THRESHOLD=0.5
+YOLO_DEVICE=auto
+
+# Rendimiento
+YOLO_BATCH_SIZE=10
+YOLO_MAX_DETECTIONS=100
+YOLO_TIMEOUT_SECONDS=60
+```
+
+### Instalación
+
 ```bash
-# Modelo Small (equilibrio velocidad/precision)
-python scripts/train_dengue_model.py --model s --epochs 100
+# Instalar dependencias
+pip install -r requirements.txt
 
-# Modelo Large (maxima precision)  
-python scripts/train_dengue_model.py --model l --epochs 100
+# Configurar variables de entorno
+cp ../.env.example ../.env
+
+# Ejecutar servidor
+python server.py
 ```
 
-#### Nomenclatura personalizada de experimentos
+## Interfaces de Uso
+
+### 1. Servidor HTTP (Puerto 8001)
+
+API REST para integración con backend:
+
 ```bash
-python scripts/train_dengue_model.py --auto --epochs 100 --name "experimento_final_v2"
+# Health check
+curl http://localhost:8001/health
+
+# Detección de imagen
+curl -X POST "http://localhost:8001/detect" \
+  -F "file=@imagen.jpg" \
+  -F "confidence_threshold=0.5"
+
+# Listar modelos disponibles
+curl http://localhost:8001/models
 ```
 
-**Formato automatico**: `dengue_seg_{tamaño}_{epocas}ep_{fecha}_{hora}`  
-**Ejemplo**: `models/dengue_seg_s_100ep_20250111_1430/`
+### 2. CLI (Línea de Comandos)
 
-### 2. Deteccion en imagenes
-
-#### Deteccion individual:
-```python
-from main import detect_breeding_sites, generate_report, save_report
-
-# Detectar criaderos en una imagen
-detections = detect_breeding_sites(
-    model_path='models/best.pt',
-    source='path/to/image.jpg',
-    conf_threshold=0.5
-)
-
-# Generar y guardar reporte
-report = generate_report('path/to/image.jpg', detections)
-save_report(report, 'results/detection_report.json')
-```
-
-#### Deteccion por lotes:
 ```bash
-python scripts/batch_detection.py --model models/best.pt --source path/to/images/ --output results/
+# Detección individual
+python main.py detect imagen.jpg
+
+# Detección por lotes
+python main.py batch-detect directorio_imagenes/
+
+# Entrenamiento
+python main.py train --data dataset.yaml --epochs 100
+
+# Evaluación
+python main.py evaluate --model models/best.pt --data test/
 ```
 
-### 3. Evaluacion de riesgo
+### 3. Scripts Especializados
 
-```python
-from main import assess_dengue_risk
+```bash
+# Procesamiento masivo
+python scripts/batch_detection.py --input imagenes/ --output resultados/
 
-# Evaluar riesgo epidemiologico
-risk_assessment = assess_dengue_risk(detections)
-print(f"Nivel de riesgo: {risk_assessment['level']}")
-print(f"Recomendaciones: {risk_assessment['recommendations']}")
+# Predicción con modelo específico
+python scripts/predict_new_images.py --model models/custom.pt --image test.jpg
+
+# Entrenamiento personalizado
+python scripts/train_dengue_model.py --config training_config.yaml
 ```
 
-## Clasificacion y evaluacion de riesgo
+## API Endpoints
 
-### Clases de deteccion
+### Health y Estado
+- `GET /health` - Estado del servicio
+- `GET /models` - Modelos disponibles
 
-| ID | Clase | Nivel de Riesgo | Descripcion epidemiologica |
-|----|-------|----------------|---------------------------|
-| 0 | Basura | MEDIO | Acumulacion de desechos con potencial de retencion de agua |
-| 1 | Calles deterioradas | ALTO | Superficies irregulares que facilitan formacion de charcos |
-| 2 | Acumulaciones de agua | ALTO | Agua estancada visible, habitat directo de reproduccion |
-| 3 | Huecos y depresiones | ALTO | Cavidades que retienen agua de lluvia |
+### Detección Principal
+- `POST /detect` - Detectar criaderos en imagen
+  - `file`: Archivo de imagen (jpg, png, heic, etc.)
+  - `confidence_threshold`: Umbral de confianza (0.1-1.0)
+  - `include_gps`: Extraer metadatos GPS (default: true)
+  - `generate_processed_image`: Crear imagen con marcadores (default: true)
+  - `output_dir`: Directorio para imagen procesada (opcional)
 
-### Algoritmo de evaluacion de riesgo epidemiologico
+### Respuesta de Detección
 
-**ALTO**: ≥3 sitios de riesgo alto, o ≥1 sitio alto + ≥3 sitios medio  
-**MEDIO**: ≥1 sitio de riesgo alto, o ≥3 sitios de riesgo medio  
-**BAJO**: ≥1 sitio de riesgo medio  
-**MINIMO**: Sin sitios de riesgo detectados
-
-## Configuracion
-
-### Dataset (configs/dataset.yaml)
-```yaml
-path: C:\Users\manolo\Documents\Tesis\yolo-service\data
-train: images/train
-val: images/val
-test: images/test
-
-names:
-  0: Basura
-  1: Calles mal hechas
-  2: Charcos/Cumulo de agua
-  3: Huecos
-
-task: segment
-nc: 4
-```
-
-### Hiperparametros de entrenamiento
-- **Epochs**: 100 (con early stopping patience=50)
-- **Batch size**: 1 (ajustable segun GPU)
-- **Image size**: 640x640
-- **Learning rate**: 0.001
-- **Weight decay**: 0.001
-- **Data augmentation**: Mosaic (0.5), Copy-paste (0.3)
-
-## Formato de salida
-
-### Reporte de deteccion (JSON)
 ```json
 {
-  "source": "image.jpg",
-  "total_detections": 3,
-  "timestamp": "2024-01-15T10:30:00",
+  "analysis_id": "uuid",
+  "status": "completed",
   "detections": [
     {
-      "class": "Charcos/Cumulo de agua",
+      "class_name": "Charcos/Cumulo de agua",
       "class_id": 2,
-      "confidence": 0.87,
+      "confidence": 0.85,
+      "risk_level": "ALTO",
+      "breeding_site_type": "Charcos/Cumulo de agua",
       "polygon": [[x1,y1], [x2,y2], ...],
-      "mask_area": 1250.5
+      "mask_area": 1234.5
     }
   ],
+  "total_detections": 3,
   "risk_assessment": {
-    "level": "ALTO",
-    "high_risk_sites": 2,
-    "medium_risk_sites": 1,
-    "recommendations": [
-      "Intervencion inmediata requerida",
-      "Eliminar agua estancada inmediatamente"
-    ]
-  }
+    "overall_risk_level": "ALTO",
+    "total_detections": 3,
+    "high_risk_count": 2,
+    "medium_risk_count": 1,
+    "risk_score": 0.75
+  },
+  "location": {
+    "has_location": true,
+    "latitude": -26.831314,
+    "longitude": -65.123456,
+    "altitude_meters": 450.2
+  },
+  "processed_image": {
+    "generated": true,
+    "file_path": "temp/processed_image.jpg",
+    "markers_count": 3,
+    "marker_color": "blue"
+  },
+  "processing_time_ms": 1234,
+  "model_used": "models/best.pt"
 }
 ```
 
-## Validacion del sistema
+## Integración con Shared Library
 
-### Ejecucion de tests completos
-```bash
-python tests/test_unified.py
-```
+El servicio utiliza la librería compartida para:
 
-**Tests incluidos:**
-- Verificacion de compatibilidad de hardware (CPU/GPU)
-- Validacion de carga y funcionamiento de modelos YOLO
-- Comprobacion de funciones de evaluacion de riesgo
-- Tests de integridad del pipeline completo
-
-## Especificaciones de rendimiento
-
-### Configuraciones de hardware recomendadas
-
-| Componente | Minimo | Recomendado | Optimo |
-|------------|--------|-------------|--------|
-| **GPU** | GTX 1050 (4GB) | GTX 1660 Ti (6GB) | RTX 3080+ (10GB+) |
-| **CPU** | Intel i3 / AMD R3 | Intel i5 / AMD R5 | Intel i7 / AMD R7 |
-| **RAM** | 4GB | 8GB | 16GB+ |
-| **Almacenamiento** | 5GB libres | 10GB libres | SSD recomendado |
-
-### Metricas de rendimiento aproximadas
-
-| Operacion | GPU (GTX 1660 Ti) | CPU (i5) |
-|-----------|-------------------|----------|
-| **Entrenamiento** (100 epochs) | 2-3 horas | 12-24 horas |
-| **Inferencia** (por imagen) | 50-100ms | 300-800ms |
-| **Procesamiento por lotes** (100 imagenes) | 8-15 segundos | 45-120 segundos |
-
-## Solucion de problemas comunes
-
-### Verificacion de compatibilidad GPU
 ```python
-import torch
-print(f"CUDA disponible: {torch.cuda.is_available()}")
-print(f"Version CUDA: {torch.version.cuda}")
-print(f"Dispositivos GPU: {torch.cuda.device_count()}")
+# Importación de enums unificados
+from shared.data_models import (
+    DetectionRiskEnum,
+    BreedingSiteTypeEnum,
+    CLASS_ID_TO_BREEDING_SITE
+)
+
+# Evaluación de riesgo
+from shared.risk_assessment import assess_dengue_risk
+
+# Utilidades de archivos e imágenes
+from shared.file_utils import validate_image_file
+from shared.image_formats import ImageFormatConverter
+
+# Sistema de nomenclatura estandarizada (integración con backend)
+from shared.file_utils import generate_standardized_filename
+
+# Logging centralizado
+from shared.logging_utils import setup_yolo_logging
 ```
 
-### Problemas de configuracion del dataset
-- Verificar estructura de directorios en `data/images/` y `data/labels/`
-- Confirmar que `configs/dataset.yaml` contiene rutas validas
-- Asegurar que las anotaciones esten en formato YOLO
+## Generación de Imágenes Procesadas
 
-### Errores de memoria durante entrenamiento
-- Reducir el parametro `--batch` (valor por defecto: 1)
-- Utilizar modelos de menor tamaño (nano o small)
-- Verificar memoria GPU disponible con `nvidia-smi`
+### Funcionalidad de Marcadores
+El YOLO service ahora genera automáticamente imágenes procesadas con marcadores visuales:
 
-## Informacion del proyecto
+```python
+def _create_processed_image(source_path, result, output_dir=None):
+    """
+    Crear imagen procesada con marcadores azules de detecciones
+    """
+    # Cargar imagen original
+    image = cv2.imread(source_path)
 
-### Proposito academico
-Este sistema ha sido desarrollado como parte de una investigacion academica enfocada en la aplicacion de tecnicas de vision por computadora para la vigilancia epidemiologica automatizada de vectores de dengue.
+    # Dibujar polígonos y etiquetas para cada detección
+    for detection in result.detections:
+        color = (255, 100, 0)  # Azul en formato BGR
 
-### Limitaciones y consideraciones
-- **Uso como herramienta de apoyo**: Los resultados deben ser validados por personal especializado en salud publica
-- **Contexto geografico**: El modelo ha sido entrenado con datos especificos y puede requerir adaptacion para diferentes regiones
-- **Condiciones ambientales**: El rendimiento puede variar segun condiciones de iluminacion, clima y calidad de imagen
+        # Dibujar polígono de la detección
+        cv2.polylines(image, [polygon], isClosed=True, color=color, thickness=3)
 
-### Estructura de archivos generados
-```
-models/
-├── experimento_nombre/
-│   ├── weights/
-│   │   ├── best.pt          # Modelo con mejores metricas
-│   │   └── last.pt          # Ultimo checkpoint
-│   ├── results.png          # Graficas de entrenamiento
-│   ├── confusion_matrix.png # Matriz de confusion
-│   └── args.yaml           # Configuracion utilizada
+        # Agregar etiqueta con clase y confianza
+        label = f"{detection.class_name}: {detection.confidence:.2f}"
+        cv2.putText(image, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+
+    # Guardar imagen procesada
+    cv2.imwrite(output_path, image)
 ```
 
-**Nota tecnica**: El sistema implementa limpieza automatica de archivos temporales generados durante el proceso de entrenamiento para mantener la organizacion del proyecto.
+### Características de los Marcadores
+- **Color azul** consistente para todas las detecciones
+- **Polígonos precisos** siguiendo los boundaries de segmentación
+- **Etiquetas informativas** con clase detectada y nivel de confianza
+- **Calidad preservada** de la imagen original
+
+## Formatos de Imagen Soportados
+
+- **JPEG/JPG** - Formato estándar
+- **PNG** - Con transparencia
+- **HEIC/HEIF** - Formato Apple (conversión automática)
+- **TIFF** - Alta calidad
+- **WebP** - Formato web
+- **BMP** - Bitmap básico
+
+## Requisitos del Sistema
+
+### Mínimos
+- Python 3.8+
+- 4GB RAM
+- 2GB espacio en disco
+
+### Recomendados
+- Python 3.9+
+- 8GB RAM
+- GPU NVIDIA con CUDA 11.8+
+- 10GB espacio en disco
+
+## Desarrollo
+
+### Ejecutar Tests
+
+```bash
+# Tests básicos
+python -m pytest tests/test_unified.py -v
+
+# Tests de detección
+python -m pytest tests/test_model_inference.py -v
+
+# Tests completos
+python -m pytest tests/ -v
+```
+
+### Diagnóstico del Sistema
+
+```bash
+# Diagnóstico completo del hardware y modelos
+python diagnostic.py
+```
+
+**Información proporcionada:**
+- Hardware del sistema (CPU, memoria, disco)
+- Estado de GPU y CUDA
+- Modelos disponibles y recomendaciones
+- Estado de dependencias
+- Información de rendimiento
+
+### Configuración GPU
+
+```bash
+# Verificar CUDA
+python -c "import torch; print(torch.cuda.is_available())"
+
+# Configurar dispositivo
+export YOLO_DEVICE=cuda  # o 'cpu' para forzar CPU
+```
+
+## Configuración de Puertos
+
+- **YOLO Service**: Puerto 8001 (estandarizado)
+- **Backend API**: Puerto 8000
+- **Frontend**: Puerto 3000
+
+## Documentación Adicional
+
+- [Scripts de Corrección](../scripts/README.md)
+- [Convenciones de Imports](../shared/IMPORT_CONVENTIONS.md)
+- [Librería Compartida](../shared/README.md)
+
+---
+
+## Actualizaciones Recientes (v2.3.0)
+
+### Nuevas Funcionalidades Implementadas:
+- **Generación de Imágenes Procesadas**: Creación automática con marcadores azules de detecciones
+- **Visualización Avanzada**: Polígonos precisos y etiquetas informativas con OpenCV
+- **Integración con Nomenclatura**: Soporte para sistema estandarizado de archivos
+- **API Extendida**: Nuevos parámetros para control de generación de imágenes
+
+### Mejoras en Detección:
+- **Marcadores Visuales**: Color azul consistente (255, 100, 0 en BGR)
+- **Polígonos de Segmentación**: Boundaries precisos de cada detección
+- **Etiquetas Dinámicas**: Clase y confianza mostradas automáticamente
+- **Preservación de Calidad**: Imagen original mantenida sin degradación
+
+### API Mejorada:
+- **Parámetro `generate_processed_image`**: Control de generación de imágenes marcadas
+- **Parámetro `output_dir`**: Especificación de directorio para archivos procesados
+- **Respuesta extendida**: Información completa sobre imagen procesada generada
+- **Compatibilidad**: Funciona con todos los formatos de imagen soportados
+
+### Estado Actual:
+- **YOLO Service funcionando** en puerto 8001 con funcionalidades avanzadas
+- **Modelo cargado**: `models/best.pt` (19.6MB) con capacidades de visualización
+- **Generación automática**: Imágenes procesadas creadas en cada detección
+- **Integración completa**: Backend recibe URLs de imágenes originales y procesadas
+- **OpenCV**: Librería integrada para procesamiento visual
+
+### Integración Sistema:
+- **Backend**: Recibe archivos procesados para almacenamiento dual
+- **Shared Library**: Uso de nomenclatura estandarizada cuando requerido
+- **Visualización**: Frontend puede mostrar comparación original vs procesada
+- **Storage**: Optimización con sistema de deduplicación del backend
+
+**El YOLO Service incluye ahora capacidades completas de visualización y generación de imágenes procesadas con marcadores precisos.**
