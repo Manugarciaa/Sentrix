@@ -20,31 +20,23 @@ export default defineConfig({
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-              },
-              cacheKeyWillBeUsed: async ({ request }) => {
-                return `${request.url}?version=${Date.now()}`
               }
             }
           }
         ]
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico'],
       manifest: {
         name: 'Sentrix - Control de Dengue',
         short_name: 'Sentrix',
         description: 'Plataforma integral para detección de criaderos de Aedes aegypti',
-        theme_color: '#059669',
+        theme_color: '#4DD0E1',
         background_color: '#ffffff',
         icons: [
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: '/favicon.ico',
+            sizes: '64x64 32x32 24x24 16x16',
+            type: 'image/x-icon'
           }
         ],
         start_url: '/',
@@ -85,7 +77,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+          ui: ['@radix-ui/react-slot'],
           maps: ['leaflet', 'react-leaflet'],
           charts: ['recharts'],
           query: ['@tanstack/react-query'],
