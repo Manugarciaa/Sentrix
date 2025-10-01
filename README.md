@@ -56,7 +56,7 @@ cd backend && python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 # Terminal 2: Servicio YOLO (puerto 8001)
 cd yolo-service && python server.py
 
-# Terminal 3: Frontend React (puerto 3000)
+# Terminal 3: Frontend React (puerto 3000/3001)
 cd frontend && npm run dev
 ```
 
@@ -283,7 +283,7 @@ MIT License - Ver [LICENSE](LICENSE) para detalles.
 
 ---
 
-**Versión**: 2.3.0 | **Estado**: Sistema completo con funcionalidades avanzadas | **Actualizado**: Septiembre 2025
+**Versión**: 2.3.0 | **Estado**: Sistema completo con funcionalidades avanzadas | **Actualizado**: Octubre 2025
 
 ---
 
@@ -296,7 +296,8 @@ MIT License - Ver [LICENSE](LICENSE) para detalles.
 - **Gestión Avanzada de Metadatos**: Extracción y codificación de GPS, cámara y timestamps
 
 ### Mejoras en Componentes:
-- **Backend**: Sistema de referencias para duplicados, optimización de storage
+- **Frontend**: Nuevos componentes UI (Dialog, Select, Tabs), AuthLayout mejorado, configuración ESLint optimizada
+- **Backend**: Sistema de referencias para duplicados, optimización de storage, integración Supabase mejorada
 - **YOLO Service**: Generación automática de imágenes procesadas con marcadores azules
 - **Shared Library**: Utilidades avanzadas de archivos y sistema de deduplicación
 - **Testing**: Suite completa de pruebas para nuevas funcionalidades
