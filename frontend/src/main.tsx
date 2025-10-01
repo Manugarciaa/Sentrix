@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './globals.css'
 import { env } from '@/lib/config'
+import { useAuthStore } from '@/store/auth'
 
 // Initialize PWA
 if ('serviceWorker' in navigator && env.isProd) {
@@ -39,7 +40,6 @@ async function initializeApp() {
   await enableMocking()
 
   // Initialize authentication state
-  const { useAuthStore } = await import('@/store/auth')
   useAuthStore.getState().initializeAuth()
 
   // Render the app
