@@ -1,5 +1,5 @@
 import React from 'react'
-import { CheckCircle, Database, Cpu, BarChart3, Users, BookOpen } from 'lucide-react'
+import { CheckCircle, Database, Cpu, Users, BookOpen } from 'lucide-react'
 
 const MethodologyPage: React.FC = () => {
   const methodology_steps = [

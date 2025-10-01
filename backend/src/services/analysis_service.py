@@ -437,6 +437,7 @@ class AnalysisService:
             return {
                 "id": analysis["id"],
                 "status": "completed",
+                "image_url": analysis.get("image_url"),
                 "image_filename": analysis.get("image_filename"),
                 "image_size_bytes": analysis.get("image_size_bytes"),
                 "total_detections": analysis.get("total_detections", 0),

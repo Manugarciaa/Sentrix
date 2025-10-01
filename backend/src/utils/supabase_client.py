@@ -360,6 +360,53 @@ class SupabaseManager:
                 "message": f"Delete error: {str(e)}"
             }
 
+    def download_image(self, file_path: str, bucket_name: str = "images") -> dict:
+        """
+        Download image from Supabase Storage
+        Descargar imagen del almacenamiento de Supabase
+        """
+        try:
+            # Download file from storage
+            response = self.client.storage.from_(bucket_name).download(file_path)
+
+            if response:
+                return {
+                    "status": "success",
+                    "data": response,
+                    "content_type": self._get_content_type(Path(file_path).suffix)
+                }
+            else:
+                return {
+                    "status": "error",
+                    "message": "File not found or download failed"
+                }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Download error: {str(e)}"
+            }
+
+    def get_image_url(self, file_path: str, bucket_name: str = "images") -> dict:
+        """
+        Get public URL for image in Supabase Storage
+        Obtener URL pública para imagen en Supabase Storage
+        """
+        try:
+            # Get public URL
+            public_url = self.client.storage.from_(bucket_name).get_public_url(file_path)
+
+            return {
+                "status": "success",
+                "public_url": public_url
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"URL generation error: {str(e)}"
+            }
+
     def _get_content_type(self, file_extension: str) -> str:
         """Get content type based on file extension"""
         content_types = {

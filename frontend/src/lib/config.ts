@@ -25,11 +25,9 @@ export const routes = {
   // Rutas públicas
   public: {
     home: '/',
-    about: '/about',
-    methodology: '/methodology',
-    prevention: '/prevention',
     report: '/report',
-    map: '/map',
+    about: '/about',
+    contact: '/contact',
     login: '/login',
     register: '/register',
   },
@@ -48,22 +46,25 @@ export const routes = {
 
 export const apiEndpoints = {
   auth: {
-    login: '/api/v1/auth/login',
-    register: '/api/v1/auth/register',
-    refresh: '/api/v1/auth/refresh',
-    logout: '/api/v1/auth/logout',
-    me: '/api/v1/auth/me',
+    login: '/api/v1/login',
+    register: '/api/v1/register',
+    refresh: '/api/v1/refresh',
+    logout: '/api/v1/logout',
+    me: '/api/v1/me',
   },
   analyses: {
     list: '/api/v1/analyses',
     create: '/api/v1/analyses',
-    detail: (id: number) => `/api/v1/analyses/${id}`,
+    detail: (id: string) => `/api/v1/analyses/${id}`,
+    image: (id: string) => `/api/v1/analyses/${id}/image`,
     batch: '/api/v1/analyses/batch',
-    export: (id: number) => `/api/v1/analyses/${id}/export`,
+    export: (id: string) => `/api/v1/analyses/${id}/export`,
+    heatmapData: '/api/v1/heatmap-data',
+    mapStats: '/api/v1/map-stats',
   },
   detections: {
-    byAnalysis: (analysisId: number) => `/api/v1/analyses/${analysisId}/detections`,
-    validate: (id: number) => `/api/v1/detections/${id}/validate`,
+    byAnalysis: (analysisId: string) => `/api/v1/analyses/${analysisId}/detections`,
+    validate: (id: string) => `/api/v1/detections/${id}/validate`,
     pending: '/api/v1/detections/pending',
     batchValidate: '/api/v1/detections/batch-validate',
   },

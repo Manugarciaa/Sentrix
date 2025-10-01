@@ -2,9 +2,10 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { routes } from '@/lib/config'
 import { useAuthStore } from '@/store/auth'
+import { AlertCircle } from 'lucide-react'
+import AuthLayout from '@/components/layouts/AuthLayout'
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
@@ -33,87 +34,148 @@ const RegisterPage: React.FC = () => {
       await register(email, password, name)
       navigate(routes.app.dashboard)
     } catch (err) {
-      // Error is already handled in the store
       console.error('Register failed:', err)
     }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto h-12 w-12 rounded-lg bg-primary-600 flex items-center justify-center mb-4">
-            <svg
-              className="h-6 w-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+  const infoPanel = (
+    <>
+      <div className="mb-8">
+        <h3 className="text-3xl font-bold mb-4">Únete a Sentrix</h3>
+        <p className="text-lg text-blue-50 leading-relaxed">
+          Forma parte de la red de prevención del dengue y contribuye a
+          la salud de tu comunidad con tecnología de punta.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
           </div>
-          <CardTitle className="text-2xl font-bold">Crear Cuenta</CardTitle>
-          <CardDescription>
-            Únete a Sentrix para ayudar en la prevención del dengue
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Nombre completo"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Tu nombre"
-              required
-            />
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              required
-            />
-            <Input
-              label="Contraseña"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-            <Input
-              label="Confirmar contraseña"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-            {(error || validationError) && (
-              <div className="text-red-600 text-sm text-center mb-4">
-                {error || validationError}
-              </div>
-            )}
-            <Button type="submit" className="w-full" loading={isLoading}>
-              Crear Cuenta
-            </Button>
-          </form>
-          <div className="mt-6 text-center text-sm">
-            <span className="text-gray-600">¿Ya tienes una cuenta? </span>
-            <Link to={routes.public.login} className="text-primary-600 hover:text-primary-500">
-              Inicia sesión aquí
-            </Link>
+          <p className="text-sm text-blue-50">Acceso a herramientas de análisis</p>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <p className="text-sm text-blue-50">Dashboard personalizado</p>
+        </div>
+        <div className="flex items-start gap-3">
+          <div className="mt-1">
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <p className="text-sm text-blue-50">Reportes y estadísticas en tiempo real</p>
+        </div>
+      </div>
+    </>
+  )
+
+  return (
+    <AuthLayout formPosition="right" infoPanel={infoPanel}>
+      {/* Form Title */}
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-semibold text-gray-900">Crear Cuenta</h2>
+        <p className="text-sm text-gray-600 mt-2">Únete a la plataforma de prevención del dengue</p>
+      </div>
+
+      {/* Error Message */}
+      {(error || validationError) && (
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-800">{error || validationError}</p>
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Nombre completo
+          </label>
+          <Input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Tu nombre"
+            required
+            className="w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="tu@email.com"
+            required
+            className="w-full"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Contraseña
+          </label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            className="w-full"
+          />
+          <p className="text-xs text-gray-500 mt-1">Mínimo 8 caracteres</p>
+        </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Confirmar contraseña
+          </label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            className="w-full"
+          />
+        </div>
+
+        <Button type="submit" className="w-full" loading={isLoading} size="lg">
+          Crear Cuenta
+        </Button>
+      </form>
+
+      {/* Login Link */}
+      <p className="mt-8 text-center text-sm text-gray-600">
+        ¿Ya tienes cuenta?{' '}
+        <Link to={routes.public.login} className="font-medium text-primary-600 hover:text-primary-700">
+          Iniciar sesión
+        </Link>
+      </p>
+
+      {/* Back to Home */}
+      <div className="mt-6 text-center">
+        <Link to={routes.public.home} className="text-sm text-gray-500 hover:text-gray-700">
+          ← Volver al inicio
+        </Link>
+      </div>
+    </AuthLayout>
   )
 }
 

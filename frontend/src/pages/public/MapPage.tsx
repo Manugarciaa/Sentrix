@@ -1,18 +1,17 @@
 import React, { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import HeatMap from '@/components/map/HeatMap'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import {
-  transformAnalysisToHeatData,
   filterByDateRange,
   filterByRiskLevel,
   getHeatDataStats,
   generateMockHeatData,
   type HeatMapData
 } from '@/utils/mapDataTransform'
-import { Calendar, Filter, MapPin, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react'
+import { Calendar, Filter, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react'
 
 const MapPage: React.FC = () => {
   // Filters state

@@ -11,11 +11,9 @@ import AppLayout from '@/components/layouts/AppLayout'
 
 // Public Pages
 import HomePage from '@/pages/public/HomePage'
-import AboutPage from '@/pages/public/AboutPage'
-import MethodologyPage from '@/pages/public/MethodologyPage'
-import PreventionPage from '@/pages/public/PreventionPage'
 import ReportPage from '@/pages/public/ReportPage'
-import MapPage from '@/pages/public/MapPage'
+import AboutPage from '@/pages/public/AboutPage'
+import ContactPage from '@/pages/public/ContactPage'
 import LoginPage from '@/pages/public/LoginPage'
 import RegisterPage from '@/pages/public/RegisterPage'
 
@@ -106,30 +104,6 @@ function App() {
                 }
               />
               <Route
-                path={routes.public.about}
-                element={
-                  <PublicLayout>
-                    <AboutPage />
-                  </PublicLayout>
-                }
-              />
-              <Route
-                path={routes.public.methodology}
-                element={
-                  <PublicLayout>
-                    <MethodologyPage />
-                  </PublicLayout>
-                }
-              />
-              <Route
-                path={routes.public.prevention}
-                element={
-                  <PublicLayout>
-                    <PreventionPage />
-                  </PublicLayout>
-                }
-              />
-              <Route
                 path={routes.public.report}
                 element={
                   <PublicLayout>
@@ -138,10 +112,18 @@ function App() {
                 }
               />
               <Route
-                path={routes.public.map}
+                path={routes.public.about}
                 element={
                   <PublicLayout>
-                    <MapPage />
+                    <AboutPage />
+                  </PublicLayout>
+                }
+              />
+              <Route
+                path={routes.public.contact}
+                element={
+                  <PublicLayout>
+                    <ContactPage />
                   </PublicLayout>
                 }
               />

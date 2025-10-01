@@ -27,6 +27,7 @@ app = FastAPI(
 # CORS middleware
 allowed_origins = [
     "http://localhost:3000",  # Frontend development
+    "http://localhost:3001",  # Frontend development (when 3000 is in use)
     "http://localhost:3002",  # Current frontend port
     "https://sentrix.vercel.app",  # Production frontend
 ]

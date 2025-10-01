@@ -39,7 +39,7 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd yolo-service; 
 Start-Sleep -Seconds 3
 
 Write-Host ""
-Write-Host "[3/3] Iniciando Frontend (Puerto 3000)..." -ForegroundColor Yellow
+Write-Host "[3/3] Iniciando Frontend (Puerto 3000/3001)..." -ForegroundColor Yellow
 Write-Host "=========================================" -ForegroundColor Yellow
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
 
@@ -49,7 +49,7 @@ Write-Host "TODOS LOS SERVICIOS INICIADOS" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Green
 Write-Host "Backend:   http://localhost:8000 (Docs: http://localhost:8000/docs)" -ForegroundColor Cyan
 Write-Host "YOLO:      http://localhost:8001 (Docs: http://localhost:8001/docs)" -ForegroundColor Cyan
-Write-Host "Frontend:  http://localhost:3000" -ForegroundColor Cyan
+Write-Host "Frontend:  http://localhost:3000 (o 3001 si 3000 está ocupado)" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Para detener los servicios, cierra las ventanas de terminal abiertas"
 Write-Host "o presiona Ctrl+C en cada ventana."

@@ -13,7 +13,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from database import get_db
+from ..database.connection import get_db
 from ..schemas.auth import TokenData, User
 from ..database.models.models import UserProfile
 

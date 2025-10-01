@@ -5,8 +5,8 @@ interface AnalysisStore extends AnalysisState {
   // Actions
   setAnalyses: (analyses: Analysis[]) => void
   addAnalysis: (analysis: Analysis) => void
-  updateAnalysis: (id: number, updates: Partial<Analysis>) => void
-  removeAnalysis: (id: number) => void
+  updateAnalysis: (id: string, updates: Partial<Analysis>) => void
+  removeAnalysis: (id: string) => void
   setCurrentAnalysis: (analysis: Analysis | null) => void
   setFilters: (filters: Partial<AnalysisFilters>) => void
   clearFilters: () => void
@@ -121,15 +121,16 @@ export const useFilteredAnalyses = () => {
     const { analyses, filters } = state
 
     return analyses.filter(analysis => {
-      if (filters.risk_level && analysis.risk_level !== filters.risk_level) {
+      if (filters.risk_level && analysis.risk_assessment?.level !== filters.risk_level) {
         return false
       }
 
-      if (filters.user_id && analysis.user_id !== filters.user_id) {
-        return false
-      }
+      // User ID filtering removed as Analysis no longer has user_id
+      // if (filters.user_id && analysis.user_id !== filters.user_id) {
+      //   return false
+      // }
 
-      if (filters.has_gps !== undefined && analysis.has_gps_data !== filters.has_gps) {
+      if (filters.has_gps !== undefined && analysis.location?.has_location !== filters.has_gps) {
         return false
       }
 
@@ -159,9 +160,10 @@ export const useAnalysisStats = () => {
     const analyses = state.analyses
 
     const total = analyses.length
-    const withGPS = analyses.filter(a => a.has_gps_data).length
+    const withGPS = analyses.filter(a => a.location?.has_location).length
     const riskDistribution = analyses.reduce((acc, analysis) => {
-      acc[analysis.risk_level] = (acc[analysis.risk_level] || 0) + 1
+      const level = analysis.risk_assessment?.level || 'BAJO'
+      acc[level] = (acc[level] || 0) + 1
       return acc
     }, {} as Record<string, number>)
 

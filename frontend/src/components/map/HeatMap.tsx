@@ -33,7 +33,7 @@ const HeatLayer: React.FC<{ data: HeatMapData[] }> = ({ data }) => {
   const map = useMap()
 
   useEffect(() => {
-    if (!data || data.length === 0) return
+    if (!data || !Array.isArray(data) || data.length === 0) return
 
     // Convert data to heat layer format [lat, lng, intensity]
     const heatData = data.map(point => [
@@ -42,17 +42,20 @@ const HeatLayer: React.FC<{ data: HeatMapData[] }> = ({ data }) => {
       point.intensity
     ])
 
-    // Create heat layer with custom options
+    // Create heat layer with enhanced colors for B&W background
     const heatLayer = L.heatLayer(heatData, {
-      radius: 25,
-      blur: 15,
+      radius: 30,
+      blur: 18,
       maxZoom: 17,
       gradient: {
-        0.0: '#00ff00',  // Verde para bajo riesgo
-        0.4: '#ffff00',  // Amarillo para medio riesgo
-        0.7: '#ff8000',  // Naranja para alto riesgo
-        1.0: '#ff0000'   // Rojo para muy alto riesgo
-      }
+        0.0: '#00ff00',  // Verde brillante para bajo riesgo
+        0.3: '#ffff00',  // Amarillo brillante
+        0.5: '#ff8000',  // Naranja intenso
+        0.7: '#ff4000',  // Rojo-naranja
+        1.0: '#ff0000'   // Rojo intenso para muy alto riesgo
+      },
+      minOpacity: 0.4,
+      max: 1.0
     })
 
     heatLayer.addTo(map)
@@ -73,7 +76,7 @@ const RiskMarkers: React.FC<{ data: HeatMapData[]; showMarkers: boolean }> = ({
   const map = useMap()
 
   useEffect(() => {
-    if (!showMarkers || !data) return
+    if (!showMarkers || !data || !Array.isArray(data)) return
 
     const markers: L.Marker[] = []
 
@@ -123,7 +126,7 @@ const HeatMap: React.FC<HeatMapProps> = ({
   zoom = 12,
   className = "h-96 w-full"
 }) => {
-  const [showMarkers, setShowMarkers] = useState(false)
+  const [showMarkers] = useState(false)
 
   // Fix for default markers
   useEffect(() => {
@@ -137,62 +140,22 @@ const HeatMap: React.FC<HeatMapProps> = ({
 
   return (
     <div className={className}>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Mapa de Calor - Detecciones de Criaderos</h3>
-          <p className="text-sm text-gray-600">
-            Mostrando {data.length} ubicaciones con detecciones
-          </p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={showMarkers}
-              onChange={(e) => setShowMarkers(e.target.checked)}
-              className="mr-2"
-            />
-            <span className="text-sm">Mostrar marcadores</span>
-          </label>
-        </div>
+      <div className="h-full w-full rounded-lg border border-gray-200 overflow-hidden">
+        <MapContainer
+          center={center}
+          zoom={zoom}
+          className="h-full w-full"
+          scrollWheelZoom={true}
+        >
+          {/* Standard OpenStreetMap */}
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          <HeatLayer data={data} />
+          <RiskMarkers data={data} showMarkers={showMarkers} />
+        </MapContainer>
       </div>
-
-      {/* Map Legend */}
-      <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Leyenda</h4>
-        <div className="flex flex-wrap gap-4 text-xs">
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-            <span>Bajo Riesgo</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-            <span>Medio Riesgo</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-orange-500 rounded mr-2"></div>
-            <span>Alto Riesgo</span>
-          </div>
-          <div className="flex items-center">
-            <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-            <span>Muy Alto Riesgo</span>
-          </div>
-        </div>
-      </div>
-
-      <MapContainer
-        center={center}
-        zoom={zoom}
-        className="h-full w-full rounded-lg border border-gray-200"
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        <HeatLayer data={data} />
-        <RiskMarkers data={data} showMarkers={showMarkers} />
-      </MapContainer>
     </div>
   )
 }

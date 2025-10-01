@@ -18,45 +18,59 @@ export enum UserRole {
 }
 
 export interface Detection {
-  id: number
-  analysis_id: number
+  id: string
+  analysis_id?: string
   class_name: string
   class_id: number
   confidence: number
-  polygon_data: number[][]
+  risk_level: RiskLevel
+  breeding_site_type: string
+  polygon: number[][]
   mask_area: number
-  location_data?: LocationData
-  validation?: DetectionValidation
+  area_square_pixels?: number
+  location?: LocationData
+  source_filename?: string
+  camera_info?: CameraInfo
+  validation_status: ValidationStatus
+  validation_notes?: string
+  validated_at?: string
+  created_at: string
 }
 
 export interface LocationData {
   has_location: boolean
-  coordinates?: string
   latitude?: number
   longitude?: number
-  accuracy?: string
-  source?: string
+  coordinates?: string
+  altitude_meters?: number
+  location_source?: string
+  google_maps_url?: string
+  google_earth_url?: string
 }
 
-export interface DetectionValidation {
-  is_validated: boolean
-  expert_validation?: boolean
-  expert_notes?: string
-  validated_by?: number
-  validated_at?: string
+export interface CameraInfo {
+  camera_make?: string
+  camera_model?: string
+  camera_datetime?: string
+  camera_software?: string
 }
 
 export interface Analysis {
-  id: number
-  image_path: string
-  user_id: number
-  total_detections: number
-  risk_level: RiskLevel
-  confidence_threshold: number
-  created_at: string
+  id: string
+  status: string
+  image_filename?: string
+  image_size_bytes?: number
+  location?: LocationData
+  camera_info?: CameraInfo
+  model_used?: string
+  confidence_threshold?: number
   processing_time_ms?: number
-  has_gps_data: boolean
-  detections?: Detection[]
+  yolo_service_version?: string
+  risk_assessment?: RiskAssessment
+  detections: Detection[]
+  image_taken_at?: string
+  created_at: string
+  updated_at?: string
 }
 
 export enum RiskLevel {
@@ -64,6 +78,22 @@ export enum RiskLevel {
   MEDIO = 'MEDIO',
   BAJO = 'BAJO',
   MINIMO = 'MINIMO'
+}
+
+export enum ValidationStatus {
+  PENDING = 'pending',
+  PENDING_VALIDATION = 'pending_validation',
+  VALIDATED_POSITIVE = 'validated_positive',
+  VALIDATED_NEGATIVE = 'validated_negative',
+  REQUIRES_REVIEW = 'requires_review'
+}
+
+export enum AnalysisStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+  REQUIRES_VALIDATION = 'requires_validation'
 }
 
 export interface AnalysisCreate {
@@ -80,11 +110,12 @@ export interface AnalysisResponse {
 }
 
 export interface RiskAssessment {
-  level: RiskLevel
-  high_risk_sites: number
-  medium_risk_sites: number
-  recommendations: string[]
+  level?: RiskLevel
+  risk_score?: number
   total_detections: number
+  high_risk_count: number
+  medium_risk_count: number
+  recommendations: string[]
 }
 
 export interface UploadProgress {
