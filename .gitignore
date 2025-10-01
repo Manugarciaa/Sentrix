@@ -49,6 +49,7 @@ yarn-error.log*
 # Build outputs (for future frontend)
 /frontend/build/
 /frontend/dist/
+/frontend/components.json
 
 # Large YOLO model files and datasets (use Git LFS or external storage)
 yolo-service/models/*.pt
