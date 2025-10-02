@@ -68,9 +68,9 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_YOLO_SERVICE_URL=http://localhost:8001
 
 # Production (configurar en Vercel)
-# VITE_API_URL=https://sentrix-backend.up.railway.app
-# VITE_API_BASE_URL=https://sentrix-backend.up.railway.app/api/v1
-# VITE_YOLO_SERVICE_URL=https://sentrix-yolo.up.railway.app
+# VITE_API_URL=https://sentrix-backend.onrender.com
+# VITE_API_BASE_URL=https://sentrix-backend.onrender.com/api/v1
+# VITE_YOLO_SERVICE_URL=https://sentrix-yolo.onrender.com
 ```
 
 ### Instalación y Desarrollo
@@ -334,9 +334,9 @@ npm run test:coverage
 
 2. **Variables de entorno en Vercel**:
    ```bash
-   VITE_API_URL=https://sentrix-backend.up.railway.app
-   VITE_API_BASE_URL=https://sentrix-backend.up.railway.app/api/v1
-   VITE_YOLO_SERVICE_URL=https://sentrix-yolo.up.railway.app
+   VITE_API_URL=https://sentrix-backend.onrender.com
+   VITE_API_BASE_URL=https://sentrix-backend.onrender.com/api/v1
+   VITE_YOLO_SERVICE_URL=https://sentrix-yolo.onrender.com
    VITE_ENV=production
    ```
 
