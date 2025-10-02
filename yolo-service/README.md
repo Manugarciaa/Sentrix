@@ -19,26 +19,27 @@ Este servicio constituye el **núcleo de IA** de la plataforma Sentrix, proporci
 
 ```
 yolo-service/
-├── src/                   # Código fuente principal
-│   ├── core/             # Lógica central de detección
-│   │   ├── detector.py   # Motor de detección YOLO
-│   │   ├── evaluator.py  # Evaluación de riesgo
-│   │   └── trainer.py    # Entrenamiento de modelos
-│   ├── utils/            # Utilidades del servicio
-│   │   ├── device.py     # Gestión GPU/CPU
-│   │   ├── file_ops.py   # Operaciones de archivos
-│   │   ├── gps_metadata.py # Extracción GPS/EXIF
-│   │   └── model_utils.py # Utilidades de modelos
+├── server.py              # Servidor FastAPI (puerto 8001)
+├── main.py                # CLI para detección
+├── utils.py               # Utilidades generales
+├── diagnostic.py          # Diagnóstico de sistema
+├── Dockerfile             # Imagen Docker optimizada
+├── requirements.txt       # Dependencias Python
+├── src/                   # Código fuente
+│   ├── core/             # Detección, evaluación, training
+│   ├── utils/            # Device, file ops, GPS, models
 │   └── reports/          # Generación de reportes
-├── configs/              # Configuración del servicio
 ├── scripts/              # Scripts de utilidad
-│   ├── batch_detection.py # Detección por lotes
-│   ├── predict_new_images.py # Predicción individual
-│   └── train_dengue_model.py # Entrenamiento
+│   ├── batch_detection.py
+│   ├── predict_new_images.py
+│   └── train_dengue_model.py
+├── configs/              # Archivos de configuración
 ├── models/               # Modelos YOLO entrenados
 ├── tests/                # Tests automatizados
-├── main.py               # CLI para detección
-└── server.py             # Servidor FastAPI
+├── test_images/          # Imágenes de prueba
+├── data/                 # Dataset (images/labels)
+├── logs/                 # Logs del servicio
+└── results/              # Resultados de detecciones
 ```
 
 ## Características Principales
@@ -334,43 +335,10 @@ export YOLO_DEVICE=cuda  # o 'cpu' para forzar CPU
 
 ## Documentación Adicional
 
-- [Scripts de Corrección](../scripts/README.md)
-- [Convenciones de Imports](../shared/IMPORT_CONVENTIONS.md)
-- [Librería Compartida](../shared/README.md)
+- [Backend](../backend/README.md)
+- [Shared Library](../shared/README.md)
+- [Scripts](../scripts/README.md)
 
 ---
 
-## Actualizaciones Recientes (v2.3.0)
-
-### Nuevas Funcionalidades Implementadas:
-- **Generación de Imágenes Procesadas**: Creación automática con marcadores azules de detecciones
-- **Visualización Avanzada**: Polígonos precisos y etiquetas informativas con OpenCV
-- **Integración con Nomenclatura**: Soporte para sistema estandarizado de archivos
-- **API Extendida**: Nuevos parámetros para control de generación de imágenes
-
-### Mejoras en Detección:
-- **Marcadores Visuales**: Color azul consistente (255, 100, 0 en BGR)
-- **Polígonos de Segmentación**: Boundaries precisos de cada detección
-- **Etiquetas Dinámicas**: Clase y confianza mostradas automáticamente
-- **Preservación de Calidad**: Imagen original mantenida sin degradación
-
-### API Mejorada:
-- **Parámetro `generate_processed_image`**: Control de generación de imágenes marcadas
-- **Parámetro `output_dir`**: Especificación de directorio para archivos procesados
-- **Respuesta extendida**: Información completa sobre imagen procesada generada
-- **Compatibilidad**: Funciona con todos los formatos de imagen soportados
-
-### Estado Actual:
-- **YOLO Service funcionando** en puerto 8001 con funcionalidades avanzadas
-- **Modelo cargado**: `models/best.pt` (19.6MB) con capacidades de visualización
-- **Generación automática**: Imágenes procesadas creadas en cada detección
-- **Integración completa**: Backend recibe URLs de imágenes originales y procesadas
-- **OpenCV**: Librería integrada para procesamiento visual
-
-### Integración Sistema:
-- **Backend**: Recibe archivos procesados para almacenamiento dual
-- **Shared Library**: Uso de nomenclatura estandarizada cuando requerido
-- **Visualización**: Frontend puede mostrar comparación original vs procesada
-- **Storage**: Optimización con sistema de deduplicación del backend
-
-**El YOLO Service incluye ahora capacidades completas de visualización y generación de imágenes procesadas con marcadores precisos.**
+**Puerto**: 8001 | **Modelo**: YOLOv11 | **Python**: 3.8+

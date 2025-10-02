@@ -653,20 +653,35 @@ class AnalysisService:
             count_response = count_query.execute()
             total = count_response.count or 0
 
-            # Para cada análisis, obtener detecciones (opcional, para resumen)
+            # Obtener todos los analysis_ids para fetch detecciones en una sola query
+            analysis_ids = [analysis['id'] for analysis in response.data]
+
+            # Fetch todas las detecciones en UNA SOLA query (optimización N+1)
+            detections_map = {}
+            if analysis_ids:
+                all_detections_response = self.supabase.client.table('detections').select('*').in_('analysis_id', analysis_ids).execute()
+
+                # Organizar detecciones por analysis_id
+                for detection in (all_detections_response.data or []):
+                    aid = detection['analysis_id']
+                    if aid not in detections_map:
+                        detections_map[aid] = []
+                    detections_map[aid].append(detection)
+
+            # Construir respuesta con detecciones ya cargadas
             analyses_with_summary = []
             for analysis in response.data:
-                # Obtener detecciones con coordenadas GPS (solo primera para ubicación)
-                detections_response = self.supabase.client.table('detections').select('*').eq('analysis_id', analysis['id']).limit(1).execute()
-
                 analysis_summary = analysis.copy()
                 analysis_summary['detections_count'] = analysis.get('total_detections', 0)
 
-                # Incluir primera detección para coordenadas GPS si está disponible
-                if detections_response.data and analysis.get('has_gps_data'):
-                    analysis_summary['detections'] = detections_response.data
+                # Usar detecciones del mapa (ya cargadas)
+                aid = analysis['id']
+                if aid in detections_map and analysis.get('has_gps_data'):
+                    # Tomar solo la primera detección para ubicación
+                    analysis_summary['detections'] = detections_map[aid][:1]
                 else:
                     analysis_summary['detections'] = []
+
                 analyses_with_summary.append(analysis_summary)
 
             return {

@@ -25,42 +25,100 @@ sentrix/
 ├── yolo-service/           # Detección IA (puerto 8001)
 ├── shared/                 # Librería compartida
 ├── frontend/               # Interfaz web React (puerto 3000)
-└── scripts/                # Scripts de configuración
+├── scripts/                # Scripts de utilidad y deployment
+├── docker-compose.yml      # Orquestación Docker
+├── supabase-schema.sql     # Schema de base de datos
+└── .env.example            # Template de configuración
 ```
 
-## Inicio Rápido
+## Configuración del Proyecto
 
-### 1. Configuración del Entorno
+### Requisitos del Sistema
+
+- Python 3.8+
+- Node.js 16+
+- PostgreSQL (Supabase)
+- 4GB RAM mínimo (8GB recomendado)
+
+### Variables de Entorno
+
+El proyecto utiliza archivos `.env` para configuración. Ejemplo de configuración en `.env.example`:
 
 ```bash
-# Configurar variables de entorno
-python scripts/setup-env.py
+# Puertos
+BACKEND_PORT=8000
+YOLO_SERVICE_PORT=8001
 
-# Editar configuración
-cp .env.example .env
+# Supabase
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu_key_aqui
+DATABASE_URL=postgresql://...
+
+# Seguridad
+SECRET_KEY=tu_secret_key
+JWT_SECRET_KEY=tu_jwt_secret
+
+# YOLO
+YOLO_MODEL_PATH=models/best.pt
+YOLO_CONFIDENCE_THRESHOLD=0.5
 ```
 
-### 2. Ejecutar Servicios
+### Base de Datos (Supabase)
 
-**Opción A: Script Automático (Recomendado)**
-```powershell
-# Ejecutar script de inicio automático (Windows)
-.\start-all.ps1
-```
+El schema de base de datos se encuentra en `supabase-schema.sql` e incluye:
+- 3 tablas principales: `user_profiles`, `analyses`, `detections`
+- 6 ENUMs para tipos de datos estandarizados
+- 2 buckets de storage: `sentrix-images` (originales) y `sentrix-processed` (con marcadores)
 
-**Opción B: Manual**
+### Dependencias
+
+**Backend:**
 ```bash
-# Terminal 1: Backend API (puerto 8000)
-cd backend && python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-
-# Terminal 2: Servicio YOLO (puerto 8001)
-cd yolo-service && python server.py
-
-# Terminal 3: Frontend React (puerto 3000/3001)
-cd frontend && npm run dev
+cd backend
+pip install -r requirements.txt
 ```
 
-### 3. Probar Detección
+**YOLO Service:**
+```bash
+cd yolo-service
+pip install -r requirements.txt
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm install
+```
+
+### Ejecución de Servicios
+
+**Terminal 1 - Backend API (puerto 8000):**
+```bash
+cd backend
+python -m uvicorn app:app --reload
+```
+
+**Terminal 2 - YOLO Service (puerto 8001):**
+```bash
+cd yolo-service
+python server.py
+```
+
+**Terminal 3 - Frontend (puerto 3000):**
+```bash
+cd frontend
+npm run dev
+```
+
+### Acceso a la Aplicación
+
+- Frontend: http://localhost:3000
+- API Docs: http://localhost:8000/docs
+- YOLO Health: http://localhost:8001/health
+
+## Uso
+
+### Subir y Analizar Imagen
 
 ```bash
 # API completa con almacenamiento
@@ -137,13 +195,9 @@ SENTRIX_YYYYMMDD_HHMMSS_DEVICE_LOCATION_ID.ext
 - Sistema de logging centralizado
 
 ### [Scripts de Utilidad](./scripts/README.md)
-- `scripts/comprehensive_fix_imports.py` - Corrección automática de errores de importación
-- `scripts/fix_entry_points.py` - Corrección específica para entry points
-- `scripts/fix_api_routers.py` - Solución para imports en routers API
-- `scripts/simple_test.py` - Pruebas básicas de funcionalidad del sistema
-- `scripts/quick_smoke_tests.py` - Verificación rápida de componentes críticos
-- `scripts/test_deduplication.py` - Pruebas específicas del sistema de deduplicación
-- `start-all.ps1` - Script de inicio automático para todos los servicios
+- Scripts de configuración inicial (`setup/`)
+- Scripts de mantenimiento y verificación (`maintenance/`)
+- Scripts deprecados archivados (`deprecated/`)
 
 ## Estado del Proyecto
 
@@ -154,51 +208,6 @@ SENTRIX_YYYYMMDD_HHMMSS_DEVICE_LOCATION_ID.ext
 | **Frontend React** | ✅ Completo | 3000 |
 | **Shared Library** | ✅ Completo | - |
 
-## Configuración
-
-El proyecto utiliza configuración centralizada a través de variables de entorno:
-
-```bash
-# Puertos estandarizados
-BACKEND_PORT=8000
-YOLO_SERVICE_PORT=8001
-
-# Base de datos
-DATABASE_URL=postgresql://...
-SUPABASE_URL=tu_url_supabase
-
-# IA y modelos
-YOLO_MODEL_PATH=models/best.pt
-YOLO_CONFIDENCE_THRESHOLD=0.5
-```
-
-## Requisitos
-
-- **Python 3.8+**
-- **4GB RAM** (8GB recomendado)
-- **GPU NVIDIA** (opcional, para acelerar detección)
-- **PostgreSQL** (o cuenta Supabase)
-
-## Instalación
-
-```bash
-# Clonar repositorio
-git clone https://github.com/tu-usuario/sentrix.git
-cd sentrix
-
-# Configurar entorno
-python scripts/setup-env.py
-
-# Instalar dependencias backend
-pip install -r backend/requirements.txt
-pip install -r yolo-service/requirements.txt
-
-# Instalar dependencias frontend
-cd frontend && npm install && cd ..
-
-# Configurar base de datos
-cd backend && python main.py db migrate
-```
 
 ## Testing y Validación
 
@@ -284,33 +293,3 @@ MIT License - Ver [LICENSE](LICENSE) para detalles.
 ---
 
 **Versión**: 2.3.0 | **Estado**: Sistema completo con funcionalidades avanzadas | **Actualizado**: Octubre 2025
-
----
-
-## Actualizaciones Recientes (v2.3.0)
-
-### Nuevas Funcionalidades Implementadas:
-- **Sistema de Nomenclatura Estandarizada**: Archivos con formato profesional y trazabilidad
-- **Almacenamiento Dual Inteligente**: Imágenes originales y procesadas con marcadores YOLO
-- **Deduplicación Automática**: Prevención de overflow de storage con detección de contenido duplicado
-- **Gestión Avanzada de Metadatos**: Extracción y codificación de GPS, cámara y timestamps
-
-### Mejoras en Componentes:
-- **Frontend**: Nuevos componentes UI (Dialog, Select, Tabs), AuthLayout mejorado, configuración ESLint optimizada
-- **Backend**: Sistema de referencias para duplicados, optimización de storage, integración Supabase mejorada
-- **YOLO Service**: Generación automática de imágenes procesadas con marcadores azules
-- **Shared Library**: Utilidades avanzadas de archivos y sistema de deduplicación
-- **Testing**: Suite completa de pruebas para nuevas funcionalidades
-
-### Servicios Verificados Como Funcionales:
-- **Backend** (Puerto 8000): API con almacenamiento dual y deduplicación
-- **YOLO Service** (Puerto 8001): Procesamiento con imágenes marcadas
-- **Frontend** (Puerto 3000): Interfaz actualizada con nuevas capacidades
-- **Sistema de Storage**: Optimización automática sin pérdida de funcionalidad
-
-### Impacto en Rendimiento:
-- **Ahorro de Storage**: Sistema de referencias evita almacenamiento duplicado
-- **Trazabilidad**: Nomenclatura estandarizada permite seguimiento completo
-- **Profesionalización**: Eliminación de caracteres no estándar en archivos
-
-**El proyecto incluye ahora un sistema completo de gestión inteligente de imágenes, optimizado para uso profesional y académico con almacenamiento eficiente.**

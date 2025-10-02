@@ -23,20 +23,24 @@ Este servicio constituye el **núcleo backend** de la plataforma Sentrix, propor
 backend/
 ├── app.py                 # Punto de entrada FastAPI
 ├── main.py                # CLI avanzado (DB, análisis)
-├── src/                   # Código fuente unificado
+├── diagnostic.py          # Diagnóstico del sistema
+├── Dockerfile             # Imagen Docker optimizada
+├── requirements.txt       # Dependencias Python
+├── pytest.ini             # Configuración de tests
+├── src/                   # Código fuente
 │   ├── api/v1/           # Endpoints REST
-│   │   ├── analyses.py   # Análisis de imágenes
-│   │   ├── auth.py       # Autenticación
-│   │   ├── health.py     # Health checks
-│   │   └── reports.py    # Reportes
 │   ├── services/         # Lógica de negocio
 │   ├── schemas/          # Validación Pydantic
-│   ├── database/         # Modelos + conexión
-│   ├── utils/            # Utilidades
-│   └── core/             # Funcionalidad central
-├── testing/              # Scripts de testing
-├── scripts/              # Scripts de producción
-└── alembic/              # Migraciones DB
+│   ├── database/         # Modelos SQLAlchemy
+│   ├── middleware/       # Rate limiting, CORS
+│   ├── utils/            # Utilidades (config validator)
+│   └── core/             # Seguridad, autenticación
+├── scripts/              # Scripts de mantenimiento
+├── tests/                # Suite de pruebas
+├── alembic/              # Migraciones de BD
+├── data/                 # Datos temporales
+├── logs/                 # Logs del sistema
+└── uploads/              # Uploads temporales
 ```
 
 ### Tecnologías Principales
@@ -198,16 +202,14 @@ from shared.logging_utils import setup_backend_logging
 ### Ejecutar Tests
 
 ```bash
-# Tests consolidados
-cd testing && python run_tests.py
+# Windows
+.\run_tests.ps1
 
-# Tests individuales
-python -m pytest tests/ -v
+# Linux/Mac
+./run_tests.sh
 
-# Tests específicos de nuevas funcionalidades
-python scripts/simple_test.py           # Pruebas básicas
-python scripts/test_deduplication.py    # Sistema de deduplicación
-python scripts/quick_smoke_tests.py     # Verificación rápida
+# Manual con pytest
+python -m pytest tests/ -v --cov=src --cov-fail-under=80
 ```
 
 ### Diagnóstico del Sistema
@@ -253,38 +255,30 @@ python main.py batch directorio/
 - **YOLO Service**: Puerto 8001 (configurado automáticamente)
 - **Frontend**: Puerto 3000
 
+## Mejoras de Seguridad y Performance
+
+### Autenticación JWT
+- Protección de todos los endpoints de análisis
+- Tokens con expiración configurable
+- Refresh tokens para sesiones largas
+
+### Rate Limiting
+- 10 requests/minuto para uploads
+- 100 requests/minuto endpoints generales
+- Basado en IP o user_id cuando autenticado
+
+### Validación de Configuración
+- Detección de secrets débiles al inicio
+- Validación de variables requeridas
+- Modo estricto en producción
+
+### Optimizaciones
+- Queries N+1 eliminadas
+- Batch fetching de detecciones
+- Caché de metadatos frecuentes
+
 ## Documentación Adicional
 
-- [Scripts de Corrección](../scripts/README.md)
 - [Convenciones de Imports](../shared/IMPORT_CONVENTIONS.md)
 - [Librería Compartida](../shared/README.md)
-
----
-
-## Actualizaciones Recientes (v2.3.0)
-
-### Nuevas Funcionalidades Implementadas:
-- **Sistema de Nomenclatura Estandarizada**: Archivos con formato profesional y trazabilidad completa
-- **Almacenamiento Dual en Supabase**: Imágenes originales y procesadas con marcadores YOLO
-- **Deduplicación Automática**: Prevención de overflow con referencias a contenido duplicado
-- **AnalysisService Mejorado**: Integración completa con shared library y funcionalidades avanzadas
-
-### Mejoras en API:
-- **Endpoint de Análisis**: Retorna URLs de imágenes originales y procesadas
-- **Reportes de Deduplicación**: Métricas de ahorro de storage y optimización
-- **Integración YOLO**: Procesamiento automático con imágenes marcadas
-- **Gestión de Metadatos**: Extracción y codificación de GPS, cámara y timestamps
-
-### Optimizaciones de Storage:
-- **Referencias Inteligentes**: Duplicados no almacenan archivos físicos
-- **Nomenclatura Consistente**: Sistema unificado para todos los archivos
-- **Trazabilidad Completa**: Seguimiento de origen y procesamiento de cada imagen
-- **Ahorro Automático**: Optimización transparente sin pérdida de funcionalidad
-
-### Estado Actual:
-- **Backend funcionando** en puerto 8000 con funcionalidades avanzadas
-- **Sistema de Storage** optimizado y operativo
-- **Deduplicación** verificada y funcional
-- **Integration** completa con shared library y YOLO Service
-
-**El backend incluye ahora un sistema completo de gestión inteligente de imágenes con optimización automática de storage.**
+- [YOLO Service](../yolo-service/README.md)

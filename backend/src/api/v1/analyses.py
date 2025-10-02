@@ -19,22 +19,48 @@ from ...schemas.analyses import (
 )
 from src.services.analysis_service import analysis_service
 from ...config import get_settings
+from ...utils.auth import get_current_user, get_current_active_user
+from ...database.models.models import UserProfile
+
+try:
+    from ...middleware.rate_limit import limiter
+    RATE_LIMITING_ENABLED = True
+except ImportError:
+    RATE_LIMITING_ENABLED = False
+    limiter = None
 
 router = APIRouter()
 settings = get_settings()
 
 
 
-@router.post("/analyses", response_model=AnalysisUploadResponse)
-async def create_analysis(
-    file: Optional[UploadFile] = File(None),
-    latitude: Optional[float] = Form(None),
-    longitude: Optional[float] = Form(None),
-    confidence_threshold: Optional[float] = Form(0.5),
-    include_gps: bool = Form(True)
-):
-    """
-    Cargar imagen para análisis de criaderos de dengue con procesamiento real
+if RATE_LIMITING_ENABLED:
+    @router.post("/analyses", response_model=AnalysisUploadResponse)
+    @limiter.limit("10/minute")
+    async def create_analysis(
+        request: Request,
+        file: Optional[UploadFile] = File(None),
+        latitude: Optional[float] = Form(None),
+        longitude: Optional[float] = Form(None),
+        confidence_threshold: Optional[float] = Form(0.5),
+        include_gps: bool = Form(True),
+        current_user: UserProfile = Depends(get_current_active_user)
+    ):
+        """
+        Cargar imagen para análisis de criaderos de dengue con procesamiento real
+        Rate limit: 10 requests per minute
+else:
+    @router.post("/analyses", response_model=AnalysisUploadResponse)
+    async def create_analysis(
+        file: Optional[UploadFile] = File(None),
+        latitude: Optional[float] = Form(None),
+        longitude: Optional[float] = Form(None),
+        confidence_threshold: Optional[float] = Form(0.5),
+        include_gps: bool = Form(True),
+        current_user: UserProfile = Depends(get_current_active_user)
+    ):
+        """
+        Cargar imagen para análisis de criaderos de dengue con procesamiento real
 
     Args:
         file: Archivo de imagen (multipart/form-data)
@@ -133,7 +159,10 @@ async def create_analysis(
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisResponse)
-async def get_analysis(analysis_id: str):
+async def get_analysis(
+    analysis_id: str,
+    current_user: UserProfile = Depends(get_current_active_user)
+):
     """
     Obtener análisis completo con detecciones georeferenciadas
 
@@ -256,7 +285,8 @@ async def list_analyses(
     since: Optional[str] = None,
     limit: int = 20,
     offset: int = 0,
-    bbox: Optional[str] = None
+    bbox: Optional[str] = None,
+    current_user: UserProfile = Depends(get_current_active_user)
 ):
     """
     Listar análisis con filtros opcionales
@@ -355,7 +385,10 @@ async def list_analyses(
 
 
 @router.post("/analyses/batch", response_model=BatchUploadResponse)
-async def create_batch_analysis(request: BatchUploadRequest):
+async def create_batch_analysis(
+    request: BatchUploadRequest,
+    current_user: UserProfile = Depends(get_current_active_user)
+):
     """
     Procesamiento masivo con extracción GPS automática
 

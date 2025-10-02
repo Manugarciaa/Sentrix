@@ -19,17 +19,22 @@ Esta librería centraliza componentes críticos para asegurar consistencia entre
 
 ```
 shared/
-├── data_models.py         # Enums y modelos de datos principales
+├── __init__.py            # Exports principales
+├── data_models.py         # Enums y modelos de datos
 ├── risk_assessment.py     # Algoritmos de evaluación de riesgo
-├── file_utils.py         # Utilidades avanzadas + nomenclatura estandarizada
-├── image_deduplication.py # Sistema de deduplicación inteligente
+├── file_utils.py         # Utilidades avanzadas + nomenclatura
+├── image_deduplication.py # Sistema de deduplicación
 ├── image_formats.py      # Soporte de formatos de imagen
 ├── gps_utils.py          # Extracción de metadatos GPS
-├── logging_utils.py      # Sistema de logging unificado
-├── error_handling.py     # Manejo de errores estandarizado
+├── logging_utils.py      # Sistema de logging
+├── error_handling.py     # Manejo de errores
 ├── config_manager.py     # Gestión de configuración
+├── project_structure.py   # Utilidades de proyecto
 ├── import_utils.py       # Utilidades de importación
-└── tests/                # Tests de la librería compartida
+├── requirements.txt       # Dependencias
+└── tests/                # Tests
+    ├── test_image_formats.py
+    └── test_standardized_naming.py
 ```
 
 ## Componentes Principales
@@ -344,27 +349,17 @@ ALLOWED_EXTENSIONS=.jpg,.jpeg,.png,.heic
 
 ## Testing
 
-### Ejecutar Tests
-
 ```bash
-# Tests específicos de shared
+# Tests de shared library
 cd shared && python -m pytest tests/ -v
 
-# Test de importación básica
+# Test de importación
 python -c "from shared.data_models import DetectionRiskEnum; print('OK')"
 
-# Validación completa del sistema
-cd .. && python scripts/simple-validation.py
+# Tests desde raíz
+python scripts/simple_test.py
+python scripts/test_deduplication.py
 ```
-
-### Tests Incluidos
-
-- `test_image_formats.py` - Conversión y validación de formatos
-- `test_standardized_naming.py` - Sistema de nomenclatura estandarizada
-- `test_deduplication.py` - Sistema de deduplicación inteligente
-- Tests de enums y consistencia de datos
-- Tests de evaluación de riesgo
-- Tests de utilidades de archivos avanzadas
 
 ## Desarrollo
 
@@ -400,43 +395,10 @@ cd .. && python scripts/simple-validation.py
 
 ## Documentación Adicional
 
-- [Scripts de Utilidad](../scripts/README.md)
-- [Convenciones de Imports](IMPORT_CONVENTIONS.md)
-- [Backend README](../backend/README.md)
-- [YOLO Service README](../yolo-service/README.md)
+- [Backend](../backend/README.md)
+- [YOLO Service](../yolo-service/README.md)
+- [Scripts](../scripts/README.md)
 
 ---
 
-## Actualizaciones Recientes (v2.0.0)
-
-### Nuevas Funcionalidades Implementadas:
-- **Sistema de Nomenclatura Estandarizada**: Generación automática de nombres profesionales
-- **Deduplicación Inteligente**: Detección de contenido duplicado con scoring de similitud
-- **Gestión Avanzada de Archivos**: Variaciones de nombres y parsing de metadatos
-- **Optimización de Storage**: Cálculo automático de ahorros por deduplicación
-
-### Componentes Agregados:
-- **`image_deduplication.py`**: Sistema completo de deduplicación
-- **`file_utils.py` mejorado**: Funciones de nomenclatura estandarizada
-- **Nuevos tests**: Cobertura completa para funcionalidades avanzadas
-- **Documentación extendida**: Ejemplos detallados de uso
-
-### Estado de Integración Verificado:
-- **Backend**: Usando nomenclatura y deduplicación sin errores
-- **YOLO Service**: Generación de nombres estandarizados
-- **Frontend**: Interfaces actualizadas para nuevas funcionalidades
-- **Tests**: Suite completa funcionando correctamente
-
-### Funcionalidades Avanzadas:
-- **Nomenclatura Profesional**: Formato SENTRIX_YYYYMMDD_HHMMSS_DEVICE_LOCATION_ID
-- **Deduplicación por Contenido**: Hash SHA-256 y scoring de metadatos
-- **Variaciones de Archivos**: Original, procesado, thumbnail con nomenclatura consistente
-- **Optimización Automática**: Ahorro de storage transparente
-
-### Mejoras en Performance:
-- **Detección Rápida**: Algoritmos optimizados para grandes volúmenes
-- **Storage Eficiente**: Referencias automáticas para duplicados
-- **Trazabilidad Completa**: Seguimiento de origen y procesamiento
-- **Escalabilidad**: Sistema preparado para crecimiento de datos
-
-**La librería compartida incluye ahora un sistema completo de gestión inteligente de archivos con optimización automática.**
+**Python**: 3.8+ | **Dependencias**: Ver `requirements.txt`
