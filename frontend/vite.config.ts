@@ -1,49 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+// import { VitePWA } from 'vite-plugin-pwa' // Disabled - causing issues
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
-    react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.sentrix\.com\/.*$/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-              }
-            }
-          }
-        ]
-      },
-      includeAssets: ['favicon.svg'],
-      manifest: {
-        name: 'Sentrix - Control de Dengue',
-        short_name: 'Sentrix',
-        description: 'Plataforma integral para detección de criaderos de Aedes aegypti',
-        theme_color: '#059669',
-        background_color: '#ffffff',
-        icons: [
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml'
-          }
-        ],
-        start_url: '/',
-        display: 'standalone',
-        orientation: 'portrait'
-      }
-    })
+    react()
+    // PWA plugin disabled for now - causing deployment issues
+    // VitePWA({...})
   ],
   resolve: {
     alias: {
@@ -73,6 +38,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
+      external: mode === 'production' ? ['msw'] : [],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -89,5 +55,8 @@ export default defineConfig({
   define: {
     'process.env': {},
     global: 'globalThis'
+  },
+  optimizeDeps: {
+    exclude: mode === 'production' ? ['msw'] : []
   }
-})
+}))

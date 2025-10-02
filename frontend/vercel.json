@@ -9,6 +9,13 @@
   "cleanUrls": true,
   "trailingSlash": false,
 
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "VITE_ENABLE_MOCKING": "false"
+    }
+  },
+
   "rewrites": [
     {
       "source": "/api/:path*",
