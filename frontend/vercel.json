@@ -9,15 +9,6 @@
   "cleanUrls": true,
   "trailingSlash": false,
 
-  "build": {
-    "env": {
-      "VITE_API_URL": "@api_url",
-      "VITE_API_BASE_URL": "@api_base_url",
-      "VITE_YOLO_SERVICE_URL": "@yolo_service_url",
-      "VITE_ENV": "production"
-    }
-  },
-
   "rewrites": [
     {
       "source": "/api/:path*",
