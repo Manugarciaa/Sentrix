@@ -34,7 +34,7 @@
       "@/utils/*": ["./src/utils/*"]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "build", "src/mocks/**/*"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "!src/mocks/**/*"],
+  "exclude": ["node_modules", "dist", "build", "src/mocks"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
