@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 """
 Analysis endpoints for image processing and breeding site detection
-Endpoints de análisis para procesamiento de imágenes y detección de criaderos
+Endpoints de analisis para procesamiento de imagenes y deteccion de criaderos
 """
 
 import uuid
@@ -47,8 +48,10 @@ if RATE_LIMITING_ENABLED:
         current_user: UserProfile = Depends(get_current_active_user)
     ):
         """
-        Cargar imagen para análisis de criaderos de dengue con procesamiento real
+        Cargar imagen para analisis de criaderos de dengue con procesamiento real
         Rate limit: 10 requests per minute
+        """
+        pass  # Body implemented in else branch
 else:
     @router.post("/analyses", response_model=AnalysisUploadResponse)
     async def create_analysis(
@@ -60,27 +63,27 @@ else:
         current_user: UserProfile = Depends(get_current_active_user)
     ):
         """
-        Cargar imagen para análisis de criaderos de dengue con procesamiento real
+        Cargar imagen para analisis de criaderos de dengue con procesamiento real
 
     Args:
         file: Archivo de imagen (multipart/form-data)
         latitude: Coordenada manual (opcional, sobrescribe EXIF)
         longitude: Coordenada manual (opcional, sobrescribe EXIF)
         confidence_threshold: Umbral de confianza (default: 0.5)
-        include_gps: Extraer GPS automáticamente (default: true)
+        include_gps: Extraer GPS automaticamente (default: true)
 
     Returns:
         AnalysisUploadResponse con analysis_id y status
     """
 
-    # Validación de archivo
+    # Validacion de archivo
     if not file:
         raise HTTPException(
             status_code=400,
             detail="Se requiere un archivo de imagen"
         )
 
-    # Validar extensión usando shared library
+    # Validar extension usando shared library
     import sys
     import os
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
@@ -89,7 +92,7 @@ else:
     if not file.filename:
         raise HTTPException(
             status_code=400,
-            detail="El archivo debe tener un nombre válido"
+            detail="El archivo debe tener un nombre valido"
         )
 
     file_ext = '.' + file.filename.split('.')[-1].lower()
@@ -118,18 +121,18 @@ else:
         # Leer datos del archivo
         image_data = await file.read()
 
-        # Validar tamaño
+        # Validar tamano
         max_size = 50 * 1024 * 1024  # 50MB
         if len(image_data) > max_size:
             raise HTTPException(
                 status_code=413,
-                detail="El archivo es demasiado grande. Máximo 50MB"
+                detail="El archivo es demasiado grande. Maximo 50MB"
             )
 
         # Import analysis service at the top level to avoid circular imports
         from src.services.analysis_service import analysis_service as service_instance
 
-        # Procesar imagen con servicio de análisis
+        # Procesar imagen con servicio de analisis
         result = await service_instance.process_image_analysis(
             image_data=image_data,
             filename=file.filename,
@@ -145,8 +148,8 @@ else:
             has_gps_data=result.get("has_gps_data", False),
             camera_detected=result.get("camera_detected"),
             estimated_processing_time=f"{result.get('processing_time_ms', 0)}ms",
-            message="Análisis completado exitosamente" if result["status"] == "completed"
-                   else "Análisis en proceso"
+            message="Analisis completado exitosamente" if result["status"] == "completed"
+                   else "Analisis en proceso"
         )
 
     except HTTPException:
@@ -164,26 +167,26 @@ async def get_analysis(
     current_user: UserProfile = Depends(get_current_active_user)
 ):
     """
-    Obtener análisis completo con detecciones georeferenciadas
+    Obtener analisis completo con detecciones georeferenciadas
 
     Args:
-        analysis_id: UUID del análisis
+        analysis_id: UUID del analisis
 
     Returns:
-        AnalysisResponse con información completa
+        AnalysisResponse con informacion completa
     """
 
     print(f"ENDPOINT CALLED: get_analysis for ID {analysis_id}")
 
     from src.services.analysis_service import analysis_service as service_instance
 
-    # Obtener análisis real desde base de datos
+    # Obtener analisis real desde base de datos
     analysis_data = await service_instance.get_analysis_by_id(analysis_id)
 
     if not analysis_data:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # Construir ubicación desde datos del análisis - SIMPLIFIED
+    # Construir ubicacion desde datos del analisis - SIMPLIFIED
     location_data = {"has_location": False}
     print(f"ENDPOINT DEBUG: Building location for {analysis_id}")
     print(f"ENDPOINT DEBUG: has_gps_data = {analysis_data.get('has_gps_data')}")
@@ -215,7 +218,7 @@ async def get_analysis(
     else:
         print(f"ENDPOINT DEBUG: No GPS data or google_maps_url missing")
 
-    # Construir información de cámara
+    # Construir informacion de camara
     camera_info = None
     if analysis_data.get("camera_make"):
         camera_info = {
@@ -289,21 +292,21 @@ async def list_analyses(
     current_user: UserProfile = Depends(get_current_active_user)
 ):
     """
-    Listar análisis con filtros opcionales
+    Listar analisis con filtros opcionales
 
     Query Parameters:
         user_id: Filtrar por usuario
-        has_gps: Solo análisis con/sin GPS (true/false)
-        camera_make: Filtrar por marca de cámara
-        bbox: Filtrar por bounding box geográfico: sw_lat,sw_lng,ne_lat,ne_lng
+        has_gps: Solo analisis con/sin GPS (true/false)
+        camera_make: Filtrar por marca de camara
+        bbox: Filtrar por bounding box geografico: sw_lat,sw_lng,ne_lat,ne_lng
         risk_level: Filtrar por nivel de riesgo
         since: Filtrar por fecha
-        limit/offset: Paginación
+        limit/offset: Paginacion
     """
 
     from src.services.analysis_service import analysis_service as service_instance
 
-    # Obtener análisis desde base de datos con filtros
+    # Obtener analisis desde base de datos con filtros
     result = await service_instance.list_analyses(
         limit=limit,
         offset=offset,
@@ -312,10 +315,10 @@ async def list_analyses(
         risk_level=risk_level
     )
 
-    # Convertir análisis a formato de respuesta
+    # Convertir analisis a formato de respuesta
     analyses_responses = []
     for analysis in result.get("analyses", []):
-        # Construir ubicación con coordenadas si están disponibles
+        # Construir ubicacion con coordenadas si estan disponibles
         location_data = {"has_location": False}
         if analysis.get("has_gps_data"):
             # Extract GPS coordinates from Google Maps URL stored in analysis
@@ -339,7 +342,7 @@ async def list_analyses(
                     except ValueError:
                         pass
 
-        # Construir información de cámara
+        # Construir informacion de camara
         camera_info = None
         if analysis.get("camera_make"):
             camera_info = {
@@ -583,7 +586,7 @@ def get_heatmap_data():
 
 @router.get("/analyses/{analysis_id}/mock")
 def get_analysis_mock(analysis_id: str):
-    """Mock endpoint para datos de análisis simplificado"""
+    """Mock endpoint para datos de analisis simplificado"""
     import uuid
     from datetime import datetime
 
@@ -663,10 +666,10 @@ def get_analysis_mock(analysis_id: str):
 @router.get("/analyses/{analysis_id}/image")
 def get_analysis_image(analysis_id: str):
     """
-    Servir imagen del análisis - TEST ENDPOINT
+    Servir imagen del analisis - TEST ENDPOINT
 
     Args:
-        analysis_id: UUID del análisis
+        analysis_id: UUID del analisis
 
     Returns:
         Test image
@@ -707,11 +710,11 @@ def get_analysis_image(analysis_id: str):
 
 @router.get("/map-stats")
 def get_map_statistics():
-    """Endpoint para obtener estadísticas reales del mapa"""
+    """Endpoint para obtener estadisticas reales del mapa"""
     try:
         from src.services.analysis_service import analysis_service as service_instance
 
-        # Obtener todas las análisis de la base de datos
+        # Obtener todas las analisis de la base de datos
         analyses = service_instance.supabase.table("analyses").select("*").execute()
 
         if not analyses.data:
@@ -729,11 +732,11 @@ def get_map_statistics():
                 }
             }
 
-        # Calcular estadísticas reales
+        # Calcular estadisticas reales
         total_analyses = len(analyses.data)
         total_detections = sum(analysis.get("total_detections", 0) for analysis in analyses.data)
 
-        # Calcular distribución de riesgo
+        # Calcular distribucion de riesgo
         risk_counts = {"bajo": 0, "medio": 0, "alto": 0, "critico": 0}
         for analysis in analyses.data:
             risk_level = analysis.get("risk_level", "BAJO").lower()
@@ -743,10 +746,10 @@ def get_map_statistics():
                 risk_counts["medio"] += 1
             elif risk_level == "alto":
                 risk_counts["alto"] += 1
-            else:  # Muy alto o crítico
+            else:  # Muy alto o critico
                 risk_counts["critico"] += 1
 
-        # Calcular área aproximada basada en ubicaciones únicas
+        # Calcular area aproximada basada en ubicaciones unicas
         unique_locations = set()
         for analysis in analyses.data:
             if analysis.get("latitude") and analysis.get("longitude"):
@@ -755,10 +758,10 @@ def get_map_statistics():
                 lng = round(float(analysis["longitude"]), 3)
                 unique_locations.add((lat, lng))
 
-        # Estimar área (aprox 1 km² por ubicación única)
+        # Estimar area (aprox 1 km cuadrado por ubicacion unica)
         area_monitored = len(unique_locations) * 1.5  # Factor de cobertura
 
-        # Obtener timestamp de la última análisis
+        # Obtener timestamp de la ultima analisis
         last_analysis = max(analyses.data, key=lambda x: x.get("created_at", ""), default=None)
         last_updated = last_analysis.get("created_at") if last_analysis else datetime.utcnow().isoformat()
 
