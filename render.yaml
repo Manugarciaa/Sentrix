@@ -36,6 +36,8 @@ services:
         value: 8000
       - key: YOLO_SERVICE_URL
         value: https://sentrix-yolo.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://sentrix-jade.vercel.app,https://sentrix-backend.onrender.com
 
   # ==========================================
   # YOLO Detection Service
@@ -61,4 +63,4 @@ services:
       - key: PORT
         value: 8001
       - key: ALLOWED_ORIGINS
-        value: https://sentrix-backend.onrender.com
+        value: https://sentrix-backend.onrender.com,https://sentrix-jade.vercel.app
