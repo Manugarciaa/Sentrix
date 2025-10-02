@@ -80,4 +80,6 @@ test.db
 secrets/
 
 # PowerShell scripts outputs
-*.ps1.log
+*.ps1
+.log
+PRODUCTION-SECRETS.txt
