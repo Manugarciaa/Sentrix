@@ -43,3 +43,7 @@ lerna-debug.log*
 .cache/
 .parcel-cache/
 .vite/
+
+# Mock Service Worker (desarrollo local solamente)
+public/mockServiceWorker.js
+src/mocks/

@@ -20,7 +20,8 @@ if ('serviceWorker' in navigator && env.isProd) {
 
 // Enable mock service worker in development
 async function enableMocking() {
-  if (!env.isDev || !env.enableMocking) {
+  // Explicit production check - never run in production
+  if (import.meta.env.PROD || !import.meta.env.DEV || !env.enableMocking) {
     return
   }
 

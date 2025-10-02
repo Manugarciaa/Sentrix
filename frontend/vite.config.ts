@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     VitePWA({
@@ -25,18 +25,18 @@ export default defineConfig({
           }
         ]
       },
-      includeAssets: ['favicon.ico'],
+      includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Sentrix - Control de Dengue',
         short_name: 'Sentrix',
         description: 'Plataforma integral para detección de criaderos de Aedes aegypti',
-        theme_color: '#4DD0E1',
+        theme_color: '#059669',
         background_color: '#ffffff',
         icons: [
           {
-            src: '/favicon.ico',
-            sizes: '64x64 32x32 24x24 16x16',
-            type: 'image/x-icon'
+            src: '/favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
           }
         ],
         start_url: '/',
@@ -73,6 +73,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
+      external: mode === 'production' ? ['msw', 'msw/browser'] : [],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -90,4 +91,4 @@ export default defineConfig({
     'process.env': {},
     global: 'globalThis'
   }
-})
+}))
