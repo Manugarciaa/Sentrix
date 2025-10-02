@@ -34,16 +34,8 @@
   <body>
     <div id="root"></div>
     <script>
-      // Ensure global APIs are available before loading the app
-      if (typeof globalThis.Request === 'undefined') {
-        globalThis.Request = class Request {};
-      }
-      if (typeof globalThis.Response === 'undefined') {
-        globalThis.Response = class Response {};
-      }
-      if (typeof globalThis.fetch === 'undefined') {
-        globalThis.fetch = function() { return Promise.reject('fetch not available'); };
-      }
+      // Polyfill for axios
+      window.global = window;
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
