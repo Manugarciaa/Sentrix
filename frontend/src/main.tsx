@@ -18,27 +18,19 @@ if ('serviceWorker' in navigator && env.isProd) {
   })
 }
 
-// Enable mock service worker in development
-async function enableMocking() {
-  // Explicit production check - never run in production
-  if (import.meta.env.PROD || !import.meta.env.DEV || !env.enableMocking) {
-    return
-  }
-
-  try {
-    const { worker } = await import('./mocks/browser')
-    return worker.start({
-      onUnhandledRequest: 'bypass',
-    })
-  } catch (error) {
-    console.warn('Mock service worker not available:', error)
-  }
-}
-
 // Initialize the app
 async function initializeApp() {
-  // Enable mocking if needed
-  await enableMocking()
+  // Enable mock service worker ONLY in development
+  if (import.meta.env.DEV && env.enableMocking) {
+    try {
+      const { worker } = await import('./mocks/browser')
+      await worker.start({
+        onUnhandledRequest: 'bypass',
+      })
+    } catch (error) {
+      console.warn('Mock service worker not available:', error)
+    }
+  }
 
   // Initialize authentication state
   useAuthStore.getState().initializeAuth()

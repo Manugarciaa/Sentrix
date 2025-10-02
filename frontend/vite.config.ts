@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     react(),
     VitePWA({
@@ -71,9 +71,8 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
-      external: mode === 'production' ? ['msw', 'msw/browser'] : [],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
@@ -91,4 +90,4 @@ export default defineConfig(({ mode }) => ({
     'process.env': {},
     global: 'globalThis'
   }
-}))
+})
