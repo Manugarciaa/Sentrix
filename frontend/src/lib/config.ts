@@ -2,7 +2,9 @@ import type { AppConfig } from '@/types'
 
 export const config: AppConfig = {
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+    // En producción usa rutas relativas para aprovechar el proxy de Vercel
+    // En desarrollo usa localhost
+    baseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000'),
     timeout: 30000, // 30 seconds
   },
   auth: {
@@ -199,7 +201,7 @@ export const userRoles = {
 export const env = {
   isDev: import.meta.env.DEV,
   isProd: import.meta.env.PROD,
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000'),
   yoloServiceUrl: import.meta.env.VITE_YOLO_SERVICE_URL || 'http://localhost:8001',
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
