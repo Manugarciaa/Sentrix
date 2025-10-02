@@ -76,89 +76,89 @@ else:
         AnalysisUploadResponse con analysis_id y status
     """
 
-    # Validacion de archivo
-    if not file:
-        raise HTTPException(
-            status_code=400,
-            detail="Se requiere un archivo de imagen"
-        )
-
-    # Validar extension usando shared library
-    import sys
-    import os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
-    from shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
-
-    if not file.filename:
-        raise HTTPException(
-            status_code=400,
-            detail="El archivo debe tener un nombre valido"
-        )
-
-    file_ext = '.' + file.filename.split('.')[-1].lower()
-    if not is_format_supported(file_ext):
-        supported_formats = list(SUPPORTED_IMAGE_FORMATS.keys())
-        raise HTTPException(
-            status_code=400,
-            detail=f"Formato no soportado: {file_ext}. Formatos soportados: {', '.join(supported_formats)}"
-        )
-
-    # Validar coordenadas si se proporcionan
-    if (latitude is not None and longitude is None) or (longitude is not None and latitude is None):
-        raise HTTPException(
-            status_code=400,
-            detail="Si proporciona coordenadas, tanto latitud como longitud son requeridas"
-        )
-
-    # Validar umbral de confianza
-    if not 0.1 <= confidence_threshold <= 1.0:
-        raise HTTPException(
-            status_code=400,
-            detail="confidence_threshold debe estar entre 0.1 y 1.0"
-        )
-
-    try:
-        # Leer datos del archivo
-        image_data = await file.read()
-
-        # Validar tamano
-        max_size = 50 * 1024 * 1024  # 50MB
-        if len(image_data) > max_size:
+        # Validacion de archivo
+        if not file:
             raise HTTPException(
-                status_code=413,
-                detail="El archivo es demasiado grande. Maximo 50MB"
+                status_code=400,
+                detail="Se requiere un archivo de imagen"
             )
 
-        # Import analysis service at the top level to avoid circular imports
-        from src.services.analysis_service import analysis_service as service_instance
+        # Validar extension usando shared library
+        import sys
+        import os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+        from shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
 
-        # Procesar imagen con servicio de analisis
-        result = await service_instance.process_image_analysis(
-            image_data=image_data,
-            filename=file.filename,
-            confidence_threshold=confidence_threshold,
-            include_gps=include_gps,
-            manual_latitude=latitude,
-            manual_longitude=longitude
-        )
+        if not file.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="El archivo debe tener un nombre valido"
+            )
 
-        return AnalysisUploadResponse(
-            analysis_id=uuid.UUID(result["analysis_id"]),
-            status=result["status"],
-            has_gps_data=result.get("has_gps_data", False),
-            camera_detected=result.get("camera_detected"),
-            estimated_processing_time=f"{result.get('processing_time_ms', 0)}ms",
-            message="Analisis completado exitosamente" if result["status"] == "completed"
-                   else "Analisis en proceso"
-        )
+        file_ext = '.' + file.filename.split('.')[-1].lower()
+        if not is_format_supported(file_ext):
+            supported_formats = list(SUPPORTED_IMAGE_FORMATS.keys())
+            raise HTTPException(
+                status_code=400,
+                detail=f"Formato no soportado: {file_ext}. Formatos soportados: {', '.join(supported_formats)}"
+            )
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error procesando imagen: {str(e)}"
-        )
+        # Validar coordenadas si se proporcionan
+        if (latitude is not None and longitude is None) or (longitude is not None and latitude is None):
+            raise HTTPException(
+                status_code=400,
+                detail="Si proporciona coordenadas, tanto latitud como longitud son requeridas"
+            )
+
+        # Validar umbral de confianza
+        if not 0.1 <= confidence_threshold <= 1.0:
+            raise HTTPException(
+                status_code=400,
+                detail="confidence_threshold debe estar entre 0.1 y 1.0"
+            )
+
+        try:
+            # Leer datos del archivo
+            image_data = await file.read()
+
+            # Validar tamano
+            max_size = 50 * 1024 * 1024  # 50MB
+            if len(image_data) > max_size:
+                raise HTTPException(
+                    status_code=413,
+                    detail="El archivo es demasiado grande. Maximo 50MB"
+                )
+
+            # Import analysis service at the top level to avoid circular imports
+            from src.services.analysis_service import analysis_service as service_instance
+
+            # Procesar imagen con servicio de analisis
+            result = await service_instance.process_image_analysis(
+                image_data=image_data,
+                filename=file.filename,
+                confidence_threshold=confidence_threshold,
+                include_gps=include_gps,
+                manual_latitude=latitude,
+                manual_longitude=longitude
+            )
+
+            return AnalysisUploadResponse(
+                analysis_id=uuid.UUID(result["analysis_id"]),
+                status=result["status"],
+                has_gps_data=result.get("has_gps_data", False),
+                camera_detected=result.get("camera_detected"),
+                estimated_processing_time=f"{result.get('processing_time_ms', 0)}ms",
+                message="Analisis completado exitosamente" if result["status"] == "completed"
+                       else "Analisis en proceso"
+            )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error procesando imagen: {str(e)}"
+            )
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisResponse)
