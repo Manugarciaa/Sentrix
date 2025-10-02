@@ -1,0 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Results (don't include old results)
+results/
+resultados/
+
+# Test images (optional - include if needed)
+# test_images/
+
+# Data folders (can be large)
+data/images/train/
+data/images/val/
+data/images/test/
+data/labels/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large model files (will be downloaded or mounted)
+# Uncomment if models are very large
+# models/*.pt
+# !models/best.pt
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
