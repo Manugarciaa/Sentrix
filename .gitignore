@@ -82,4 +82,3 @@ secrets/
 # PowerShell scripts outputs
 *.ps1
 .log
-PRODUCTION-SECRETS.txt
