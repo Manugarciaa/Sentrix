@@ -54,7 +54,10 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     'process.env': {},
-    global: 'globalThis'
+    global: 'globalThis',
+    'globalThis.Request': 'globalThis.Request',
+    'globalThis.Response': 'globalThis.Response',
+    'globalThis.fetch': 'globalThis.fetch'
   },
   optimizeDeps: {
     exclude: mode === 'production' ? ['msw'] : []
