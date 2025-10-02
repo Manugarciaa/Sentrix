@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { AppState, NotificationData } from '@/types'
 
 interface AppStore extends AppState {
@@ -20,9 +19,7 @@ interface AppStore extends AppState {
   setLoading: (loading: boolean) => void
 }
 
-export const useAppStore = create<AppStore>()(
-  persist(
-    (set, get) => ({
+export const useAppStore = create<AppStore>()((set, get) => ({
       // Initial state
       user: null,
       isAuthenticated: false,
@@ -95,16 +92,7 @@ export const useAppStore = create<AppStore>()(
         // This could be used for global loading states
         console.log('Global loading state:', loading)
       },
-    }),
-    {
-      name: 'sentrix-app',
-      partialize: (state) => ({
-        theme: state.theme,
-        sidebarOpen: state.sidebarOpen,
-      }),
-    }
-  )
-)
+    }))
 
 // Initialize theme on store creation
 const initializeTheme = () => {
