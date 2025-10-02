@@ -19,7 +19,7 @@ bcrypt==4.0.1
 python-multipart==0.0.6
 
 # Image processing and metadata
-pillow==10.1.0
+pillow>=11.1.0
 pillow-heif==1.1.0
 exifread==3.0.0
 
