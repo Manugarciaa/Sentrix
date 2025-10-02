@@ -1,4 +1,7 @@
 services:
+  # ==========================================
+  # Backend API Service
+  # ==========================================
   - type: web
     name: sentrix-backend
     runtime: docker
@@ -31,3 +34,31 @@ services:
         value: production
       - key: PORT
         value: 8000
+      - key: YOLO_SERVICE_URL
+        value: https://sentrix-yolo.onrender.com
+
+  # ==========================================
+  # YOLO Detection Service
+  # ==========================================
+  - type: web
+    name: sentrix-yolo
+    runtime: docker
+    dockerfilePath: ./Dockerfile.yolo
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: YOLO_MODEL_PATH
+        value: models/yolo11n-seg.pt
+      - key: YOLO_CONFIDENCE_THRESHOLD
+        value: 0.5
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8001
+      - key: ALLOWED_ORIGINS
+        value: https://sentrix-backend.onrender.com
