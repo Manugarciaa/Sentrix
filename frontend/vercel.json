@@ -1,0 +1,75 @@
+{
+  "version": 2,
+  "name": "sentrix-frontend",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
+
+  "build": {
+    "env": {
+      "VITE_API_URL": "@api_url",
+      "VITE_API_BASE_URL": "@api_base_url",
+      "VITE_YOLO_SERVICE_URL": "@yolo_service_url",
+      "VITE_ENV": "production"
+    }
+  },
+
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sentrix-backend.up.railway.app/api/:path*"
+    }
+  ],
+
+  "redirects": [
+    {
+      "source": "/docs",
+      "destination": "https://sentrix-backend.up.railway.app/docs",
+      "permanent": false
+    }
+  ],
+
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

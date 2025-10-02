@@ -37,41 +37,40 @@ El frontend de Sentrix es una Single Page Application (SPA) que permite:
 ```
 frontend/
 ├── src/
-│   ├── api/                # Clientes de API
-│   │   ├── client.ts      # Cliente base con interceptors
-│   │   ├── auth.ts        # API de autenticación
-│   │   ├── analyses.ts    # API de análisis
-│   │   ├── reports.ts     # API de reportes
-│   │   └── yolo.ts        # API del servicio YOLO
-│   ├── components/        # Componentes reutilizables
-│   │   ├── ui/           # Componentes básicos de UI
-│   │   └── layouts/      # Layouts de página
-│   ├── pages/            # Páginas de la aplicación
-│   ├── store/            # Estado global (Zustand)
-│   ├── hooks/            # Hooks personalizados
-│   ├── utils/            # Utilidades y helpers
-│   ├── types/            # Definiciones TypeScript
-│   └── lib/              # Configuración y constantes
-├── public/               # Archivos estáticos
-└── dist/                 # Build de producción
+│   ├── api/              # Clientes de API
+│   ├── components/       # Componentes reutilizables
+│   │   ├── ui/          # Componentes básicos (shadcn)
+│   │   └── layouts/     # Layouts de página
+│   ├── pages/           # Páginas principales
+│   ├── store/           # Estado global (Zustand)
+│   ├── hooks/           # Hooks personalizados
+│   ├── utils/           # Utilidades
+│   ├── types/           # TypeScript types
+│   ├── lib/             # Config y constantes
+│   └── mocks/           # MSW mocks (dev)
+├── public/              # Assets estáticos
+├── dist/                # Build producción
+├── vercel.json          # Config Vercel
+├── vite.config.ts       # Config Vite
+└── tailwind.config.js   # Config Tailwind
 ```
 
 ## 🛠️ Instalación y Desarrollo
 
 ### Variables de Entorno
 
+Copia `.env.example` a `.env`:
+
 ```bash
-# APIs y servicios
-VITE_API_BASE_URL=http://localhost:8000
+# Development
+VITE_API_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8000/api/v1
 VITE_YOLO_SERVICE_URL=http://localhost:8001
 
-# Características opcionales
-VITE_ENABLE_MOCKING=false
-VITE_LOG_LEVEL=info
-
-# Base de datos (opcional para desarrollo)
-VITE_SUPABASE_URL=tu_url_supabase
-VITE_SUPABASE_ANON_KEY=tu_clave_anonima
+# Production (configurar en Vercel)
+# VITE_API_URL=https://sentrix-backend.up.railway.app
+# VITE_API_BASE_URL=https://sentrix-backend.up.railway.app/api/v1
+# VITE_YOLO_SERVICE_URL=https://sentrix-yolo.up.railway.app
 ```
 
 ### Instalación y Desarrollo
@@ -325,25 +324,34 @@ npm run test:coverage
 
 ## Deployment
 
-### Build para Producción
+### Vercel (Recomendado)
+
+1. **Conectar repositorio en Vercel**
+   - Framework Preset: Vite
+   - Root Directory: `frontend`
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+
+2. **Variables de entorno en Vercel**:
+   ```bash
+   VITE_API_URL=https://sentrix-backend.up.railway.app
+   VITE_API_BASE_URL=https://sentrix-backend.up.railway.app/api/v1
+   VITE_YOLO_SERVICE_URL=https://sentrix-yolo.up.railway.app
+   VITE_ENV=production
+   ```
+
+3. **Deploy automático**
+   - Push a `main` → Deploy automático
+   - Pull Request → Preview deployment
+
+### Build Local
 
 ```bash
 # Generar build optimizado
 npm run build
 
-# Verificar build
+# Preview local
 npm run preview
-
-# Análisis de bundle
-npm run analyze
-```
-
-### Variables de Producción
-
-```bash
-VITE_API_BASE_URL=https://api.sentrix.com
-VITE_YOLO_SERVICE_URL=https://yolo.sentrix.com
-VITE_LOG_LEVEL=warn
 ```
 
 ## Integración con Backend
@@ -381,52 +389,10 @@ export const fileConstraints = {
 
 ## Documentación Adicional
 
-- [Scripts de Utilidad](../scripts/README.md)
-- [Librería Compartida](../shared/README.md)
 - [Backend API](../backend/README.md)
+- [YOLO Service](../yolo-service/README.md)
+- [Librería Compartida](../shared/README.md)
 
 ---
 
-## Actualizaciones Recientes (v1.2.0)
-
-### Nuevas Funcionalidades Implementadas:
-- **Visualización Dual de Imágenes**: Componentes para mostrar imagen original y procesada
-- **Dashboard de Optimización**: Métricas de deduplicación y ahorro de storage
-- **Integración Mejorada**: APIs actualizadas para almacenamiento dual
-- **Interfaz Profesional**: Componentes específicos para nuevas funcionalidades
-
-### Mejoras en UX/UI:
-- **DualImageViewer**: Componente con toggle para alternar entre vistas
-- **Métricas de Storage**: Visualización de estadísticas de optimización
-- **Nomenclatura Estandarizada**: Interfaz que refleja el sistema profesional de archivos
-- **Estados de Carga**: Indicadores para procesamiento de imágenes duales
-
-### Integración Backend:
-- **APIs Actualizadas**: Soporte para endpoints de deduplicación
-- **Tipos TypeScript**: Interfaces actualizadas para almacenamiento dual
-- **Gestión de Estado**: Stores mejorados para nuevas funcionalidades
-- **Manejo de Errores**: Cobertura para nuevos flujos de procesamiento
-
-### Estado Actual:
-- **Frontend funcionando** en puerto 3000 con funcionalidades avanzadas
-- **Conexión dual** con backend y YOLO service verificada
-- **Visualización mejorada** de resultados de análisis
-- **TypeScript** sin errores con nuevas interfaces
-- **Diseño responsive** mantenido para todos los dispositivos
-
-### Características Técnicas:
-- **Componentes modulares**: Arquitectura escalable para nuevas funcionalidades
-- **Performance optimizada**: Carga eficiente de imágenes duales
-- **Estado consistente**: Sincronización con backend mejorada
-- **Tipado fuerte**: TypeScript completo para nuevas APIs
-
-### Contexto Académico Actualizado:
-- **Universidad**: Nacional de Tucumán, Argentina
-- **Enfoque**: Detección con IA y gestión inteligente de imágenes
-- **Investigación**: YOLOv11 + sistema de deduplicación para salud pública
-- **Objetivo**: Herramienta optimizada para prevención de dengue en zonas urbanas
-- **Novedad**: Sistema profesional de nomenclatura y almacenamiento eficiente
-
----
-
-**Versión**: 1.2.0 | **Puerto**: 3000 | **Framework**: React 18 + TypeScript | **Estado**: Funcional con gestión avanzada de imágenes
+**Puerto**: 3000 | **Framework**: React 18 + Vite + TypeScript | **Deploy**: Vercel
