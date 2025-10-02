@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -88,6 +89,12 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const initializeAuth = useAuthStore(state => state.initializeAuth)
+
+  useEffect(() => {
+    initializeAuth()
+  }, [initializeAuth])
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
