@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: sentrix-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: ALLOWED_EXTENSIONS
+        value: '["jpg","jpeg","png","tiff","bmp"]'
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8000
