@@ -10,7 +10,7 @@ import httpx
 import os
 from datetime import datetime
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, Request
 from fastapi.responses import JSONResponse, FileResponse
 
 from ...schemas.analyses import (
@@ -504,85 +504,112 @@ def get_test_image():
     )
 
 @router.get("/heatmap-data")
-def get_heatmap_data():
-    """Endpoint para obtener datos del mapa de calor"""
+async def get_heatmap_data(
+    limit: int = 1000,
+    risk_level: Optional[str] = None,
+    since: Optional[str] = None
+):
+    """
+    Obtener datos georeferenciados para visualización de mapa de calor
+
+    Query Parameters:
+        limit: Número máximo de puntos a retornar (default: 1000)
+        risk_level: Filtrar por nivel de riesgo (ALTO, MEDIO, BAJO)
+        since: Filtrar análisis desde fecha ISO (ej: 2025-01-01T00:00:00Z)
+
+    Returns:
+        Datos de ubicaciones con intensidad de riesgo para heatmap
+    """
     try:
-        import asyncio
         from src.services.analysis_service import analysis_service as service_instance
 
-        # Datos de ejemplo basados en ubicaciones reales de Tucumán
-        sample_data = [
-            {
-                "latitude": -26.8083,
-                "longitude": -65.2176,
-                "intensity": 0.8,
-                "riskLevel": "ALTO",
-                "detectionCount": 5,
-                "location": "Centro - San Miguel de Tucumán",
-                "timestamp": "2025-09-27T10:30:00Z"
-            },
-            {
-                "latitude": -26.8100,
-                "longitude": -65.2200,
-                "intensity": 0.6,
-                "riskLevel": "MEDIO",
-                "detectionCount": 3,
-                "location": "Barrio Norte",
-                "timestamp": "2025-09-27T09:15:00Z"
-            },
-            {
-                "latitude": -26.8050,
-                "longitude": -65.2100,
-                "intensity": 0.4,
-                "riskLevel": "MEDIO",
-                "detectionCount": 2,
-                "location": "Zona Universitaria - UNT",
-                "timestamp": "2025-09-27T08:45:00Z"
-            },
-            {
-                "latitude": -26.8120,
-                "longitude": -65.2250,
-                "intensity": 0.3,
-                "riskLevel": "BAJO",
-                "detectionCount": 1,
-                "location": "Barrio Residencial",
-                "timestamp": "2025-09-27T07:20:00Z"
-            },
-            {
-                "latitude": -26.8000,
-                "longitude": -65.2300,
-                "intensity": 0.7,
-                "riskLevel": "ALTO",
-                "detectionCount": 4,
-                "location": "Zona Industrial",
-                "timestamp": "2025-09-26T16:30:00Z"
-            },
-            {
-                "latitude": -26.8150,
-                "longitude": -65.2050,
-                "intensity": 0.5,
-                "riskLevel": "MEDIO",
-                "detectionCount": 2,
-                "location": "Barrio Sur",
-                "timestamp": "2025-09-26T14:45:00Z"
+        # Obtener análisis con GPS de la base de datos
+        query = service_instance.supabase.table("analyses")\
+            .select("id, google_maps_url, risk_level, total_detections, created_at")\
+            .not_.is_("google_maps_url", "null")\
+            .order("created_at", desc=True)\
+            .limit(limit)
+
+        # Aplicar filtros opcionales
+        if risk_level:
+            query = query.eq("risk_level", risk_level.upper())
+        if since:
+            query = query.gte("created_at", since)
+
+        result = query.execute()
+
+        if not result.data:
+            return {
+                "status": "success",
+                "data": [],
+                "total_locations": 0,
+                "high_risk_count": 0,
+                "medium_risk_count": 0,
+                "low_risk_count": 0
             }
-        ]
+
+        # Procesar datos para formato de heatmap
+        heatmap_points = []
+        risk_counts = {"ALTO": 0, "MEDIO": 0, "BAJO": 0}
+
+        for analysis in result.data:
+            # Extraer coordenadas de google_maps_url
+            google_maps_url = analysis.get("google_maps_url", "")
+            if not google_maps_url or "q=" not in google_maps_url:
+                continue
+
+            try:
+                coords_part = google_maps_url.split("q=")[1]
+                if "," not in coords_part:
+                    continue
+
+                lat_str, lng_str = coords_part.split(",", 1)
+                lat = float(lat_str)
+                lng = float(lng_str)
+
+                # Determinar intensidad basada en riesgo y detecciones
+                risk_level = analysis.get("risk_level", "BAJO")
+                detection_count = analysis.get("total_detections", 0)
+
+                # Calcular intensidad (0.0 - 1.0)
+                intensity = 0.3  # Base
+                if risk_level == "ALTO":
+                    intensity = 0.7 + min(detection_count * 0.05, 0.3)
+                    risk_counts["ALTO"] += 1
+                elif risk_level == "MEDIO":
+                    intensity = 0.4 + min(detection_count * 0.05, 0.3)
+                    risk_counts["MEDIO"] += 1
+                else:
+                    intensity = 0.2 + min(detection_count * 0.03, 0.2)
+                    risk_counts["BAJO"] += 1
+
+                heatmap_points.append({
+                    "latitude": lat,
+                    "longitude": lng,
+                    "intensity": round(min(intensity, 1.0), 2),
+                    "riskLevel": risk_level,
+                    "detectionCount": detection_count,
+                    "timestamp": analysis.get("created_at")
+                })
+
+            except (ValueError, IndexError) as e:
+                # Skip análisis con coordenadas inválidas
+                continue
 
         return {
             "status": "success",
-            "data": sample_data,
-            "total_locations": len(sample_data),
-            "high_risk_count": len([d for d in sample_data if d["riskLevel"] == "ALTO"]),
-            "medium_risk_count": len([d for d in sample_data if d["riskLevel"] == "MEDIO"]),
-            "low_risk_count": len([d for d in sample_data if d["riskLevel"] == "BAJO"])
+            "data": heatmap_points,
+            "total_locations": len(heatmap_points),
+            "high_risk_count": risk_counts["ALTO"],
+            "medium_risk_count": risk_counts["MEDIO"],
+            "low_risk_count": risk_counts["BAJO"]
         }
 
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Error generating heatmap data: {str(e)}",
-            "data": []
-        }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error obteniendo datos de mapa de calor: {str(e)}"
+        )
 
 @router.get("/analyses/{analysis_id}/mock")
 def get_analysis_mock(analysis_id: str):
@@ -709,13 +736,21 @@ def get_analysis_image(analysis_id: str):
 
 
 @router.get("/map-stats")
-def get_map_statistics():
-    """Endpoint para obtener estadisticas reales del mapa"""
+async def get_map_statistics():
+    """
+    Obtener estadísticas agregadas para visualización de mapa
+
+    Returns:
+        Estadísticas del sistema: total de análisis, detecciones,
+        distribución de riesgo, área monitoreada y precisión del modelo
+    """
     try:
         from src.services.analysis_service import analysis_service as service_instance
 
-        # Obtener todas las analisis de la base de datos
-        analyses = service_instance.supabase.table("analyses").select("*").execute()
+        # Obtener análisis de la base de datos
+        analyses = service_instance.supabase.table("analyses")\
+            .select("risk_level, total_detections, google_maps_url, created_at")\
+            .execute()
 
         if not analyses.data:
             return {
@@ -729,65 +764,76 @@ def get_map_statistics():
                     "medio": 0,
                     "alto": 0,
                     "critico": 0
-                }
+                },
+                "active_zones": 0
             }
 
-        # Calcular estadisticas reales
+        # Calcular estadísticas reales
         total_analyses = len(analyses.data)
-        total_detections = sum(analysis.get("total_detections", 0) for analysis in analyses.data)
+        total_detections = sum(
+            analysis.get("total_detections", 0)
+            for analysis in analyses.data
+        )
 
-        # Calcular distribucion de riesgo
+        # Calcular distribución de riesgo normalizada
         risk_counts = {"bajo": 0, "medio": 0, "alto": 0, "critico": 0}
         for analysis in analyses.data:
-            risk_level = analysis.get("risk_level", "BAJO").lower()
-            if risk_level in ["bajo", "minimo"]:
+            risk_level = (analysis.get("risk_level") or "BAJO").upper()
+            if risk_level in ["BAJO", "MINIMO"]:
                 risk_counts["bajo"] += 1
-            elif risk_level == "medio":
+            elif risk_level == "MEDIO":
                 risk_counts["medio"] += 1
-            elif risk_level == "alto":
+            elif risk_level == "ALTO":
                 risk_counts["alto"] += 1
-            else:  # Muy alto o critico
+            elif risk_level in ["MUY_ALTO", "CRITICO"]:
                 risk_counts["critico"] += 1
 
-        # Calcular area aproximada basada en ubicaciones unicas
+        # Calcular ubicaciones únicas basadas en coordenadas GPS
         unique_locations = set()
         for analysis in analyses.data:
-            if analysis.get("latitude") and analysis.get("longitude"):
-                # Redondear coordenadas para agrupar ubicaciones cercanas
-                lat = round(float(analysis["latitude"]), 3)
-                lng = round(float(analysis["longitude"]), 3)
-                unique_locations.add((lat, lng))
+            google_maps_url = analysis.get("google_maps_url")
+            if google_maps_url and "q=" in google_maps_url:
+                try:
+                    coords_part = google_maps_url.split("q=")[1]
+                    if "," in coords_part:
+                        lat_str, lng_str = coords_part.split(",", 1)
+                        # Redondear a 3 decimales (~110m de precisión)
+                        lat = round(float(lat_str), 3)
+                        lng = round(float(lng_str), 3)
+                        unique_locations.add((lat, lng))
+                except (ValueError, IndexError):
+                    continue
 
-        # Estimar area (aprox 1 km cuadrado por ubicacion unica)
-        area_monitored = len(unique_locations) * 1.5  # Factor de cobertura
+        # Estimar área monitoreada (aprox 1.5 km² por ubicación única)
+        area_monitored_km2 = round(len(unique_locations) * 1.5, 1)
 
-        # Obtener timestamp de la ultima analisis
-        last_analysis = max(analyses.data, key=lambda x: x.get("created_at", ""), default=None)
-        last_updated = last_analysis.get("created_at") if last_analysis else datetime.utcnow().isoformat()
+        # Obtener timestamp del análisis más reciente
+        if analyses.data:
+            last_analysis = max(
+                analyses.data,
+                key=lambda x: x.get("created_at", ""),
+                default=None
+            )
+            last_updated = last_analysis.get("created_at") if last_analysis else datetime.utcnow().isoformat()
+        else:
+            last_updated = datetime.utcnow().isoformat()
+
+        # Calcular precisión del modelo basada en confianza promedio
+        # TODO: Implementar cálculo real cuando tengamos métricas de validación
+        model_accuracy = 87.3  # Valor base para producción
 
         return {
             "total_analyses": total_analyses,
             "total_detections": total_detections,
-            "area_monitored_km2": round(area_monitored, 1),
-            "model_accuracy": 87.3,  # Valor fijo por ahora
+            "area_monitored_km2": area_monitored_km2,
+            "model_accuracy": model_accuracy,
             "last_updated": last_updated,
             "risk_distribution": risk_counts,
             "active_zones": len(unique_locations)
         }
 
     except Exception as e:
-        # Retornar datos de respaldo en caso de error
-        return {
-            "total_analyses": 0,
-            "total_detections": 0,
-            "area_monitored_km2": 0,
-            "model_accuracy": 87.3,
-            "last_updated": datetime.utcnow().isoformat(),
-            "risk_distribution": {
-                "bajo": 0,
-                "medio": 0,
-                "alto": 0,
-                "critico": 0
-            },
-            "error": str(e)
-        }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error obteniendo estadísticas del mapa: {str(e)}"
+        )
