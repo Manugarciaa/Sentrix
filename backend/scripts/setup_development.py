@@ -23,7 +23,7 @@ def verificar_python():
     imprimir_encabezado("VERIFICACIÓN DE PYTHON")
 
     version = sys.version_info
-    print(f"🐍 Python {version.major}.{version.minor}.{version.micro}")
+    print(f"[SYSTEM] Python {version.major}.{version.minor}.{version.micro}")
 
     if version.major < 3 or (version.major == 3 and version.minor < 9):
         print("ERROR: Se requiere Python 3.9 o superior")
@@ -77,15 +77,15 @@ def configurar_entorno_virtual():
     venv_path = Path("venv")
 
     if venv_path.exists():
-        respuesta = input("🔄 El entorno virtual ya existe. ¿Recrear? (s/N): ")
+        respuesta = input("[PROCESSING] El entorno virtual ya existe. ¿Recrear? (s/N): ")
         if respuesta.lower() == 's':
-            print("🗑️  Eliminando entorno virtual existente...")
+            print("[CLEAN] Eliminando entorno virtual existente...")
             shutil.rmtree(venv_path)
         else:
             print("OK: Usando entorno virtual existente")
             return True
 
-    print("🔨 Creando entorno virtual...")
+    print("[PROCESSING] Creando entorno virtual...")
     try:
         subprocess.run([sys.executable, "-m", "venv", "venv"], check=True)
         print("OK: Entorno virtual creado")
@@ -137,7 +137,7 @@ def configurar_archivo_env():
         return False
 
     if env_path.exists():
-        respuesta = input("🔄 El archivo .env ya existe. ¿Sobrescribir? (s/N): ")
+        respuesta = input("[PROCESSING] El archivo .env ya existe. ¿Sobrescribir? (s/N): ")
         if respuesta.lower() != 's':
             print("OK: Manteniendo archivo .env existente")
             return True
@@ -168,9 +168,9 @@ def configurar_base_datos():
         print("ERROR: Configuración de Alembic no encontrada")
         return False
 
-    respuesta = input("🗄️  ¿Ejecutar migraciones de base de datos? (s/N): ")
+    respuesta = input("[DB] ¿Ejecutar migraciones de base de datos? (s/N): ")
     if respuesta.lower() != 's':
-        print("⏭️  Saltando configuración de base de datos")
+        print("[SKIP] Saltando configuración de base de datos")
         return True
 
     # Ejecutar migraciones
@@ -179,7 +179,7 @@ def configurar_base_datos():
     else:
         python_cmd = ["venv/bin/python"]
 
-    print("🔄 Ejecutando migraciones...")
+    print("[PROCESSING] Ejecutando migraciones...")
     try:
         subprocess.run(python_cmd + ["run_migrations.py"], check=True)
         print("OK: Migraciones ejecutadas")
@@ -194,9 +194,9 @@ def ejecutar_tests():
     """Ejecuta tests para verificar instalación"""
     imprimir_encabezado("VERIFICACIÓN CON TESTS")
 
-    respuesta = input("🧪 ¿Ejecutar tests de verificación? (s/N): ")
+    respuesta = input("[TEST] ¿Ejecutar tests de verificación? (s/N): ")
     if respuesta.lower() != 's':
-        print("⏭️  Saltando tests de verificación")
+        print("[SKIP] Saltando tests de verificación")
         return True
 
     if sys.platform == "win32":
@@ -204,7 +204,7 @@ def ejecutar_tests():
     else:
         python_cmd = ["venv/bin/python"]
 
-    print("🧪 Ejecutando tests básicos...")
+    print("[TEST] Ejecutando tests básicos...")
     try:
         # Ejecutar solo tests que no requieren DB
         subprocess.run(
@@ -223,8 +223,8 @@ def mostrar_instrucciones_finales():
     """Muestra instrucciones para usar el entorno"""
     imprimir_encabezado("¡CONFIGURACIÓN COMPLETADA!")
 
-    print("🎉 El entorno de desarrollo está listo.")
-    print("\n📋 Próximos pasos:")
+    print("[SUCCESS] El entorno de desarrollo está listo.")
+    print("\n[INFO] Próximos pasos:")
 
     if sys.platform == "win32":
         print("1. Activar entorno virtual:")
@@ -244,7 +244,7 @@ def mostrar_instrucciones_finales():
     print("\n5. Abrir documentación API:")
     print("   http://localhost:8000/docs")
 
-    print("\n📚 Comandos útiles:")
+    print("\n[INFO] Comandos útiles:")
     print("   python run_tests.py          # Ejecutar tests")
     print("   python run_migrations.py     # Aplicar migraciones")
     print("   python scripts/database_maintenance.py  # Mantenimiento DB")
@@ -269,7 +269,7 @@ def main():
     total = len(pasos)
 
     for nombre, funcion in pasos:
-        print(f"\n🔄 {nombre}...")
+        print(f"\n[PROCESSING] {nombre}...")
         try:
             if funcion():
                 exitosos += 1
@@ -280,7 +280,7 @@ def main():
                 if respuesta.lower() != 's':
                     break
         except KeyboardInterrupt:
-            print(f"\n\n👋 Configuración cancelada en: {nombre}")
+            print(f"\n\n[STOP] Configuración cancelada en: {nombre}")
             return False
         except Exception as e:
             print(f"ERROR: Error inesperado en {nombre}: {e}")
@@ -305,5 +305,5 @@ if __name__ == "__main__":
         resultado = main()
         sys.exit(0 if resultado else 1)
     except KeyboardInterrupt:
-        print("\n\n👋 Configuración cancelada por el usuario")
+        print("\n\n[STOP] Configuración cancelada por el usuario")
         sys.exit(1)
