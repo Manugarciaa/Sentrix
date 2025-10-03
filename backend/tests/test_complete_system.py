@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 # Add project root to Python path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.main import app
+from app import app
 from src.config import get_settings
 from shared.data_models import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
@@ -520,7 +520,7 @@ def ejecutar_test_completo_sistema():
 
     for clase_test in clases_test:
         nombre_clase = clase_test.__name__
-        print(f"\n🧪 Ejecutando {nombre_clase}...")
+        print(f"\n[TEST] Ejecutando {nombre_clase}...")
 
         # Obtener todos los métodos de test
         metodos_test = [metodo for metodo in dir(clase_test) if metodo.startswith('test_')]
