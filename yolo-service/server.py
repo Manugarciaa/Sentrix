@@ -351,10 +351,13 @@ if __name__ == "__main__":
     logger.info(f"Server will be available at: http://localhost:{port}")
     logger.info(f"API documentation: http://localhost:{port}/docs")
 
+    # Disable reload in production (Render can't detect port with reloader)
+    is_production = os.getenv("ENVIRONMENT", "development") == "production"
+
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
         port=port,
-        reload=os.getenv("RELOAD_ON_CHANGE", "true").lower() == "true",
+        reload=not is_production,  # Only reload in development
         log_level=os.getenv("LOG_LEVEL", "info").lower()
     )
