@@ -524,7 +524,7 @@ async def get_heatmap_data(
         from src.services.analysis_service import analysis_service as service_instance
 
         # Obtener análisis con GPS de la base de datos
-        query = service_instance.supabase.table("analyses")\
+        query = service_instance.supabase.client.table("analyses")\
             .select("id, google_maps_url, risk_level, total_detections, created_at")\
             .not_.is_("google_maps_url", "null")\
             .order("created_at", desc=True)\
@@ -748,7 +748,7 @@ async def get_map_statistics():
         from src.services.analysis_service import analysis_service as service_instance
 
         # Obtener análisis de la base de datos
-        analyses = service_instance.supabase.table("analyses")\
+        analyses = service_instance.supabase.client.table("analyses")\
             .select("risk_level, total_detections, google_maps_url, created_at")\
             .execute()
 
