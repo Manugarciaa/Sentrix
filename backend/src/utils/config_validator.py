@@ -143,34 +143,34 @@ class ConfigValidator:
         """Print colored validation report to console"""
 
         print("\n" + "=" * 60)
-        print("🔍 CONFIGURATION VALIDATION REPORT")
+        print("[CONFIG] CONFIGURATION VALIDATION REPORT")
         print("=" * 60)
 
         if result.is_valid:
-            print("✅ Configuration is VALID")
+            print("✓ Configuration is VALID")
         else:
-            print("❌ Configuration is INVALID")
+            print("X Configuration is INVALID")
 
         if result.errors:
-            print(f"\n❌ ERRORS ({len(result.errors)}):")
+            print(f"\nX ERRORS ({len(result.errors)}):")
             for error in result.errors:
                 print(f"   - {error}")
 
         if result.warnings:
-            print(f"\n⚠️  WARNINGS ({len(result.warnings)}):")
+            print(f"\n[WARN] WARNINGS ({len(result.warnings)}):")
             for warning in result.warnings:
                 print(f"   - {warning}")
 
         if result.missing_required:
-            print(f"\n📋 MISSING REQUIRED ({len(result.missing_required)}):")
+            print(f"\n[INFO] MISSING REQUIRED ({len(result.missing_required)}):")
             for var in result.missing_required:
                 print(f"   - {var}")
 
         if result.weak_secrets:
-            print(f"\n🔓 WEAK SECRETS ({len(result.weak_secrets)}):")
+            print(f"\n[SECURITY] WEAK SECRETS ({len(result.weak_secrets)}):")
             for var in result.weak_secrets:
                 print(f"   - {var}")
-            print("\n💡 Generate strong secrets with:")
+            print("\n[TIP] Generate strong secrets with:")
             print("   openssl rand -hex 32")
 
         print("\n" + "=" * 60 + "\n")
@@ -187,7 +187,7 @@ class ConfigValidator:
         cls.print_validation_report(result)
 
         if not result.is_valid:
-            print("❌ Cannot start application with invalid configuration")
+            print("X Cannot start application with invalid configuration")
             print("   Please fix the errors above and try again\n")
             sys.exit(1)
 
