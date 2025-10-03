@@ -48,7 +48,7 @@ def test_paths_portables():
     for d in created_dirs:
         assert d.exists(), f"Directorio {d} debe existir después de ensure_project_directories"
 
-    print("✅ PATHS PORTABLES: TODOS LOS TESTS PASARON\n")
+    print("✓ PATHS PORTABLES: TODOS LOS TESTS PASARON\n")
 
 
 def test_model_resolution():
@@ -74,7 +74,7 @@ def test_model_resolution():
             assert Path(resolved).exists(), f"Modelo resuelto {resolved} debe existir"
             assert str(models_dir) in str(resolved), f"Debe resolver a directorio models/"
         else:
-            print(f"⚠️  {model_name} no existe, omitiendo test")
+            print(f"[WARN]  {model_name} no existe, omitiendo test")
 
     # Test 3: Paths de modelos por defecto
     default_paths = get_default_model_paths()
@@ -82,7 +82,7 @@ def test_model_resolution():
     existing_defaults = [p for p in default_paths if p.exists()]
     print(f"✓ Modelos por defecto existentes: {len(existing_defaults)}")
 
-    print("✅ RESOLUCIÓN DE MODELOS: TODOS LOS TESTS PASARON\n")
+    print("✓ RESOLUCIÓN DE MODELOS: TODOS LOS TESTS PASARON\n")
 
 
 def test_dataset_config():
@@ -100,7 +100,7 @@ def test_dataset_config():
     assert resolved_config.exists(), "Config resuelta debe existir"
     assert str(default_config) == str(resolved_config), "Deben ser la misma config"
 
-    print("✅ CONFIGURACIÓN DATASET: TODOS LOS TESTS PASARON\n")
+    print("✓ CONFIGURACIÓN DATASET: TODOS LOS TESTS PASARON\n")
 
 
 def test_core_functions():
@@ -129,7 +129,7 @@ def test_core_functions():
     print(f"✓ Dispositivo detectado: {device}")
     assert device in ['cuda', 'cpu'], "Debe detectar cuda o cpu"
 
-    print("✅ FUNCIONES CORE: TODOS LOS TESTS PASARON\n")
+    print("✓ FUNCIONES CORE: TODOS LOS TESTS PASARON\n")
 
 
 def test_imports_structure():
@@ -157,7 +157,7 @@ def test_imports_structure():
     except ImportError as e:
         raise AssertionError(f"Error importando src.reports: {e}")
 
-    print("✅ IMPORTS ESTRUCTURA: TODOS LOS TESTS PASARON\n")
+    print("✓ IMPORTS ESTRUCTURA: TODOS LOS TESTS PASARON\n")
 
 
 def test_model_path_integration():
@@ -185,14 +185,14 @@ def test_model_path_integration():
         print(f"✓ Tamaño del modelo: {size_mb:.1f} MB")
         assert size_mb > 1, "Modelo debe ser > 1MB"
 
-        print("✅ INTEGRACIÓN PATHS: TODOS LOS TESTS PASARON\n")
+        print("✓ INTEGRACIÓN PATHS: TODOS LOS TESTS PASARON\n")
     else:
-        print(f"⚠️  Modelo {model_name} no existe, omitiendo test de integración")
+        print(f"[WARN]  Modelo {model_name} no existe, omitiendo test de integración")
 
 
 def run_all_tests():
     """Ejecuta todos los tests exhaustivos"""
-    print("🧪 INICIANDO TESTS EXHAUSTIVOS DEL SISTEMA\n")
+    print("[START] INICIANDO TESTS EXHAUSTIVOS DEL SISTEMA\n")
 
     tests = [
         test_imports_structure,
@@ -211,16 +211,16 @@ def run_all_tests():
             test_func()
             passed += 1
         except Exception as e:
-            print(f"❌ ERROR en {test_func.__name__}: {e}\n")
+            print(f"X ERROR en {test_func.__name__}: {e}\n")
 
     print("=" * 50)
     print(f"RESUMEN: {passed}/{total} tests pasaron")
 
     if passed == total:
-        print("🎉 TODOS LOS TESTS PASARON - SISTEMA LISTO")
+        print("[SUCCESS] TODOS LOS TESTS PASARON - SISTEMA LISTO")
         return True
     else:
-        print("⚠️  ALGUNOS TESTS FALLARON - REVISAR SISTEMA")
+        print("[WARN]  ALGUNOS TESTS FALLARON - REVISAR SISTEMA")
         return False
 
 
