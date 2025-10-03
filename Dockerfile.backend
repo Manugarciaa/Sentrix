@@ -64,7 +64,7 @@ COPY --chown=appuser:appuser backend/ ./
 COPY --chown=appuser:appuser shared/ ../shared/
 
 # Add parent directory to PYTHONPATH so shared can be imported
-ENV PYTHONPATH="/app:${PYTHONPATH}"
+ENV PYTHONPATH="/app:/:/app/..:${PYTHONPATH}"
 
 # Switch to non-root user
 USER appuser
