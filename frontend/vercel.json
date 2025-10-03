@@ -13,7 +13,8 @@
     "env": {
       "NODE_ENV": "production",
       "VITE_ENABLE_MOCKING": "false",
-      "VITE_API_BASE_URL": ""
+      "VITE_API_BASE_URL": "https://sentrix-backend.onrender.com",
+      "VITE_YOLO_SERVICE_URL": "https://sentrix-yolo.onrender.com"
     }
   },
 
