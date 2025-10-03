@@ -57,9 +57,44 @@ app.add_middleware(
 )
 
 # Configuración del modelo (usar el modelo entrenado disponible)
-MODEL_PATH = os.getenv("YOLO_MODEL_PATH", "models/best.pt")
-if not os.path.exists(MODEL_PATH):
-    # Fallback a modelos base si no hay entrenado
+def find_latest_trained_model():
+    """
+    Busca el modelo entrenado más reciente y lo copia a models/best.pt
+    Prioridad:
+    1. Variable de entorno YOLO_MODEL_PATH
+    2. Último modelo en carpetas de entrenamiento (dengue_seg_*/weights/best.pt)
+    3. models/best.pt (modelo entrenado manual)
+    4. Modelos base (yolo11*-seg.pt)
+    """
+    import shutil
+
+    # 1. Variable de entorno (máxima prioridad)
+    env_model = os.getenv("YOLO_MODEL_PATH")
+    if env_model and os.path.exists(env_model):
+        return env_model
+
+    # 2. Buscar en carpetas de entrenamiento (dengue_seg_*)
+    models_dir = Path("models")
+    best_pt_path = models_dir / "best.pt"
+    training_folders = sorted(models_dir.glob("dengue_seg_*"), key=os.path.getmtime, reverse=True)
+
+    for folder in training_folders:
+        trained_model = folder / "weights" / "best.pt"
+        if trained_model.exists():
+            # Copiar el modelo entrenado más reciente a models/best.pt
+            try:
+                shutil.copy2(trained_model, best_pt_path)
+                print(f"[OK] Modelo actualizado: {trained_model} -> {best_pt_path}")
+                return str(best_pt_path)
+            except Exception as e:
+                print(f"[WARN] No se pudo copiar modelo: {e}")
+                return str(trained_model)
+
+    # 3. Modelo entrenado en raíz de models/
+    if best_pt_path.exists():
+        return str(best_pt_path)
+
+    # 4. Fallback a modelos base
     available_models = [
         "models/yolo11n-seg.pt",
         "models/yolo11s-seg.pt",
@@ -67,9 +102,12 @@ if not os.path.exists(MODEL_PATH):
     ]
     for model in available_models:
         if os.path.exists(model):
-            MODEL_PATH = model
-            break
+            print(f"[WARN] Usando modelo base (no entrenado): {model}")
+            return model
 
+    raise FileNotFoundError("No se encontro ningun modelo YOLO disponible")
+
+MODEL_PATH = find_latest_trained_model()
 print(f"Usando modelo: {MODEL_PATH}")
 
 

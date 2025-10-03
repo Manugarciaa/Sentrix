@@ -66,15 +66,15 @@ def optimizar_base_datos():
     with get_db_session() as db:
         try:
             # Análisis de tablas
-            print("🔍 Ejecutando ANALYZE en todas las tablas...")
+            print("[CHECK] Ejecutando ANALYZE en todas las tablas...")
             db.execute(text("ANALYZE;"))
 
             # Vacuum para recuperar espacio
-            print("🧹 Ejecutando VACUUM...")
+            print("[CLEAN] Ejecutando VACUUM...")
             db.execute(text("VACUUM;"))
 
             # Reindexar si es necesario
-            print("📇 Reindexando tablas principales...")
+            print("[PROCESSING] Reindexando tablas principales...")
             db.execute(text("REINDEX TABLE analyses;"))
             db.execute(text("REINDEX TABLE detections;"))
 
@@ -115,7 +115,7 @@ def generar_estadisticas():
             print(f"  {mes.strftime('%Y-%m')}: {cantidad} análisis")
 
         # Detecciones por tipo
-        print("\n🦟 Detecciones por tipo de sitio de cría:")
+        print("\n[INFO] Detecciones por tipo de sitio de cría:")
         resultado = db.query(
             Detection.breeding_site_type,
             func.count(Detection.id).label('cantidad')
@@ -203,7 +203,7 @@ def main():
         "5": ("Ejecutar todo", None)
     }
 
-    print("\n📋 Opciones disponibles:")
+    print("\n[INFO] Opciones disponibles:")
     for clave, (descripcion, _) in opciones.items():
         print(f"  {clave}. {descripcion}")
 
@@ -211,10 +211,10 @@ def main():
 
     while True:
         try:
-            opcion = input("\n🔽 Seleccionar opción (0-5): ").strip()
+            opcion = input("\n> Seleccionar opción (0-5): ").strip()
 
             if opcion == "0":
-                print("👋 ¡Hasta luego!")
+                print("[INFO] ¡Hasta luego!")
                 break
             elif opcion == "5":
                 # Ejecutar todo
@@ -222,14 +222,14 @@ def main():
                     _, funcion = opciones[clave]
                     if funcion:
                         funcion()
-                print("\n🎉 Mantenimiento completo terminado")
+                print("\n[SUCCESS] Mantenimiento completo terminado")
             elif opcion in opciones:
                 descripcion, funcion = opciones[opcion]
                 if funcion:
                     if opcion == "1":
                         # Pedir días para limpieza
                         try:
-                            dias = int(input("📅 Días de antigüedad (default 30): ") or "30")
+                            dias = int(input("[SCHEDULE] Días de antigüedad (default 30): ") or "30")
                             funcion(dias)
                         except ValueError:
                             print("ERROR: Número de días inválido")
@@ -241,7 +241,7 @@ def main():
                 print("ERROR: Opción inválida. Intente nuevamente.")
 
         except KeyboardInterrupt:
-            print("\n\n👋 Operación cancelada por el usuario")
+            print("\n\n[STOP] Operación cancelada por el usuario")
             break
         except Exception as e:
             print(f"ERROR: Error inesperado: {e}")

@@ -125,9 +125,9 @@ def resolve_model_path(model_path_str):
 
     # 3. Si no existe localmente, permitir que YOLO lo descargue
     # pero retornar el path donde debería estar en models/
-    print(f"⚠️  Modelo {model_path_str} no encontrado localmente.")
-    print(f"   YOLO lo descargará automáticamente.")
-    print(f"   Recomendación: Mover el modelo descargado a {models_dir}/")
+    print(f"[WARN] Modelo {model_path_str} no encontrado localmente.")
+    print(f"       YOLO lo descargará automáticamente.")
+    print(f"       Recomendación: Mover el modelo descargado a {models_dir}/")
 
     return project_root / model_path_str  # Dejar que YOLO lo descargue en raíz
 

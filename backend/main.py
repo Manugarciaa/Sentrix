@@ -49,35 +49,35 @@ async def handle_database_commands(args):
     print_section_header("DATABASE MANAGEMENT")
 
     if args.db_action == "status":
-        print("🔍 Checking database connection...")
+        print("[CHECK] Checking database connection...")
 
         if test_connection():
-            print("✅ Database connection: OK")
+            print("✓ Database connection: OK")
 
             db_info = get_database_info()
-            print(f"📊 Database URL: {db_info.get('database_url', 'Unknown')}")
-            print(f"🔧 Version: {db_info.get('version', 'Unknown')}")
-            print(f"🌍 PostGIS: {'✅ Available' if db_info.get('postgis_available') else '❌ Not available'}")
+            print(f"[INFO] Database URL: {db_info.get('database_url', 'Unknown')}")
+            print(f"[INFO] Version: {db_info.get('version', 'Unknown')}")
+            print(f"[INFO] PostGIS: {'✓ Available' if db_info.get('postgis_available') else 'X Not available'}")
         else:
-            print("❌ Database connection: FAILED")
+            print("X Database connection: FAILED")
             return False
 
     elif args.db_action == "migrate":
-        print("🔄 Running database migrations...")
+        print("[PROCESSING] Running database migrations...")
         try:
             from src.database.migrations import run_migrations
             success = run_migrations()
             if success:
-                print("✅ Migrations completed successfully")
+                print("✓ Migrations completed successfully")
             else:
-                print("❌ Migrations failed")
+                print("X Migrations failed")
                 return False
         except Exception as e:
-            print(f"❌ Migration error: {e}")
+            print(f"X Migration error: {e}")
             return False
 
     elif args.db_action == "info":
-        print("📊 Database Information:")
+        print("[INFO] Database Information:")
         db_info = get_database_info()
         for key, value in db_info.items():
             print(f"   {key}: {value}")
@@ -92,7 +92,7 @@ async def handle_analysis_commands(args):
     processor = AnalysisProcessor()
 
     if args.image:
-        print(f"🖼️  Analyzing image: {args.image}")
+        print(f"[PROCESSING] Analyzing image: {args.image}")
 
         # Create analysis request
         analysis_request = AnalysisCreate(
@@ -104,17 +104,17 @@ async def handle_analysis_commands(args):
         try:
             result = await processor.process_single_analysis(analysis_request)
 
-            print(f"✅ Analysis completed: {result.get('analysis_id')}")
-            print(f"📍 GPS Data: {'Yes' if result.get('has_gps_data') else 'No'}")
-            print(f"🔍 Detections: {result.get('total_detections', 0)}")
-            print(f"⚠️  Risk Level: {result.get('risk_level', 'Unknown')}")
+            print(f"✓ Analysis completed: {result.get('analysis_id')}")
+            print(f"[INFO] GPS Data: {'Yes' if result.get('has_gps_data') else 'No'}")
+            print(f"[INFO] Detections: {result.get('total_detections', 0)}")
+            print(f"[WARN] Risk Level: {result.get('risk_level', 'Unknown')}")
 
         except Exception as e:
-            print(f"❌ Analysis failed: {e}")
+            print(f"X Analysis failed: {e}")
             return False
 
     elif args.directory:
-        print(f"📁 Batch analyzing directory: {args.directory}")
+        print(f"[PROCESSING] Batch analyzing directory: {args.directory}")
 
         try:
             results = await processor.process_batch_analysis(
@@ -123,14 +123,14 @@ async def handle_analysis_commands(args):
                 confidence_threshold=getattr(args, 'confidence', 0.5)
             )
 
-            print(f"✅ Batch analysis completed")
-            print(f"📊 Total processed: {len(results)}")
+            print(f"✓ Batch analysis completed")
+            print(f"[INFO] Total processed: {len(results)}")
             successful = sum(1 for r in results if r.get('status') == 'completed')
-            print(f"✅ Successful: {successful}")
-            print(f"❌ Failed: {len(results) - successful}")
+            print(f"✓ Successful: {successful}")
+            print(f"X Failed: {len(results) - successful}")
 
         except Exception as e:
-            print(f"❌ Batch analysis failed: {e}")
+            print(f"X Batch analysis failed: {e}")
             return False
 
     return True
@@ -143,7 +143,7 @@ async def handle_validation_commands(args):
     validator = DetectionValidator()
 
     if args.validate_action == "list":
-        print("📋 Listing detections pending validation...")
+        print("[INFO] Listing detections pending validation...")
 
         try:
             detections = await validator.get_pending_validations(
@@ -151,7 +151,7 @@ async def handle_validation_commands(args):
                 limit=getattr(args, 'limit', 20)
             )
 
-            print(f"📊 Found {len(detections)} pending validations")
+            print(f"[INFO] Found {len(detections)} pending validations")
             for detection in detections:
                 risk_level = detection.get('risk_level', 'Unknown')
                 class_name = detection.get('class_name', 'Unknown')
@@ -159,7 +159,7 @@ async def handle_validation_commands(args):
                 print(f"   • ID: {detection.get('id')} | {class_name} | Risk: {risk_level} | Confidence: {confidence:.2f}")
 
         except Exception as e:
-            print(f"❌ Failed to list validations: {e}")
+            print(f"X Failed to list validations: {e}")
             return False
 
     elif args.validate_action in ["approve", "reject"]:
@@ -168,7 +168,7 @@ async def handle_validation_commands(args):
         notes = getattr(args, 'notes', None)
 
         action = args.validate_action
-        print(f"✅ {action.title()}ing detection {detection_id}...")
+        print(f"[PROCESSING] {action.title()}ing detection {detection_id}...")
 
         try:
             success = await validator.validate_detection(
@@ -179,13 +179,13 @@ async def handle_validation_commands(args):
             )
 
             if success:
-                print(f"✅ Detection {detection_id} {action}d successfully")
+                print(f"✓ Detection {detection_id} {action}d successfully")
             else:
-                print(f"❌ Failed to {action} detection {detection_id}")
+                print(f"X Failed to {action} detection {detection_id}")
                 return False
 
         except Exception as e:
-            print(f"❌ Validation failed: {e}")
+            print(f"X Validation failed: {e}")
             return False
 
     return True
@@ -216,11 +216,11 @@ async def create_sample_data(include_sample: bool = False):
             )
             db.add(sample_user)
             db.commit()
-            print("✅ Created sample expert user: expert@sentrix.com")
+            print("✓ Created sample expert user: expert@sentrix.com")
         else:
-            print("ℹ️  Sample user already exists")
+            print("[INFO] Sample user already exists")
 
-        print("✅ Sample data creation completed")
+        print("✓ Sample data creation completed")
 
 
 def main():
@@ -295,14 +295,14 @@ def main():
                 await create_sample_data(args.sample_data)
                 return True
             else:
-                print(f"❌ Unknown command: {args.command}")
+                print(f"X Unknown command: {args.command}")
                 return False
 
         except KeyboardInterrupt:
-            print("\n🛑 Operation cancelled by user")
+            print("\n[STOP] Operation cancelled by user")
             return False
         except Exception as e:
-            print(f"❌ Unexpected error: {e}")
+            print(f"X Unexpected error: {e}")
             return False
 
     # Run the async command
