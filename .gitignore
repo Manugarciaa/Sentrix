@@ -89,8 +89,3 @@ secrets/
 !frontend/public/**/*.png
 !frontend/public/**/*.jpg
 !frontend/public/**/*.jpeg
-
-# Documentation (keep only main README)
-DEPLOYMENT_*.md
-PRODUCTION_*.md
-PREVENTION_*.md
