@@ -79,7 +79,7 @@ yolo-service/
 YOLO_SERVICE_PORT=8001
 
 # Configuración del modelo
-YOLO_MODEL_PATH=models/best.pt
+YOLO_MODEL_PATH=models/best.pt  # Opcional: el servidor auto-detecta el modelo más reciente
 YOLO_CONFIDENCE_THRESHOLD=0.5
 YOLO_DEVICE=auto
 
@@ -205,6 +205,79 @@ python scripts/train_dengue_model.py --config training_config.yaml
   "model_used": "models/best.pt"
 }
 ```
+
+## 🎯 Gestión Automática de Modelos
+
+### Detección Automática del Modelo Más Reciente
+
+El servidor **detecta automáticamente** el modelo entrenado más reciente siguiendo esta prioridad:
+
+1. **Variable de entorno** `YOLO_MODEL_PATH` (máxima prioridad)
+2. **Último modelo entrenado** en carpetas `models/dengue_seg_*/weights/best.pt` (ordenado por fecha)
+3. **Modelo manual** `models/best.pt`
+4. **Modelos base** `models/yolo11*-seg.pt` (fallback)
+
+### Flujo de Entrenamiento
+
+Cuando ejecutas un entrenamiento:
+
+```bash
+python main.py train --epochs 100
+```
+
+**Se crea automáticamente:**
+```
+models/
+├── dengue_seg_n_100ep_20251003/    <- Nueva carpeta de entrenamiento
+│   ├── weights/
+│   │   ├── best.pt                 <- ✅ Modelo con mejor mAP
+│   │   └── last.pt                 <- Último checkpoint
+│   ├── results.png
+│   └── confusion_matrix.png
+└── best.pt                          <- Modelo anterior (opcional)
+```
+
+**El servidor detectará y usará automáticamente** `models/dengue_seg_n_100ep_20251003/weights/best.pt`
+
+### Opciones de Configuración
+
+**Opción 1: Automático (Recomendado)**
+```bash
+# No configurar YOLO_MODEL_PATH
+# El servidor auto-detecta el modelo más reciente
+python server.py
+# ✓ Detectado modelo entrenado reciente: models/dengue_seg_n_100ep_20251003/weights/best.pt
+```
+
+**Opción 2: Manual**
+```bash
+# Especificar modelo exacto
+export YOLO_MODEL_PATH=models/dengue_seg_n_100ep_20251003/weights/best.pt
+python server.py
+```
+
+**Opción 3: Copiar modelo**
+```bash
+# Copiar el mejor modelo a la raíz
+cp models/dengue_seg_n_100ep_20251003/weights/best.pt models/best.pt
+# El servidor usará models/best.pt
+```
+
+### Verificar Modelo en Uso
+
+```bash
+# Endpoint de health muestra el modelo actual
+curl http://localhost:8001/health
+
+# Respuesta:
+{
+  "status": "healthy",
+  "model_available": true,
+  "model_path": "models/dengue_seg_n_100ep_20251003/weights/best.pt"
+}
+```
+
+---
 
 ## Integración con Shared Library
 
