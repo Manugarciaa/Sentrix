@@ -1,0 +1,31 @@
+# YOLO Dengue Detection - Dependencias esenciales
+ultralytics>=8.3.0
+torch>=2.7.1
+torchvision>=0.22.1
+
+# Procesamiento de imágenes (requeridas por YOLO)
+opencv-python-headless>=4.8.1.78
+Pillow>=9.0.0
+numpy>=1.21.0
+
+# Utilidades básicas
+PyYAML>=6.0
+tqdm>=4.64.0
+exifread>=3.0.0
+
+# Opcional: análisis y visualización
+matplotlib>=3.5.0
+# scipy>=1.9.0
+# seaborn>=0.11.0
+# scikit-learn>=1.1.0
+# tensorboard>=2.10.0
+
+# Opcional: desarrollo
+# jupyter>=1.0.0
+# notebook>=6.4.0
+
+# API web (habilitado para integración)
+fastapi>=0.103.0
+uvicorn>=0.23.2
+python-multipart>=0.0.6
+python-dotenv>=1.0.0
