@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sentrix - Plataforma integral para la detección y control de criaderos de Aedes aegypti utilizando inteligencia artificial" />
+    <meta name="theme-color" content="#059669" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sentrix - Control de Dengue" />
+    <meta property="og:description" content="Plataforma integral para la detección y control de criaderos de Aedes aegypti" />
+    <meta property="og:image" content="/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Sentrix - Control de Dengue" />
+    <meta property="twitter:description" content="Plataforma integral para la detección y control de criaderos de Aedes aegypti" />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/Icon-Sentrix-w.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/Icon-Sentrix-w.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/Icon-Sentrix-w.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Custom Fonts -->
+    <style>
+      @font-face {
+        font-family: 'Akira';
+        src: url('/fonts/akira/Akira Expanded Demo.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <title>Sentrix - Control de Dengue</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Polyfill for axios
+      window.global = window;
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

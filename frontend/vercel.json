@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "name": "sentrix-frontend",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "cleanUrls": true,
+  "trailingSlash": false,
+
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "VITE_ENABLE_MOCKING": "false",
+      "VITE_API_BASE_URL": "https://sentrix-backend.onrender.com",
+      "VITE_YOLO_SERVICE_URL": "https://sentrix-yolo.onrender.com"
+    }
+  },
+
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sentrix-backend.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+
+  "redirects": [
+    {
+      "source": "/docs",
+      "destination": "https://sentrix-backend.onrender.com/docs",
+      "permanent": false
+    }
+  ],
+
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

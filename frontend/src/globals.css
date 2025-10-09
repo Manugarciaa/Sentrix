@@ -1,0 +1,451 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Sentrix Official Colors */
+    --background: 0 0% 100%; /* #F5F5F5 - Fondo general */
+    --foreground: 0 0% 3.9%; /* #212121 - Texto principal */
+    --card: 0 0% 100%; /* Blanco para cards */
+    --card-foreground: 0 0% 3.9%; /* #212121 - Texto principal */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%; /* #212121 - Texto principal */
+    --primary: 0 0% 9%; /* #4DD0E1 - Color de la gota */
+    --primary-foreground: 0 0% 98%; /* Blanco para contraste */
+    --secondary: 0 0% 96.1%; /* #F5F5F5 - Fondo general */
+    --secondary-foreground: 0 0% 9%; /* #212121 - Texto principal */
+    --muted: 0 0% 96.1%; /* Ligeramente más oscuro que el fondo */
+    --muted-foreground: 0 0% 45.1%; /* #616161 - Sombra sutil */
+    --accent: 0 0% 96.1%; /* #4DD0E1 - Color de la gota */
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%; /* Bordes suaves */
+    --input: 0 0% 89.8%; /* Inputs ligeramente más claros */
+    --ring: 0 0% 3.9%; /* #4DD0E1 - Color de la gota */
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    /* Override dark mode to keep Sentrix light theme - FORCE WHITE */
+    --background: 0 0% 100%; /* Blanco */
+    --foreground: 0 0% 3.9%; /* #212121 - Texto principal */
+    --card: 0 0% 100%; /* Blanco para cards */
+    --card-foreground: 0 0% 3.9%; /* #212121 - Texto principal */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%; /* #4DD0E1 - Color de la gota */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%; /* #F5F5F5 - Fondo general */
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background-color: #F5F5F5; /* Fondo general de Sentrix */
+    /* Mejor renderizado de texto */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: #F5F5F5 !important; /* Fondo general de Sentrix */
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Prevenir sombras de texto durante scroll */
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  #root {
+    background-color: #F5F5F5; /* Fondo general de Sentrix */
+    min-height: 100vh;
+  }
+}
+
+/* Custom styles for Sentrix */
+@layer components {
+  .sentrix-gradient {
+    background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
+  }
+
+  .sentrix-card {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+    background-color: white !important;
+    border-color: #E5E5E5;
+  }
+
+  /* Force all cards to have white backgrounds */
+  .card,
+  [class*="card"],
+  div[class*="Card"] {
+    background-color: white !important;
+  }
+
+  .sentrix-button {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .sentrix-input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Sentrix specific text colors */
+  .sentrix-text-primary {
+    color: #212121; /* Texto principal */
+  }
+
+  .sentrix-text-secondary {
+    color: #616161; /* Sombra sutil */
+  }
+
+  .sentrix-text-accent {
+    color: #4DD0E1; /* Color de la gota */
+  }
+
+  .sentrix-bg-primary {
+    background-color: #F5F5F5; /* Fondo general */
+  }
+
+  .sentrix-bg-accent {
+    background-color: #4DD0E1; /* Color de la gota */
+  }
+
+  /* Risk levels with Sentrix palette */
+  .risk-level-alto {
+    background-color: #FFEBEE;
+    color: #C62828;
+    border-color: #FFCDD2;
+  }
+
+  .risk-level-medio {
+    background-color: #FFF8E1;
+    color: #F57C00;
+    border-color: #FFE0B2;
+  }
+
+  .risk-level-bajo {
+    background-color: #E8F5E8;
+    color: #2E7D32;
+    border-color: #C8E6C9;
+  }
+
+  .risk-level-minimo {
+    background-color: #FAFAFA;
+    color: #616161;
+    border-color: #E0E0E0;
+  }
+
+  /* Override any black text */
+  .text-black {
+    color: #212121 !important;
+  }
+
+  .text-gray-900 {
+    color: #212121 !important;
+  }
+
+  .text-gray-800 {
+    color: #424242 !important;
+  }
+
+  .text-gray-700 {
+    color: #616161 !important;
+  }
+
+  .text-gray-600 {
+    color: #757575 !important;
+  }
+
+  .text-gray-500 {
+    color: #9E9E9E !important;
+  }
+
+  /* Recharts components styling */
+  .recharts-text {
+    fill: #212121 !important; /* Texto principal de Sentrix */
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    fill: #616161 !important; /* Sombra sutil de Sentrix */
+  }
+
+  .recharts-cartesian-axis-line {
+    stroke: #E0E0E0 !important;
+  }
+
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #EEEEEE !important;
+  }
+
+  .recharts-tooltip-wrapper {
+    background-color: white !important;
+    border: 1px solid #E0E0E0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .recharts-tooltip-label {
+    color: #212121 !important;
+    font-weight: 600 !important;
+  }
+
+  .recharts-tooltip-item {
+    color: #616161 !important;
+  }
+
+  .recharts-legend-item-text {
+    color: #212121 !important;
+  }
+
+  .recharts-pie-label-text {
+    fill: #212121 !important;
+    font-weight: 500 !important;
+  }
+
+  .recharts-default-tooltip {
+    background-color: white !important;
+    border: 1px solid #E0E0E0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .recharts-default-tooltip .recharts-tooltip-label {
+    color: #212121 !important;
+  }
+
+  .recharts-default-tooltip .recharts-tooltip-item {
+    color: #616161 !important;
+  }
+
+  /* Custom chart colors for Sentrix */
+  .sentrix-chart-primary {
+    fill: #4DD0E1;
+    stroke: #4DD0E1;
+  }
+
+  .sentrix-chart-secondary {
+    fill: #26C6DA;
+    stroke: #26C6DA;
+  }
+
+  .sentrix-chart-accent {
+    fill: #00BCD4;
+    stroke: #00BCD4;
+  }
+
+  /* Recharts container background */
+  .recharts-wrapper {
+    background-color: transparent !important;
+  }
+
+  .recharts-surface {
+    background-color: white !important;
+  }
+
+  .recharts-responsive-container {
+    background-color: white !important;
+  }
+
+  /* SVG container for charts */
+  .recharts-wrapper svg {
+    background-color: white !important;
+  }
+
+  /* Fix any dark backgrounds in chart containers */
+  .recharts-layer {
+    background-color: transparent !important;
+  }
+
+  /* FORCE WHITE BACKGROUNDS - Override any dark theme */
+  * {
+    /* Remove any potential dark theme classes */
+  }
+
+  /* Force white backgrounds on all dashboard components */
+  .bg-card,
+  [data-theme="dark"] .bg-card,
+  .dark .bg-card {
+    background-color: white !important;
+  }
+
+  /* Force white on specific shadcn components */
+  [data-radix-popper-content-wrapper],
+  [data-radix-dialog-content],
+  [data-radix-popover-content] {
+    background-color: white !important;
+  }
+
+  /* Override any potential Tailwind dark mode */
+  .dark\:bg-gray-800,
+  .dark\:bg-gray-900,
+  .dark\:bg-slate-800,
+  .dark\:bg-slate-900,
+  .dark\:bg-zinc-800,
+  .dark\:bg-zinc-900 {
+    background-color: white !important;
+  }
+}
+
+/* ULTIMATE OVERRIDE - Force white backgrounds on everything */
+* {
+  /* Reset any dark backgrounds */
+}
+
+/* Force white on absolutely everything that could be a card */
+div[class*="border"],
+div[class*="rounded"],
+div[class*="shadow"],
+div[class*="Card"],
+.card,
+.Card,
+[role="dialog"],
+[role="banner"],
+[role="main"],
+[data-testid*="card"],
+[data-component="card"] {
+  background-color: white !important;
+}
+
+/* Loading animations y optimizaciones */
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-in forwards;
+  }
+
+  /* Optimizar transformaciones para prevenir sombras de texto */
+  .transform-gpu {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+  }
+
+  .smooth-transform {
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  /* Mejor rendimiento en hover */
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(148 163 184);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .sentrix-button {
+    @apply border-2 border-current;
+  }
+
+  .sentrix-card {
+    @apply border-2;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin-slow,
+  .animate-pulse-fast,
+  .animate-bounce-subtle {
+    animation: none;
+  }
+}
