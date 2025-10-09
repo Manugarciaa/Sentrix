@@ -9,7 +9,12 @@ taking into account that different types of sites have different lifespans.
 from enum import Enum
 from typing import Dict, Optional
 from datetime import datetime, timedelta
-from .data_models import BreedingSiteTypeEnum, DetectionRiskEnum
+
+try:
+    from .data_models import BreedingSiteTypeEnum, DetectionRiskEnum
+except ImportError:
+    # Fallback for direct execution or testing
+    from data_models import BreedingSiteTypeEnum, DetectionRiskEnum
 
 
 class PersistenceTypeEnum(str, Enum):
