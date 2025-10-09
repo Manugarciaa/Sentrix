@@ -1,0 +1,50 @@
+# FastAPI and ASGI
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+email-validator==2.1.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# PostGIS and Geospatial
+geoalchemy2==0.18.0
+shapely==2.0.2
+numpy<2.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+python-multipart==0.0.6
+
+# Image processing and metadata
+pillow>=11.1.0
+pillow-heif==1.1.0
+
+# HTTP client
+httpx>=0.26,<0.29
+
+# Environment and configuration
+python-dotenv==1.0.0
+
+# Supabase Integration
+supabase==2.19.0
+postgrest==2.19.0
+storage3==2.19.0
+realtime==2.19.0
+supabase-auth==2.19.0
+
+# Rate Limiting
+slowapi==0.1.9
+
+# Development and Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+black==23.11.0
+ruff==0.1.6
+coverage==7.3.2
+psutil==5.9.6
