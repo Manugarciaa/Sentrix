@@ -221,6 +221,7 @@ async def root():
         "endpoints": {
             "auth": "/api/v1/auth",
             "analyses": "/api/v1/analyses",
+            "detections": "/api/v1/detections",
             "reports": "/api/v1/reports",
             "health": "/api/v1/health"
         }
@@ -275,6 +276,14 @@ try:
 except ImportError as e:
     routers_failed.append(("reports", str(e)))
     print(f"[WARN] Could not import reports router: {e}")
+
+try:
+    from src.api.v1 import detections
+    app.include_router(detections.router, prefix="/api/v1", tags=["detections"])
+    routers_loaded.append("detections")
+except ImportError as e:
+    routers_failed.append(("detections", str(e)))
+    print(f"[WARN] Could not import detections router: {e}")
 
 # Print router loading summary
 print(f"\n[ROUTERS] Loaded: {', '.join(routers_loaded) if routers_loaded else 'None'}")

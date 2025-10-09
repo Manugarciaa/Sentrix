@@ -145,6 +145,20 @@ from .import_utils import (
     get_import_manager
 )
 
+from .temporal_persistence import (
+    PersistenceTypeEnum,
+    WeatherConditionEnum,
+    get_persistence_type,
+    calculate_validity_period,
+    calculate_expiration_date,
+    is_detection_expired,
+    get_remaining_validity_days,
+    get_validity_status,
+    should_send_expiration_alert,
+    get_current_season_weather,
+    get_detection_metadata,
+)
+
 __version__ = "1.0.0"
 
 __all__ = [
@@ -275,5 +289,18 @@ __all__ = [
     "get_available_backends",
     "validate_service_dependencies",
     "create_requirements_file",
-    "get_import_manager"
+    "get_import_manager",
+
+    # Temporal Persistence
+    "PersistenceTypeEnum",
+    "WeatherConditionEnum",
+    "get_persistence_type",
+    "calculate_validity_period",
+    "calculate_expiration_date",
+    "is_detection_expired",
+    "get_remaining_validity_days",
+    "get_validity_status",
+    "should_send_expiration_alert",
+    "get_current_season_weather",
+    "get_detection_metadata",
 ]

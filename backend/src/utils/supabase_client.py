@@ -189,12 +189,29 @@ class SupabaseManager:
                 "message": str(e)
             }
 
-    def insert_detection(self, detection_data: dict) -> dict:
+    def insert_detection(self, detection_data: dict, auto_calculate_validity: bool = True) -> dict:
         """
-        Insert detection record into Supabase
-        Insertar registro de detección en Supabase
+        Insert detection record into Supabase with temporal validity
+        Insertar registro de detección en Supabase con validez temporal
+
+        Args:
+            detection_data: Detection data dictionary
+            auto_calculate_validity: Automatically calculate and add validity fields (default: True)
         """
         try:
+            # Enrich detection with validity fields if enabled
+            if auto_calculate_validity:
+                try:
+                    from .temporal_validity import enrich_detection_with_validity
+                    is_validated = detection_data.get("validation_status") == "validated"
+                    detection_data = enrich_detection_with_validity(
+                        detection_data,
+                        is_validated=is_validated
+                    )
+                except ImportError:
+                    # Temporal validity not available, proceed without it
+                    pass
+
             response = self.client.table('detections').insert(detection_data).execute()
 
             return {

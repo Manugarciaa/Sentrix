@@ -158,6 +158,13 @@ class Detection(Base):
     validation_notes = Column(Text)
     validated_at = Column(DateTime(timezone=True))
 
+    # Temporal validity fields / Campos de validez temporal
+    validity_period_days = Column(Integer)  # Calculated validity period in days
+    expires_at = Column(DateTime(timezone=True))  # Expiration timestamp
+    is_weather_dependent = Column(Boolean, default=False)  # If validity depends on weather
+    persistence_type = Column(String(50))  # TRANSIENT, SHORT_TERM, MEDIUM_TERM, LONG_TERM, PERMANENT
+    last_expiration_alert_sent = Column(DateTime(timezone=True))  # Last alert timestamp
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
