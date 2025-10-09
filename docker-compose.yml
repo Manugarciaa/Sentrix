@@ -1,0 +1,213 @@
+version: '3.8'
+
+# ============================================
+# Sentrix - Docker Compose Configuration
+# Desarrollo Local Completo
+# ============================================
+
+services:
+  # ==========================================
+  # PostgreSQL con PostGIS
+  # ==========================================
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentrix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sentrix}
+      POSTGRES_USER: ${POSTGRES_USER:-sentrix_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentrix_password_change_in_production}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentrix_user} -d ${POSTGRES_DB:-sentrix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sentrix-network
+
+  # ==========================================
+  # Redis (para rate limiting y caché)
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: sentrix-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - sentrix-network
+
+  # ==========================================
+  # Backend API (FastAPI)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sentrix-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentrix_user}:${POSTGRES_PASSWORD:-sentrix_password_change_in_production}@postgres:5432/${POSTGRES_DB:-sentrix}
+
+      # Supabase (si usas Supabase en vez de local)
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_KEY: ${SUPABASE_KEY:-}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+
+      # YOLO Service
+      YOLO_SERVICE_URL: http://yolo-service:8001
+
+      # JWT
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
+
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-True}
+
+      # CORS
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:3002
+
+      # Ports
+      BACKEND_PORT: 8000
+      BACKEND_HOST: 0.0.0.0
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - sentrix-network
+
+  # ==========================================
+  # YOLO Detection Service
+  # ==========================================
+  yolo-service:
+    build:
+      context: ./yolo-service
+      dockerfile: Dockerfile
+    container_name: sentrix-yolo
+    restart: unless-stopped
+    ports:
+      - "${YOLO_SERVICE_PORT:-8001}:8001"
+    environment:
+      # Model configuration
+      YOLO_MODEL_PATH: ${YOLO_MODEL_PATH:-models/best.pt}
+      YOLO_CONFIDENCE_THRESHOLD: ${YOLO_CONFIDENCE_THRESHOLD:-0.5}
+
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-True}
+
+      # Ports
+      YOLO_SERVICE_PORT: 8001
+
+      # CORS
+      ALLOWED_ORIGINS: http://localhost:8000,http://localhost:3000
+
+      # Reload on change (development only)
+      RELOAD_ON_CHANGE: ${RELOAD_ON_CHANGE:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      - ./yolo-service:/app
+      - yolo_models:/app/models
+      - yolo_results:/app/results
+      - yolo_logs:/app/logs
+    # GPU support (uncomment if you have NVIDIA GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - sentrix-network
+
+  # ==========================================
+  # Frontend (React + Vite) - OPCIONAL
+  # Solo para desarrollo local completo
+  # En producción usa Vercel
+  # ==========================================
+  frontend:
+    image: node:18-alpine
+    container_name: sentrix-frontend
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      VITE_API_URL: http://localhost:8000
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_YOLO_SERVICE_URL: http://localhost:8001
+      VITE_ENV: development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      - backend
+      - yolo-service
+    networks:
+      - sentrix-network
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  sentrix-network:
+    driver: bridge
+    name: sentrix-network
+
+# ==========================================
+# Volumes (persistent data)
+# ==========================================
+volumes:
+  postgres_data:
+    name: sentrix_postgres_data
+  redis_data:
+    name: sentrix_redis_data
+  backend_uploads:
+    name: sentrix_backend_uploads
+  backend_logs:
+    name: sentrix_backend_logs
+  yolo_models:
+    name: sentrix_yolo_models
+  yolo_results:
+    name: sentrix_yolo_results
+  yolo_logs:
+    name: sentrix_yolo_logs

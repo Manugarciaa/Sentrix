@@ -1,0 +1,42 @@
+MIT License
+
+Copyright (c) 2025 Sentrix - AI-Powered Disease Vector Detection System
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+ADDITIONAL TERMS FOR ACADEMIC AND RESEARCH USE:
+
+1. ATTRIBUTION: Academic publications using this software must cite the original
+   research and acknowledge the Sentrix project.
+
+2. NON-COMMERCIAL RESEARCH: This software is primarily intended for academic
+   research and public health applications. Commercial use requires separate
+   licensing terms.
+
+3. DATA PRIVACY: Users are responsible for ensuring compliance with local data
+   protection regulations when processing images that may contain personally
+   identifiable information.
+
+4. MEDICAL DISCLAIMER: This software is a research tool and should not be used
+   as the sole basis for public health decisions. All results must be validated
+   by qualified public health professionals.
+
+5. GEOGRAPHIC LIMITATIONS: The training data and model performance may be
+   specific to certain geographic regions. Users should validate performance
+   in their specific use cases.

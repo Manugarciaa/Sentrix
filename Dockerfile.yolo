@@ -1,0 +1,96 @@
+# Sentrix YOLO Service - Dockerfile for Render
+# Optimized for deployment on Render with shared library support
+
+# ============================================
+# Stage 1: Builder
+# ============================================
+FROM python:3.11-slim as builder
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY yolo-service/requirements.txt .
+
+# Create virtual environment and install dependencies
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# ============================================
+# Stage 2: Runtime
+# ============================================
+FROM python:3.11-slim
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PORT=8001 \
+    YOLO_MODEL_PATH=/app/models/best.pt
+
+# Install runtime dependencies for OpenCV and YOLO
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    curl \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -m -u 1000 appuser && \
+    mkdir -p /app /app/models /app/logs /app/data /app/results /app/test_images && \
+    chown -R appuser:appuser /app
+
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Copy yolo-service code
+COPY --chown=appuser:appuser yolo-service/ ./
+
+# Copy shared library
+COPY --chown=appuser:appuser shared/ ../shared/
+
+# Add parent directory to PYTHONPATH so shared can be imported
+ENV PYTHONPATH="/app:${PYTHONPATH}"
+
+# Download default YOLO model if not exists (yolo11n-seg.pt as fallback)
+RUN mkdir -p /app/models && \
+    if [ ! -f /app/models/best.pt ]; then \
+        echo "Downloading default YOLO model..."; \
+        wget -q -O /app/models/yolo11n-seg.pt \
+            https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo11n-seg.pt || \
+        echo "Model download failed, will use runtime model"; \
+    fi && \
+    chown -R appuser:appuser /app/models
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Expose port
+EXPOSE ${PORT}
+
+# Run the application
+CMD ["python", "server.py"]

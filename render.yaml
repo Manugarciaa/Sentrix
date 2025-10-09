@@ -1,0 +1,66 @@
+services:
+  # ==========================================
+  # Backend API Service
+  # ==========================================
+  - type: web
+    name: sentrix-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile.backend
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: ALLOWED_EXTENSIONS
+        value: '["jpg","jpeg","png","tiff","bmp"]'
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8000
+      - key: YOLO_SERVICE_URL
+        value: https://sentrix-yolo.onrender.com
+      - key: ALLOWED_ORIGINS
+        value: https://sentrix-jade.vercel.app,https://sentrix-backend.onrender.com
+
+  # ==========================================
+  # YOLO Detection Service
+  # ==========================================
+  - type: web
+    name: sentrix-yolo
+    runtime: docker
+    dockerfilePath: ./Dockerfile.yolo
+    dockerContext: .
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: YOLO_MODEL_PATH
+        value: models/yolo11n-seg.pt
+      - key: YOLO_CONFIDENCE_THRESHOLD
+        value: 0.5
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8001
+      - key: ALLOWED_ORIGINS
+        value: https://sentrix-backend.onrender.com,https://sentrix-jade.vercel.app
