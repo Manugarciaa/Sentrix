@@ -404,7 +404,7 @@ async def get_user_stats(
 
         # Get validated detections count (if user is expert/admin)
         validated_count = 0
-        if current_user.role in ["ADMIN", "EXPERT"]:
+        if current_user.role in ["admin", "expert"]:
             validated_count = db.execute(text("""
                 SELECT COUNT(*) FROM detections
                 WHERE validated_by = :user_id
@@ -467,7 +467,7 @@ async def get_user_activities(
             })
 
         # Get recent validations (if user is expert/admin)
-        if current_user.role in ["ADMIN", "EXPERT"]:
+        if current_user.role in ["admin", "expert"]:
             recent_validations = db.execute(text("""
                 SELECT d.id, d.class_name, d.risk_level, d.validated_at
                 FROM detections d

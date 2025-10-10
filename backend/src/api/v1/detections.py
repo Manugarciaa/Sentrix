@@ -257,7 +257,7 @@ async def extend_validity(
         )
 
     # Check user has permission (EXPERT or ADMIN)
-    if current_user.role not in ['EXPERT', 'ADMIN']:
+    if current_user.role not in ['expert', 'admin']:
         raise HTTPException(
             status_code=403,
             detail="Only experts and admins can extend detection validity"
@@ -353,7 +353,7 @@ async def revalidate_detection(
         )
 
     # Check user has permission
-    if current_user.role not in ['EXPERT', 'ADMIN']:
+    if current_user.role not in ['expert', 'admin']:
         raise HTTPException(
             status_code=403,
             detail="Only experts and admins can revalidate detections"

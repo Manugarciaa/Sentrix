@@ -46,9 +46,9 @@ class ValidationStatusEnum(str, Enum):
 
 class UserRoleEnum(str, Enum):
     """User roles for authentication and authorization"""
-    USER = "USER"
-    ADMIN = "ADMIN"
-    EXPERT = "EXPERT"
+    USER = "user"
+    ADMIN = "admin"
+    EXPERT = "expert"
 
 
 # RiskLevelEnum removed - use DetectionRiskEnum instead for consistency

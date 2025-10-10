@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { Shield, Star, User } from 'lucide-react'
 
-export type UserRole = 'ADMIN' | 'EXPERT' | 'USER'
+export type UserRole = 'admin' | 'expert' | 'user'
 
 export interface RoleBadgeProps {
   role: UserRole
@@ -20,19 +20,19 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
 }) => {
   const getRoleConfig = () => {
     switch (role) {
-      case 'ADMIN':
+      case 'admin':
         return {
           label: 'Administrador',
           color: 'bg-purple-100 text-purple-700',
           icon: Shield,
         }
-      case 'EXPERT':
+      case 'expert':
         return {
           label: 'Experto',
           color: 'bg-blue-100 text-blue-700',
           icon: Star,
         }
-      case 'USER':
+      case 'user':
         return {
           label: 'Usuario',
           color: 'bg-gray-100 text-gray-700',

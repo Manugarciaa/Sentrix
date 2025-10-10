@@ -17,9 +17,9 @@ export interface User {
 }
 
 export enum UserRole {
-  ADMIN = 'ADMIN',
-  EXPERT = 'EXPERT',
-  USER = 'USER'
+  ADMIN = 'admin',
+  EXPERT = 'expert',
+  USER = 'user'
 }
 
 export interface Detection {
