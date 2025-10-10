@@ -146,6 +146,9 @@ python scripts/batch_detection.py --input imagenes/ --output resultados/
 # Predicción con modelo específico
 python scripts/predict_new_images.py --model models/custom.pt --image test.jpg
 
+# Entrenamiento simplificado (recomendado)
+python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --batch 8
+
 # Entrenamiento personalizado
 python scripts/train_dengue_model.py --config training_config.yaml
 ```
@@ -360,6 +363,49 @@ def _create_processed_image(source_path, result, output_dir=None):
 - 8GB RAM
 - GPU NVIDIA con CUDA 11.8+
 - 10GB espacio en disco
+
+## Entrenamiento de Modelos
+
+### Script Simplificado (Recomendado)
+
+El script `train_simple.py` ofrece entrenamiento estable y confiable:
+
+```bash
+# Entrenamiento básico (50 épocas)
+python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --batch 8
+
+# Entrenamiento extendido (100 épocas)
+python train_simple.py --model models/yolo11s-seg.pt --epochs 100 --batch 8
+
+# Personalizar nombre del run
+python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --name mi_modelo
+```
+
+**Características:**
+- ✅ Configuración optimizada y probada
+- ✅ Sin problemas de freeze durante validación
+- ✅ Augmentación de datos balanceada
+- ✅ Early stopping automático
+- ✅ Guardado automático del mejor modelo
+
+**Resultados guardados en:**
+```
+runs/segment/dengue_seg_s_50ep_YYYYMMDD/
+├── weights/
+│   ├── best.pt      # Mejor modelo (usar este)
+│   └── last.pt      # Último checkpoint
+└── results.csv      # Métricas de entrenamiento
+```
+
+### Parámetros Disponibles
+
+| Parámetro | Descripción | Default |
+|-----------|-------------|---------|
+| `--model` | Modelo base a entrenar | `models/yolo11s-seg.pt` |
+| `--epochs` | Número de épocas | `100` |
+| `--batch` | Tamaño de batch | `8` |
+| `--imgsz` | Tamaño de imagen | `640` |
+| `--name` | Nombre del run | Auto-generado |
 
 ## Desarrollo
 
