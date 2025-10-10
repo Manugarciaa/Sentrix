@@ -74,18 +74,21 @@ def main():
                 epochs=args.epochs,
                 experiment_name=args.name
             )
-            print("✓ Entrenamiento completado exitosamente")
+            print("[OK] Entrenamiento completado exitosamente")
 
         elif args.command == 'detect':
             print_section_header("DETECCIÓN DE CRIADEROS")
             include_gps = not args.no_gps
-            detections = detect_breeding_sites(
+            result = detect_breeding_sites(
                 model_path=args.model,
                 source=args.source,
                 conf_threshold=args.conf,
                 include_gps=include_gps
             )
-            print(f"✓ Detecciones encontradas: {len(detections)}")
+            detections = result['detections']
+            print(f"[OK] Detecciones encontradas: {len(detections)}")
+            if result.get('processed_image_path'):
+                print(f"[OK] Imagen procesada: {result['processed_image_path']}")
             for detection in detections:
                 gps_info = ""
                 if include_gps and detection.get('location', {}).get('has_location', False):
@@ -96,16 +99,17 @@ def main():
         elif args.command == 'report':
             print_section_header("GENERACIÓN DE REPORTE")
             include_gps = not args.no_gps
-            detections = detect_breeding_sites(
+            result = detect_breeding_sites(
                 model_path=args.model,
                 source=args.source,
                 conf_threshold=args.conf,
                 include_gps=include_gps
             )
+            detections = result['detections']
             report = generate_report(args.source, detections, include_gps=include_gps)
             save_report(report, args.output)
 
-            print(f"✓ Reporte generado: {args.output}")
+            print(f"[OK] Reporte generado: {args.output}")
             print(f"  Detecciones: {report['total_detections']}")
             print(f"  Nivel de riesgo: {report['risk_assessment']['level']}")
             if include_gps and any(d.get('location', {}).get('has_location', False) for d in detections):
@@ -113,7 +117,7 @@ def main():
                 print(f"  Detecciones con GPS: {gps_detections}/{len(detections)}")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"[ERROR] Error: {e}")
         sys.exit(1)
 
 

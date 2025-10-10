@@ -183,15 +183,15 @@ def process_images(model_path, input_path, output_dir="predictions", conf_thresh
             risk_data = assess_risk(detections)
             if risk_data['level'] in ['ALTO', 'MEDIO-ALTO']:
                 high_risk_images += 1
-                print(f"  ⚠️  RIESGO {risk_data['level']} - {len(detections)} detecciones")
+                print(f"  [WARN]  RIESGO {risk_data['level']} - {len(detections)} detecciones")
             else:
-                print(f"  ✅ Riesgo {risk_data['level']} - {len(detections)} detecciones")
+                print(f"  [OK] Riesgo {risk_data['level']} - {len(detections)} detecciones")
 
             print(f"     Imagen guardada: {os.path.basename(pred_path)}")
             print(f"     JSON guardado: {os.path.basename(json_path)}")
 
         except Exception as e:
-            print(f"  ❌ Error procesando {os.path.basename(image_path)}: {e}")
+            print(f"  [ERROR] Error procesando {os.path.basename(image_path)}: {e}")
 
         print()
 
