@@ -39,7 +39,17 @@ class ImportManager:
         """
         Setup Python paths for optimal imports
         Configurar paths de Python para imports óptimos
+
+        DEPRECATED: Use proper package imports instead (e.g., from sentrix_shared import X)
+        This method is kept for backward compatibility but should not be used in new code.
         """
+        import warnings
+        warnings.warn(
+            "ImportManager.setup_paths() is deprecated. Use proper package imports instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         paths_to_add = [
             self.project_root,          # Project root (for shared)
             self.service_root,          # Service root
@@ -55,7 +65,7 @@ class ImportManager:
         for path in paths_to_add:
             path_str = str(path.resolve())
             if path_str not in sys.path and path_str not in self._paths_added:
-                sys.path.insert(0, path_str)
+                sys.path.append(path_str)
                 self._paths_added.add(path_str)
 
     def import_shared_module(self, module_name: str, from_items: Optional[List[str]] = None):

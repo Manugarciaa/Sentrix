@@ -203,6 +203,19 @@ class ImageFormatConverter:
             logger.debug("OpenCV not available - advanced processing limited")
             return False
 
+    def check_dependencies(self) -> Dict[str, bool]:
+        """
+        Check and return status of all dependencies.
+
+        Returns:
+            Dict[str, bool]: Dictionary with dependency availability status
+        """
+        return {
+            'pillow': self.pillow_available,
+            'pillow-heif': self.pillow_heif_available,
+            'opencv': self.opencv_available
+        }
+
     def can_convert(self, source_format: str, target_format: str = '.jpg') -> bool:
         """
         Check if conversion is possible

@@ -110,8 +110,19 @@ class ProjectStructure:
         return self.logs_dir / log_name
 
     def add_to_python_path(self):
-        """Add directories to Python path for imports"""
+        """
+        Add directories to Python path for imports
+        DEPRECATED: Use proper package imports instead (e.g., from sentrix_shared import X)
+        This method is kept for backward compatibility but should not be used in new code.
+        """
         import sys
+        import warnings
+
+        warnings.warn(
+            "add_to_python_path() is deprecated. Use proper package imports instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
 
         paths_to_add = [
             str(self.service_root),
@@ -121,7 +132,7 @@ class ProjectStructure:
 
         for path in paths_to_add:
             if path not in sys.path:
-                sys.path.insert(0, path)
+                sys.path.append(path)
 
 
 # Standard directory structures

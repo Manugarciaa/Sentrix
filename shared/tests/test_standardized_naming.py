@@ -9,10 +9,7 @@ from pathlib import Path
 import sys
 import os
 
-# Add shared to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from file_utils import (
+from sentrix_shared.file_utils import (
     generate_standardized_filename,
     parse_standardized_filename,
     create_filename_variations,
@@ -278,7 +275,8 @@ class TestStandardizedNamingIntegration(unittest.TestCase):
         self.assertIn("IPHONE15", standardized)
         self.assertIn("LATn34p604", standardized)
         self.assertIn("LONn58p382", standardized)
-        self.assertTrue(standardized.endswith(".HEIC"))
+        # Extensions are normalized to lowercase
+        self.assertTrue(standardized.endswith(".heic"))
 
         # Test parsing back
         parsed = parse_standardized_filename(standardized)

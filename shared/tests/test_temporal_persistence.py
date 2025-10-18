@@ -10,13 +10,9 @@ from datetime import datetime, timedelta
 import sys
 import os
 
-# Add parent directory to path
-parent_dir = os.path.join(os.path.dirname(__file__), '..')
-sys.path.insert(0, parent_dir)
-
-# Import from shared package
-import temporal_persistence as tp
-from temporal_persistence import (
+# Import from sentrix_shared package
+import sentrix_shared.temporal_persistence as tp
+from sentrix_shared.temporal_persistence import (
     PersistenceTypeEnum,
     WeatherConditionEnum,
     get_persistence_type,
@@ -31,8 +27,8 @@ from temporal_persistence import (
     BREEDING_SITE_PERSISTENCE,
     DEFAULT_VALIDITY_DAYS
 )
-import data_models
-from data_models import BreedingSiteTypeEnum, DetectionRiskEnum
+import sentrix_shared.data_models as data_models
+from sentrix_shared.data_models import BreedingSiteTypeEnum, DetectionRiskEnum
 
 
 class TestPersistenceClassification:

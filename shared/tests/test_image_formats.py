@@ -9,18 +9,14 @@ import os
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
-# Add shared to path
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-
-from shared.image_formats import (
+from sentrix_shared.image_formats import (
     ImageFormatConverter,
     SUPPORTED_IMAGE_FORMATS,
     is_format_supported,
     get_format_info,
     needs_conversion
 )
-from shared.file_utils import validate_image_file, process_image_with_conversion
+from sentrix_shared.file_utils import validate_image_file, process_image_with_conversion
 
 
 class TestImageFormatSupport:
@@ -40,10 +36,10 @@ class TestImageFormatSupport:
         assert is_format_supported('.HEIC')
         assert is_format_supported('.JPG')
 
-        # Unsupported formats
+        # Unsupported formats (but .gif is actually supported in LEGACY_IMAGE_FORMATS)
         assert not is_format_supported('.txt')
         assert not is_format_supported('.pdf')
-        assert not is_format_supported('.gif')
+        assert not is_format_supported('.doc')
 
     def test_get_format_info(self):
         """Test format information retrieval"""
@@ -75,9 +71,11 @@ class TestImageFormatSupport:
 class TestImageFormatConverter:
     """Test ImageFormatConverter class"""
 
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_method_fixture(self, tmp_path):
+        """Setup method using pytest tmp_path fixture"""
         self.converter = ImageFormatConverter()
-        self.temp_dir = tempfile.mkdtemp()
+        self.temp_dir = tmp_path
 
     def test_converter_initialization(self):
         """Test converter initialization"""
@@ -96,60 +94,73 @@ class TestImageFormatConverter:
         # pillow should always be available
         assert deps['pillow'] is True
 
-    @patch('shared.image_formats.Image')
-    @patch('shared.image_formats.register_heif_opener')
-    def test_convert_heic_to_jpeg_success(self, mock_register, mock_image):
+    @patch('PIL.Image')
+    def test_convert_heic_to_jpeg_success(self, mock_image):
         """Test successful HEIC to JPEG conversion"""
         # Setup mocks
         mock_img = MagicMock()
+        mock_img.mode = 'RGB'
+        mock_img.size = (100, 100)
+        mock_img.format = 'HEIC'
+        mock_img.info = {}
+        mock_img.save = MagicMock()
         mock_image.open.return_value = mock_img
 
         # Create temp files
         temp_heic = Path(self.temp_dir) / "test.heic"
         temp_heic.touch()
 
-        target_dir = Path(self.temp_dir)
+        with patch.object(self.converter, 'pillow_heif_available', True):
+            with patch.object(self.converter, 'pillow_available', True):
+                result = self.converter.convert_image(str(temp_heic), target_format='.jpg')
 
-        with patch('shared.image_formats.ImageFormatConverter.check_dependencies') as mock_deps:
-            mock_deps.return_value = {'pillow-heif': True, 'pillow': True}
+                assert result is not None
+                # Result should be BytesIO object
+                from io import BytesIO
+                assert isinstance(result, BytesIO)
 
-            converter = ImageFormatConverter()
-            result = converter.convert_image(str(temp_heic), target_dir)
+    @patch('PIL.Image')
+    def test_convert_image_no_conversion_needed(self, mock_image):
+        """Test convert_image with JPEG format (still converts to ensure consistency)"""
+        # Setup mocks
+        mock_img = MagicMock()
+        mock_img.mode = 'RGB'
+        mock_img.size = (100, 100)
+        mock_img.format = 'JPEG'
+        mock_img.info = {}
+        mock_img.save = MagicMock()
+        mock_image.open.return_value = mock_img
 
-            assert result is not None
-            assert str(result).endswith('.jpg')
-
-    def test_convert_image_no_conversion_needed(self):
-        """Test convert_image with format that doesn't need conversion"""
         # Create temp JPEG file
         temp_jpeg = Path(self.temp_dir) / "test.jpg"
         temp_jpeg.touch()
 
-        converter = ImageFormatConverter()
-        result = converter.convert_image(str(temp_jpeg), self.temp_dir)
+        with patch.object(self.converter, 'pillow_available', True):
+            result = self.converter.convert_image(str(temp_jpeg), target_format='.jpg')
 
-        # Should return original path since no conversion needed
-        assert str(result) == str(temp_jpeg)
+            # Should still return BytesIO even for JPEG (ensures consistent output format)
+            from io import BytesIO
+            assert isinstance(result, BytesIO)
 
     def test_convert_image_missing_dependencies(self):
-        """Test convert_image with missing dependencies"""
+        """Test convert_image with missing Pillow dependency"""
         temp_heic = Path(self.temp_dir) / "test.heic"
         temp_heic.touch()
 
-        with patch('shared.image_formats.ImageFormatConverter.check_dependencies') as mock_deps:
-            mock_deps.return_value = {'pillow-heif': False, 'pillow': True}
+        with patch.object(self.converter, 'pillow_available', False):
+            from sentrix_shared.error_handling import ImageProcessingError
 
-            converter = ImageFormatConverter()
-
-            with pytest.raises(ImportError):
-                converter.convert_image(str(temp_heic), self.temp_dir)
+            with pytest.raises(ImageProcessingError, match="PIL/Pillow required"):
+                self.converter.convert_image(str(temp_heic), target_format='.jpg')
 
 
 class TestFileUtilsIntegration:
     """Test integration with file_utils"""
 
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+    @pytest.fixture(autouse=True)
+    def setup_method_fixture(self, tmp_path):
+        """Setup method using pytest tmp_path fixture"""
+        self.temp_dir = tmp_path
 
     def test_validate_image_file_with_supported_format(self):
         """Test image validation with supported formats"""
@@ -176,7 +187,7 @@ class TestFileUtilsIntegration:
         assert result['format_info'] is not None
         assert result['format_info']['mime_type'] == 'image/heic'
 
-    @patch('file_utils.ImageFormatConverter')
+    @patch('sentrix_shared.file_utils.ImageFormatConverter')
     def test_process_image_with_conversion_success(self, mock_converter_class):
         """Test successful image processing with conversion"""
         # Setup mock converter
@@ -188,7 +199,7 @@ class TestFileUtilsIntegration:
         temp_heic = Path(self.temp_dir) / "test.heic"
         temp_heic.write_bytes(b"fake_heic_data")
 
-        with patch('file_utils.validate_image_file') as mock_validate:
+        with patch('sentrix_shared.file_utils.validate_image_file') as mock_validate:
             mock_validate.return_value = {
                 'is_valid': True,
                 'conversion_needed': True,
@@ -207,7 +218,7 @@ class TestFileUtilsIntegration:
         temp_jpeg = Path(self.temp_dir) / "test.jpg"
         temp_jpeg.write_bytes(b"fake_jpeg_data")
 
-        with patch('file_utils.validate_image_file') as mock_validate:
+        with patch('sentrix_shared.file_utils.validate_image_file') as mock_validate:
             mock_validate.return_value = {
                 'is_valid': True,
                 'conversion_needed': False,
@@ -224,15 +235,21 @@ class TestFileUtilsIntegration:
 class TestHeicConversionFunction:
     """Test standalone HEIC conversion function"""
 
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
+    @pytest.fixture(autouse=True)
+    def setup_method_fixture(self, tmp_path):
+        """Setup method using pytest tmp_path fixture"""
+        self.temp_dir = tmp_path
 
-    @patch('shared.image_formats.register_heif_opener')
-    @patch('shared.image_formats.Image')
-    def test_converter_convert_heic(self, mock_image, mock_register):
+    @patch('PIL.Image')
+    def test_converter_convert_heic(self, mock_image):
         """Test converter HEIC conversion"""
         # Setup mocks
         mock_img = MagicMock()
+        mock_img.mode = 'RGB'
+        mock_img.size = (100, 100)
+        mock_img.format = 'HEIC'
+        mock_img.info = {}
+        mock_img.save = MagicMock()
         mock_image.open.return_value = mock_img
 
         # Create temp files
@@ -241,13 +258,14 @@ class TestHeicConversionFunction:
 
         converter = ImageFormatConverter()
 
-        with patch.object(converter, 'check_dependencies') as mock_deps:
-            mock_deps.return_value = {'pillow-heif': True, 'pillow': True}
+        with patch.object(converter, 'pillow_heif_available', True):
+            with patch.object(converter, 'pillow_available', True):
+                output = converter.convert_image(str(temp_heic), target_format='.jpg')
 
-            output_path = converter.convert_image(str(temp_heic), self.temp_dir)
-
-            assert output_path is not None
-            assert str(output_path).endswith('.jpg')
+                assert output is not None
+                # Output should be BytesIO object
+                from io import BytesIO
+                assert isinstance(output, BytesIO)
 
 
 if __name__ == "__main__":

@@ -456,17 +456,17 @@ def _detect_device_code(camera_info: Optional[Dict], original_filename: str) -> 
     if any(pattern in filename_upper for pattern in ['IMG_', 'IMG-', 'PHOTO-']):
         return "IPHONE"
 
-    # Android patterns
-    elif any(pattern in filename_upper for pattern in ['20', 'DSC', 'CAM']):
-        return "ANDROID"
+    # Screenshot patterns (check before Android to avoid false matches with date patterns)
+    elif any(pattern in filename_upper for pattern in ['SCREENSHOT', 'SCREEN', 'CAPTURE']):
+        return "SCREEN"
 
     # WhatsApp patterns
     elif 'WA' in filename_upper:
         return "WHATSAPP"
 
-    # Screenshot patterns
-    elif any(pattern in filename_upper for pattern in ['SCREENSHOT', 'SCREEN', 'CAPTURE']):
-        return "SCREEN"
+    # Android patterns (checked after Screenshot to avoid false positives)
+    elif any(pattern in filename_upper for pattern in ['20', 'DSC', 'CAM']):
+        return "ANDROID"
 
     return "UNKNOWN"
 
