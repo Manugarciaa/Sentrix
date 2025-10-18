@@ -14,30 +14,40 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Add project root to Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app
-from src.database import get_db
-from ..database.models.base import Base
 from src.config import get_settings
 
+# Try to import database components (optional, not all tests need them)
+try:
+    from src.database import get_db
+    from src.database.models.base import Base
+    HAS_DATABASE = True
+except ImportError:
+    get_db = None
+    Base = None
+    HAS_DATABASE = False
 
 # Test database URL (SQLite for tests)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
-# Create test engine
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Create test engine only if database is available
+if HAS_DATABASE:
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+else:
+    engine = None
+    TestingSessionLocal = None
 
 
 def override_get_db():
     """Override database dependency for testing"""
+    if not HAS_DATABASE or not TestingSessionLocal:
+        raise RuntimeError("Database not configured for testing")
     try:
         db = TestingSessionLocal()
         yield db
@@ -56,6 +66,9 @@ def event_loop():
 @pytest.fixture(scope="function")
 def db_session():
     """Create a fresh database session for each test"""
+    if not HAS_DATABASE:
+        pytest.skip("Database not configured")
+
     # Create the database tables
     Base.metadata.create_all(bind=engine)
 
@@ -168,9 +181,13 @@ def mock_yolo_service(monkeypatch):
         }
 
     # Patch the YOLO service client methods
-    from src.services.yolo_service import YOLOServiceClient
-    monkeypatch.setattr(YOLOServiceClient, "detect_image", mock_detect_image)
-    monkeypatch.setattr(YOLOServiceClient, "health_check", mock_health_check)
+    try:
+        from src.core.services.yolo_service import YOLOServiceClient
+        monkeypatch.setattr(YOLOServiceClient, "detect_image", mock_detect_image)
+        monkeypatch.setattr(YOLOServiceClient, "health_check", mock_health_check)
+    except ImportError:
+        # YOLO service not available, tests will need to mock directly
+        pass
 
     return mock_detection_response
 

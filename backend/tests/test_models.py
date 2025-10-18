@@ -23,8 +23,8 @@ except ImportError:
         def __init__(self, x, y):
             self.x, self.y = x, y
 
-from ..database.models.models import UserProfile, Analysis, Detection
-from shared.data_models import (
+from src.database.models.models import UserProfile, Analysis, Detection
+from sentrix_shared.data_models import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
     UserRoleEnum, LocationSourceEnum, ValidationStatusEnum
 )

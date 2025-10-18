@@ -11,11 +11,9 @@ from io import BytesIO
 from pathlib import Path
 import json
 
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from utils.supabase_client import SupabaseManager
-from services.analysis_service import AnalysisService
+from src.utils.supabase_client import SupabaseManager
+from src.services.analysis_service import AnalysisService
 
 
 class TestDualImageStorage(unittest.TestCase):
@@ -224,8 +222,8 @@ class TestDualImageStorageIntegration(unittest.TestCase):
         self.test_filename = "IMG_1234.jpg"
 
     @patch('sys.path')
-    @patch('services.analysis_service.generate_standardized_filename')
-    @patch('services.analysis_service.create_filename_variations')
+    @patch('sentrix_shared.file_utils.generate_standardized_filename')
+    @patch('sentrix_shared.file_utils.create_filename_variations')
     async def test_process_image_with_dual_storage(self, mock_variations, mock_standardized, mock_path):
         """Test complete image processing with dual storage"""
         # Mock standardized filename generation
@@ -288,7 +286,7 @@ class TestDualImageStorageIntegration(unittest.TestCase):
         self.mock_supabase.client.table().update().eq().execute.return_value = mock_db_response
 
         # Test the complete process
-        with patch('services.analysis_service.prepare_image_for_processing') as mock_prepare:
+        with patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare:
             mock_prepare.return_value = (self.test_image_data, self.test_filename)
 
             result = await self.analysis_service.process_image_analysis(
@@ -335,11 +333,11 @@ class TestDualImageStorageIntegration(unittest.TestCase):
             "message": "Upload failed"
         }
 
-        with patch('services.analysis_service.prepare_image_for_processing') as mock_prepare:
+        with patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare:
             mock_prepare.return_value = (self.test_image_data, self.test_filename)
-            with patch('services.analysis_service.generate_standardized_filename') as mock_standardized:
+            with patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized:
                 mock_standardized.return_value = "test_filename.jpg"
-                with patch('services.analysis_service.create_filename_variations') as mock_variations:
+                with patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
                     mock_variations.return_value = {'standardized': 'test.jpg'}
 
                     result = await self.analysis_service.process_image_analysis(

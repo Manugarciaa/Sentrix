@@ -14,13 +14,9 @@ import asyncio
 import uuid
 from datetime import datetime
 
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-
-from services.analysis_service import AnalysisService
-from utils.supabase_client import SupabaseManager
-from shared.file_utils import generate_standardized_filename, parse_standardized_filename
+from src.services.analysis_service import AnalysisService
+from src.utils.supabase_client import SupabaseManager
+from sentrix_shared.file_utils import generate_standardized_filename, parse_standardized_filename
 
 
 class TestEdgeCasesFilenameGeneration(unittest.TestCase):
@@ -302,7 +298,7 @@ class TestEdgeCasesYOLOIntegration(unittest.TestCase):
     async def test_yolo_service_returns_unexpected_structure(self):
         """Test handling of unexpected response structure"""
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
 
@@ -325,8 +321,8 @@ class TestEdgeCasesYOLOIntegration(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"
@@ -381,8 +377,8 @@ class TestEdgeCasesYOLOIntegration(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"
@@ -432,8 +428,8 @@ class TestDatabaseErrorHandling(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"
@@ -467,8 +463,8 @@ class TestDatabaseErrorHandling(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"
@@ -507,7 +503,7 @@ class TestDatabaseErrorHandling(unittest.TestCase):
 
     def test_supabase_client_creation_failure(self):
         """Test handling of Supabase client creation failure"""
-        with patch('utils.supabase_client.create_client') as mock_create_client:
+        with patch('src.utils.supabase_client.create_client') as mock_create_client:
             mock_create_client.side_effect = Exception("Invalid credentials")
 
             with self.assertRaises(Exception):
@@ -526,8 +522,8 @@ class TestConcurrencyEdgeCases(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"
@@ -567,8 +563,8 @@ class TestConcurrencyEdgeCases(unittest.TestCase):
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
              patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             mock_prepare.return_value = (b"test_data", "test.jpg")
             mock_standardized.return_value = "test.jpg"

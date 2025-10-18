@@ -17,7 +17,7 @@ class TestHealthEndpoints:
     """Test health check endpoints"""
 
     def test_health_endpoint(self, client: TestClient):
-        """Test main health endpoint"""
+        """Test main health endpoint (liveness probe)"""
         response = client.get("/api/v1/health")
 
         assert response.status_code == 200
@@ -25,10 +25,7 @@ class TestHealthEndpoints:
         assert data["status"] == "healthy"
         assert "timestamp" in data
         assert "version" in data
-        assert "services" in data
-        assert "database" in data["services"]
-        assert "redis" in data["services"]
-        assert "yolo_service" in data["services"]
+        assert data["service"] == "sentrix-backend"
 
     def test_yolo_health_endpoint_success(self, client: TestClient, mock_yolo_service):
         """Test YOLO health endpoint with successful connection"""

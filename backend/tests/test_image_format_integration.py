@@ -12,9 +12,6 @@ from unittest.mock import Mock, patch, MagicMock
 from fastapi.testclient import TestClient
 from fastapi import UploadFile
 
-# Add paths for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 class TestBackendImageFormatValidation:

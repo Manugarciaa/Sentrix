@@ -12,20 +12,17 @@ from pathlib import Path
 from datetime import datetime
 from fastapi.testclient import TestClient
 
-# Add project root to Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app import app
 from src.config import get_settings
-from shared.data_models import (
+from sentrix_shared.data_models import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
     UserRoleEnum, LocationSourceEnum, ValidationStatusEnum,
     AnalysisStatusEnum
 )
-from src.utils.yolo_integration import (
+from src.utils.integrations.yolo_integration import (
     parse_yolo_detection, parse_yolo_report, validate_yolo_response
 )
-from src.services.yolo_service import YOLOServiceClient
+from src.core.services.yolo_service import YOLOServiceClient
 
 
 def imprimir_encabezado_seccion(titulo):
@@ -264,7 +261,7 @@ class TestFlujoAPI:
                     "parsed_data": {"analysis": {"total_detections": 0}, "detections": []}
                 }
 
-            from src.services.yolo_service import YOLOServiceClient
+            from src.core.services.yolo_service import YOLOServiceClient
             m.setattr(YOLOServiceClient, "detect_image", detectar_mock)
 
             respuesta_crear = cliente.post("/api/v1/analyses", files=archivos, data=datos)
@@ -304,7 +301,7 @@ class TestFlujoAPI:
                     "parsed_data": {"analysis": {"total_detections": 0}, "detections": []}
                 }
 
-            from src.services.yolo_service import YOLOServiceClient
+            from src.core.services.yolo_service import YOLOServiceClient
             m.setattr(YOLOServiceClient, "detect_image", detectar_mock)
 
             # Test creación de lote
@@ -450,7 +447,7 @@ class TestRendimientoSistema:
                     "parsed_data": {"analysis": {"total_detections": 0}, "detections": []}
                 }
 
-            from src.services.yolo_service import YOLOServiceClient
+            from src.core.services.yolo_service import YOLOServiceClient
             m.setattr(YOLOServiceClient, "detect_image", detectar_mock)
 
             # Test múltiples verificaciones de salud (deberían ser rápidas)

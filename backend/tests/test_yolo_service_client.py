@@ -8,7 +8,7 @@ import httpx
 from unittest.mock import AsyncMock, patch, Mock
 from fastapi import HTTPException
 
-from src.services.yolo_service import YOLOServiceClient
+from src.core.services.yolo_service import YOLOServiceClient
 from src.config import get_settings
 
 
@@ -326,7 +326,7 @@ class TestYOLOServiceClientConfiguration:
 
     def test_singleton_instance(self):
         """Test that yolo_client singleton is properly configured"""
-        from src.services.yolo_service import yolo_client
+        from src.core.services.yolo_service import yolo_client
 
         assert isinstance(yolo_client, YOLOServiceClient)
         assert yolo_client.base_url is not None

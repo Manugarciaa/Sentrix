@@ -14,10 +14,8 @@ import gc
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-
-from services.analysis_service import AnalysisService
-from utils.supabase_client import SupabaseManager
+from src.services.analysis_service import AnalysisService
+from src.utils.supabase_client import SupabaseManager
 
 
 class TestPerformanceMetrics(unittest.TestCase):
@@ -55,7 +53,7 @@ class TestPerformanceMetrics(unittest.TestCase):
 
     def test_filename_generation_performance(self):
         """Test performance of filename generation under load"""
-        from shared.file_utils import generate_standardized_filename
+        from sentrix_shared.file_utils import generate_standardized_filename
 
         # Test data
         camera_info = {
@@ -113,9 +111,9 @@ class TestPerformanceMetrics(unittest.TestCase):
         # Mock YOLO client to avoid actual network calls
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             # Setup mocks for performance testing
             mock_prepare.return_value = (self.test_image_data, "test.jpg")
@@ -165,7 +163,7 @@ class TestPerformanceMetrics(unittest.TestCase):
 
     def test_memory_leak_detection(self):
         """Test for memory leaks in repeated operations"""
-        from shared.file_utils import generate_standardized_filename, parse_standardized_filename
+        from sentrix_shared.file_utils import generate_standardized_filename, parse_standardized_filename
 
         # Baseline memory measurement
         gc.collect()
@@ -211,9 +209,9 @@ class TestPerformanceMetrics(unittest.TestCase):
 
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             # Setup mocks
             mock_standardized.return_value = "test.jpg"
@@ -311,9 +309,9 @@ class TestLoadTesting(unittest.TestCase):
         """Test sustained load with continuous image processing"""
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             # Setup mocks
             mock_prepare.return_value = (self.test_image_data, "load_test.jpg")
@@ -482,7 +480,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
     def test_filename_generation_benchmark(self):
         """Benchmark filename generation performance"""
-        from shared.file_utils import generate_standardized_filename
+        from sentrix_shared.file_utils import generate_standardized_filename
 
         # Benchmark different scenarios
         scenarios = [

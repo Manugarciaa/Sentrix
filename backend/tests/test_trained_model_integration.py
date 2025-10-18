@@ -12,8 +12,6 @@ from PIL import Image
 from fastapi.testclient import TestClient
 
 # Import the FastAPI app
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from app import app
 from src.services.analysis_service import analysis_service

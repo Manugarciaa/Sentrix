@@ -10,12 +10,9 @@ import asyncio
 import json
 from pathlib import Path
 
-# Agregar directorio raíz del proyecto al path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from src.services.yolo_service import YOLOServiceClient
-from src.utils.yolo_integration import parse_yolo_report, validate_yolo_response
-from shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
+from src.core.services.yolo_service import YOLOServiceClient
+from src.utils.integrations.yolo_integration import parse_yolo_report, validate_yolo_response
+from sentrix_shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
 
 
 def imprimir_encabezado(titulo):
@@ -149,7 +146,7 @@ def verificar_mapeos_enums():
     """Verifica que los mapeos entre YOLO y backend sean correctos"""
     imprimir_encabezado("VERIFICACIÓN DE MAPEOS DE ENUMS")
 
-    from src.utils.yolo_integration import (
+    from src.utils.integrations.yolo_integration import (
         CLASS_ID_TO_BREEDING_SITE,
         CLASS_NAME_TO_BREEDING_SITE,
         YOLO_RISK_TO_DETECTION_RISK

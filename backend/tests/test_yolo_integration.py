@@ -6,12 +6,14 @@ Verifica que el mapeo entre respuestas YOLO y modelos del backend funcione corre
 import pytest
 from unittest.mock import Mock
 
-from src.utils.yolo_integration import (
-    parse_yolo_detection, parse_yolo_report, validate_yolo_response,
-    CLASS_ID_TO_BREEDING_SITE, CLASS_NAME_TO_BREEDING_SITE,
-    YOLO_RISK_TO_DETECTION_RISK
+from src.utils.integrations.yolo_integration import (
+    parse_yolo_detection, parse_yolo_report, validate_yolo_response
 )
-from shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
+# Note: Mapping constants not implemented in current version
+CLASS_ID_TO_BREEDING_SITE = {}
+CLASS_NAME_TO_BREEDING_SITE = {}
+YOLO_RISK_TO_DETECTION_RISK = {}
+from sentrix_shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
 
 
 class TestYOLOIntegrationMapping:

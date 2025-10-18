@@ -13,11 +13,9 @@ import json
 import base64
 import asyncio
 
-import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from core.services.yolo_service import YOLOServiceClient
-from services.analysis_service import AnalysisService
+from src.core.services.yolo_service import YOLOServiceClient
+from src.services.analysis_service import AnalysisService
 
 
 class TestYOLOBackendIntegration(unittest.TestCase):
@@ -275,9 +273,9 @@ class TestCompleteImageProcessingWorkflow(unittest.TestCase):
             '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
         )
 
-    @patch('services.analysis_service.prepare_image_for_processing')
-    @patch('services.analysis_service.generate_standardized_filename')
-    @patch('services.analysis_service.create_filename_variations')
+    @patch('src.services.analysis_service.prepare_image_for_processing')
+    @patch('sentrix_shared.file_utils.generate_standardized_filename')
+    @patch('sentrix_shared.file_utils.create_filename_variations')
     async def test_complete_workflow_success(self, mock_variations, mock_standardized, mock_prepare):
         """Test complete successful workflow from image upload to storage"""
         # Mock image preparation
@@ -395,7 +393,7 @@ class TestCompleteImageProcessingWorkflow(unittest.TestCase):
     async def test_workflow_yolo_failure(self):
         """Test workflow when YOLO service fails"""
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare:
 
             mock_prepare.return_value = (self.test_image_data, self.test_filename)
             mock_yolo_client.detect_image.return_value = {"success": False}
@@ -412,9 +410,9 @@ class TestCompleteImageProcessingWorkflow(unittest.TestCase):
         """Test workflow when storage fails and rollback occurs"""
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             # Setup mocks
             mock_prepare.return_value = (self.test_image_data, self.test_filename)
@@ -468,7 +466,7 @@ class TestImageProcessingEdgeCases(unittest.TestCase):
 
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare:
 
             mock_prepare.return_value = (large_image_data, "large_image.jpg")
             mock_yolo_client.detect_image.return_value = {
@@ -507,9 +505,9 @@ class TestImageProcessingEdgeCases(unittest.TestCase):
 
         with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
              patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-             patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-             patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-             patch('services.analysis_service.create_filename_variations') as mock_variations:
+             patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+             patch('sentrix_shared.file_utils.generate_standardized_filename') as mock_standardized, \
+             patch('sentrix_shared.file_utils.create_filename_variations') as mock_variations:
 
             # Setup mocks
             mock_prepare.return_value = (test_data, "test.jpg")
