@@ -90,8 +90,8 @@ export const apiEndpoints = {
     info: '/api/v1/system/info',
   },
   upload: {
-    image: '/api/v1/upload/image',
-    batch: '/api/v1/upload/batch',
+    image: '/api/v1/analyses/public',  // Public endpoint without authentication
+    batch: '/api/v1/analyses/batch',
   },
 } as const
 

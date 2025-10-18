@@ -85,19 +85,28 @@ const ReportPage: React.FC = () => {
       const formData = new FormData()
       formData.append('file', selectedImage)
 
+      console.log('Sending request to:', `${config.api.baseUrl}${apiEndpoints.upload.image}`)
+
       const response = await fetch(`${config.api.baseUrl}${apiEndpoints.upload.image}`, {
         method: 'POST',
         body: formData,
+        // Don't set Content-Type header - browser will set it automatically with boundary
       })
 
+      console.log('Response status:', response.status)
+
       if (!response.ok) {
-        throw new Error('Error al procesar la imagen')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Error response:', errorData)
+        throw new Error(errorData.error?.message || 'Error al procesar la imagen')
       }
 
       const result = await response.json()
+      console.log('Analysis result:', result)
       setAnalysisResult(result)
       setStep('results')
     } catch (err) {
+      console.error('Analysis error:', err)
       setError(err instanceof Error ? err.message : 'Error al analizar la imagen')
       setStep('preview')
     }
