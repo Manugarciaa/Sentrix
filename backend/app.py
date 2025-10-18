@@ -16,9 +16,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 # Load environment variables
 load_dotenv()
 
-# Add paths for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Setup structured logging
+from src.logging_config import setup_logging, get_logger
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+setup_logging(log_level=log_level)
 
 # Validate configuration on startup
 try:
@@ -131,32 +132,71 @@ if allowed_origins_env:
 
 # Only allow * in development
 if os.getenv("ENVIRONMENT", "development") == "development":
-    allowed_origins.append("*")
+    # In development, use ["*"] directly instead of appending
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=True,
+    allow_credentials=False if "*" in allowed_origins else True,  # credentials not allowed with *
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-    expose_headers=["Content-Type", "Authorization"],
+    allow_headers=["*"],  # Allow all headers in development
+    expose_headers=["Content-Type", "Authorization", "X-Request-ID"],
     max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 
 # ============================================
+# Request ID Middleware
+# ============================================
+from src.middleware.request_id import setup_request_id_middleware
+setup_request_id_middleware(app)
+print("[OK] Request ID middleware configured")
+
+
+# ============================================
 # Global Exception Handlers
 # ============================================
+import uuid
+from datetime import datetime
+
+# Use structured logger
+logger = get_logger(__name__)
+
+
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    """Handle HTTP exceptions with consistent format"""
+    """
+    Handle HTTP exceptions with consistent format and tracking
+
+    Enhanced with:
+    - Unique error ID for tracking
+    - Request context logging with structured logging
+    - Consistent JSON structure
+    - Automatic request_id from context
+    """
+    error_id = str(uuid.uuid4())
+
+    # Log HTTP exception with structured logging
+    logger.warning(
+        "http_exception",
+        error_id=error_id,
+        status_code=exc.status_code,
+        path=str(request.url.path),
+        method=request.method,
+        client_host=request.client.host if request.client else "unknown",
+        error_detail=str(exc.detail)
+    )
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
+                "id": error_id,
                 "code": exc.status_code,
                 "message": exc.detail,
-                "type": "http_error"
+                "type": "http_error",
+                "timestamp": datetime.utcnow().isoformat()
             }
         }
     )
@@ -164,15 +204,37 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    """Handle validation errors with detailed information"""
+    """
+    Handle validation errors with detailed information
+
+    Enhanced with:
+    - Unique error ID for tracking
+    - Full validation error details
+    - Structured logging with request context
+    - Automatic request_id from context
+    """
+    error_id = str(uuid.uuid4())
+
+    # Log validation error with structured logging
+    logger.warning(
+        "validation_error",
+        error_id=error_id,
+        path=str(request.url.path),
+        method=request.method,
+        client_host=request.client.host if request.client else "unknown",
+        validation_errors=exc.errors()
+    )
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "error": {
+                "id": error_id,
                 "code": 422,
                 "message": "Validation error",
                 "type": "validation_error",
-                "details": exc.errors()
+                "details": exc.errors(),
+                "timestamp": datetime.utcnow().isoformat()
             }
         }
     )
@@ -180,25 +242,65 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    """Handle unexpected exceptions"""
-    # Log the error
-    import traceback
-    print(f"[ERROR] Unexpected error: {exc}")
-    print(traceback.format_exc())
+    """
+    Handle unexpected exceptions with proper logging and error masking
 
-    # Don't expose internal errors in production
+    Enhanced with:
+    - Unique error ID for tracking (critical for debugging)
+    - Full traceback logging with structured logging
+    - Production error masking
+    - Request context capture
+    - Automatic request_id from context
+    """
+    import traceback
+
+    error_id = str(uuid.uuid4())
+
+    # Capture full request context
+    request_headers = dict(request.headers)
+    # Remove sensitive headers from logs
+    sensitive_headers = ['authorization', 'cookie', 'x-api-key']
+    for header in sensitive_headers:
+        if header in request_headers:
+            request_headers[header] = "***REDACTED***"
+
+    # Log full error with structured logging
+    logger.error(
+        "unhandled_exception",
+        error_id=error_id,
+        exception_type=type(exc).__name__,
+        exception_message=str(exc),
+        path=str(request.url.path),
+        method=request.method,
+        client_host=request.client.host if request.client else "unknown",
+        query_params=dict(request.query_params),
+        headers=request_headers,
+        traceback=traceback.format_exc(),
+        exc_info=True
+    )
+
+    # Determine error message based on environment
     if os.getenv("ENVIRONMENT") == "production":
-        message = "Internal server error"
+        # Production: mask error details
+        message = "An internal error occurred. Please contact support with this error ID."
+        # Don't include exception details
+        error_type = "internal_error"
     else:
-        message = str(exc)
+        # Development: show full error
+        message = f"{type(exc).__name__}: {str(exc)}"
+        error_type = type(exc).__name__
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": {
+                "id": error_id,
                 "code": 500,
                 "message": message,
-                "type": "internal_error"
+                "type": error_type,
+                "timestamp": datetime.utcnow().isoformat(),
+                # Only include in development
+                **({"traceback": traceback.format_exc()} if os.getenv("ENVIRONMENT") != "production" else {})
             }
         }
     )

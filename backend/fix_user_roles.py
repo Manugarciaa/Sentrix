@@ -11,8 +11,6 @@ backend_dir = os.path.dirname(__file__)
 env_path = os.path.join(backend_dir, '.env')
 load_dotenv(env_path)
 
-# Add src to path
-sys.path.insert(0, os.path.join(backend_dir, 'src'))
 
 from sqlalchemy import create_engine, text
 from src.database.connection import get_database_url

@@ -27,14 +27,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Add src to Python path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
 from src.core import SentrixAPIManager, AnalysisProcessor, DetectionValidator
-from src.database.connection import test_connection, get_database_info
+from src.database.connection import test_database_connection, get_database_info
 from src.utils import get_project_root, validate_connection
 from src.schemas.analyses import AnalysisCreate
-from shared.data_models import UserRoleEnum
+from sentrix_shared.data_models import UserRoleEnum
 
 
 def print_section_header(title: str):
@@ -51,7 +48,7 @@ async def handle_database_commands(args):
     if args.db_action == "status":
         print("[CHECK] Checking database connection...")
 
-        if test_connection():
+        if test_database_connection():
             print("✓ Database connection: OK")
 
             db_info = get_database_info()

@@ -13,6 +13,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from ..utils.paths import get_database_url_from_env
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_database_url():
@@ -98,7 +101,7 @@ def get_db():
         db.close()
 
 
-def test_connection():
+def test_database_connection():
     """
     Test database connection
     Probar conexión a base de datos
@@ -110,7 +113,7 @@ def test_connection():
         db.close()
         return True
     except Exception as e:
-        print(f"ERROR: Error de conexión a la base de datos: {e}")
+        logger.error("database connection error", error=str(e))
         return False
 
 

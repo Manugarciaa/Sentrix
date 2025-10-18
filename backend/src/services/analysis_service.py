@@ -9,16 +9,23 @@ import os
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from pathlib import Path
+import httpx
 
-# Add shared to path and handle imports gracefully
-shared_path = os.path.join(os.path.dirname(__file__), '..', '..', '..')
-if shared_path not in sys.path:
-    sys.path.insert(0, shared_path)
+from ..logging_config import get_logger
+from ..exceptions import (
+    ImageProcessingException,
+    YOLOServiceException,
+    YOLOTimeoutException,
+    DatabaseException,
+    GPSExtractionException
+)
+
+logger = get_logger(__name__)
 
 # Try to import shared functionality
 try:
-    from shared.file_utils import generate_standardized_filename, create_filename_variations
-    from shared.image_deduplication import (
+    from sentrix_shared.file_utils import generate_standardized_filename, create_filename_variations
+    from sentrix_shared.image_deduplication import (
         calculate_content_signature,
         check_image_duplicate,
         should_store_image,
@@ -26,13 +33,13 @@ try:
     )
     SHARED_AVAILABLE = True
     DEDUPLICATION_AVAILABLE = True
-    # Only print in non-testing mode
+    # Only log in non-testing mode
     if not os.getenv('TESTING_MODE', 'false').lower() == 'true':
-        print("Shared library loaded successfully")
+        logger.info("shared library loaded successfully")
 except ImportError as e:
-    # Only print warnings in non-testing mode
+    # Only log warnings in non-testing mode
     if not os.getenv('TESTING_MODE', 'false').lower() == 'true':
-        print(f"Info: Using fallback implementation (set TESTING_MODE=true to suppress)")
+        logger.info("using fallback implementation", error=str(e))
     SHARED_AVAILABLE = False
     DEDUPLICATION_AVAILABLE = False
 
@@ -91,9 +98,9 @@ except ImportError:
         from utils.image_conversion import prepare_image_for_processing
         from schemas.analyses import AnalysisResponse, DetectionResponse, LocationResponse, CameraInfoResponse, RiskAssessmentResponse
     except ImportError as e:
-        # Only print warnings in non-testing mode
+        # Only log warnings in non-testing mode
         if not os.getenv('TESTING_MODE', 'false').lower() == 'true':
-            print(f"Info: Using mock backend modules (set TESTING_MODE=true to suppress)")
+            logger.info("using mock backend modules", error=str(e))
         # Create minimal mock classes for basic functionality
         class SupabaseManager:
             def __init__(self): pass
@@ -174,7 +181,9 @@ class AnalysisService:
 
         # 2. Calcular signature de contenido para deduplicación
         content_signature = calculate_content_signature(processed_image_data)
-        print(f"Content signature: {content_signature['sha256'][:12]}... ({content_signature['size_bytes']} bytes)")
+        logger.debug("content signature calculated",
+                    sha256_prefix=content_signature['sha256'][:12],
+                    size_bytes=content_signature['size_bytes'])
 
         # 3. Verificar duplicados antes de procesar
         if DEDUPLICATION_AVAILABLE:
@@ -188,7 +197,7 @@ class AnalysisService:
                 gps_data=None      # Se obtendrá del YOLO
             )
 
-            print(f"Duplicate check: is_duplicate={duplicate_check['is_duplicate']}")
+            logger.debug("duplicate check completed", is_duplicate=duplicate_check['is_duplicate'])
 
             if duplicate_check['is_duplicate'] and not should_store_image(duplicate_check):
                 # Es un duplicado, crear referencia en lugar de procesar
@@ -259,7 +268,7 @@ class AnalysisService:
                 gps_data=gps_data
             )
 
-            print(f"Generated standardized filename: {standardized_filename}")
+            logger.debug("generated standardized filename", filename=standardized_filename)
 
             # 6. Obtener imagen procesada de YOLO (si está disponible)
             processed_image_data_from_yolo = yolo_result.get("processed_image_data")  # TODO: Implementar en YOLO service
@@ -315,12 +324,16 @@ class AnalysisService:
                 "created_at": timestamp.isoformat()
             }
 
-            print(f"Creating analysis with standardized naming: {image_filename}")
+            logger.debug("creating analysis with standardized naming",
+                        analysis_id=analysis_id,
+                        filename=image_filename)
 
             # Insertar análisis básico
             insert_result = self.supabase.insert_analysis(basic_analysis_data)
             if insert_result.get("status") != "success":
-                print(f"Error inserting analysis {analysis_id}: {insert_result.get('message')}")
+                logger.error("error inserting analysis",
+                           analysis_id=analysis_id,
+                           message=insert_result.get('message'))
                 # Clean up uploaded images if DB insert fails
                 if image_upload_result and image_upload_result["status"] == "success":
                     if "original" in image_upload_result:
@@ -351,10 +364,10 @@ class AnalysisService:
                 # Intentar actualizar con GPS usando tabla directa
                 try:
                     update_result = self.supabase.client.table('analyses').update(gps_update_data).eq('id', analysis_id).execute()
-                    print(f"SUCCESS: GPS data stored for analysis {analysis_id}")
-                    print(f"DEBUG: GPS update result: {update_result.data}")
+                    logger.info("gps data stored for analysis", analysis_id=analysis_id)
+                    logger.debug("gps update result", data=update_result.data)
                 except Exception as e:
-                    print(f"WARNING: GPS update failed: {e}")
+                    logger.warning("gps update failed", analysis_id=analysis_id, error=str(e))
 
             # Intentar agregar información de cámara
             if camera_info:
@@ -365,10 +378,10 @@ class AnalysisService:
                 }
                 try:
                     update_result = self.supabase.client.table('analyses').update(camera_update_data).eq('id', analysis_id).execute()
-                    print(f"SUCCESS: Camera data stored for analysis {analysis_id}")
-                    print(f"DEBUG: Camera update result: {update_result.data}")
+                    logger.info("camera data stored for analysis", analysis_id=analysis_id)
+                    logger.debug("camera update result", data=update_result.data)
                 except Exception as e:
-                    print(f"WARNING: Camera update failed: {e}")
+                    logger.warning("camera update failed", analysis_id=analysis_id, error=str(e))
 
             # Agregar metadatos de procesamiento
             processing_update_data = {
@@ -378,11 +391,11 @@ class AnalysisService:
             }
             try:
                 update_result = self.supabase.client.table('analyses').update(processing_update_data).eq('id', analysis_id).execute()
-                print(f"SUCCESS: Processing metadata stored for analysis {analysis_id}")
+                logger.info("processing metadata stored for analysis", analysis_id=analysis_id)
             except Exception as e:
-                print(f"WARNING: Processing metadata update failed: {e}")
+                logger.warning("processing metadata update failed", analysis_id=analysis_id, error=str(e))
 
-            print(f"DEBUG: Analysis {analysis_id} processing completed")
+            logger.debug("analysis processing completed", analysis_id=analysis_id)
 
             return {
                 "analysis_id": analysis_id,
@@ -403,10 +416,24 @@ class AnalysisService:
                 "filename_variations": filename_variations
             }
 
+        except httpx.TimeoutException:
+            logger.error("yolo_processing_timeout", analysis_id=analysis_id)
+            raise YOLOTimeoutException(timeout_seconds=30.0)
+        except httpx.HTTPStatusError as e:
+            logger.error("yolo_http_error", analysis_id=analysis_id, status=e.response.status_code)
+            raise YOLOServiceException(f"YOLO HTTP error: {e.response.status_code}")
+        except httpx.HTTPError as e:
+            logger.error("yolo_connection_error", analysis_id=analysis_id, error=str(e))
+            raise YOLOServiceException(f"Failed to connect to YOLO service: {str(e)}")
+        except KeyError as e:
+            logger.error("missing_yolo_field", analysis_id=analysis_id, field=str(e), exc_info=True)
+            raise YOLOServiceException(f"Missing required field in YOLO response: {e}")
+        except ValueError as e:
+            logger.error("invalid_processing_value", analysis_id=analysis_id, error=str(e), exc_info=True)
+            raise ImageProcessingException(f"Invalid value during processing: {str(e)}")
         except Exception as e:
-            # Log del error sin actualizar base de datos (no hay campo status/error_message)
-            print(f"Error procesando análisis {analysis_id}: {str(e)}")
-            raise Exception(f"Error procesando análisis: {str(e)}")
+            logger.error("error processing analysis", analysis_id=analysis_id, error=str(e), exc_info=True)
+            raise ImageProcessingException(f"Error procesando análisis: {str(e)}")
 
     async def get_analysis_by_id(self, analysis_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -427,8 +454,10 @@ class AnalysisService:
                 return None
 
             analysis = response.data[0]
-            print(f"DEBUG: Raw analysis from DB: {analysis.keys()}")
-            print(f"DEBUG: GPS fields in DB - has_gps_data: {analysis.get('has_gps_data')}, google_maps_url: {analysis.get('google_maps_url')}")
+            logger.debug("raw analysis from db", fields=list(analysis.keys()))
+            logger.debug("gps fields in db",
+                        has_gps_data=analysis.get('has_gps_data'),
+                        google_maps_url=analysis.get('google_maps_url'))
 
             # Obtener detecciones asociadas
             detections_response = self.supabase.client.table('detections').select('*').eq('analysis_id', analysis_id).execute()
@@ -459,9 +488,12 @@ class AnalysisService:
                 "detections": detections_response.data or []
             }
 
+        except KeyError as e:
+            logger.error("missing_analysis_field", analysis_id=analysis_id, field=str(e), exc_info=True)
+            raise DatabaseException(f"Missing required field in analysis data: {e}", operation="get_analysis")
         except Exception as e:
-            print(f"Error obteniendo análisis {analysis_id}: {e}")
-            return None
+            logger.error("error getting analysis", analysis_id=analysis_id, error=str(e), exc_info=True)
+            raise DatabaseException(f"Error retrieving analysis: {str(e)}", operation="get_analysis")
 
     async def _get_recent_analyses_for_deduplication(self, hours_back: int = 24, limit: int = 100) -> List[Dict[str, Any]]:
         """
@@ -478,7 +510,8 @@ class AnalysisService:
             return response.data or []
 
         except Exception as e:
-            print(f"Error getting recent analyses for deduplication: {e}")
+            logger.error("error getting recent analyses for deduplication", error=str(e), exc_info=True)
+            # Return empty list instead of raising - deduplication is not critical
             return []
 
     async def _handle_duplicate_image(
@@ -505,7 +538,7 @@ class AnalysisService:
             base_filename=processed_filename
         )
 
-        print(f"Creating duplicate reference for analysis {analysis_id}")
+        logger.debug("creating duplicate reference", analysis_id=analysis_id)
 
         # Crear registro de análisis que referencia al original
         duplicate_analysis_data = {
@@ -531,14 +564,18 @@ class AnalysisService:
         insert_result = self.supabase.insert_analysis(duplicate_analysis_data)
 
         if insert_result.get("status") != "success":
-            print(f"Error inserting duplicate reference {analysis_id}: {insert_result.get('message')}")
+            logger.error("error inserting duplicate reference",
+                        analysis_id=analysis_id,
+                        message=insert_result.get('message'))
             return {
                 "analysis_id": analysis_id,
                 "status": "failed",
                 "error": "Database insertion failed for duplicate reference"
             }
 
-        print(f"SUCCESS: Duplicate reference {analysis_id} created, saved {content_signature['size_bytes']} bytes")
+        logger.info("duplicate reference created",
+                   analysis_id=analysis_id,
+                   storage_saved_bytes=content_signature['size_bytes'])
 
         return {
             "analysis_id": analysis_id,
@@ -594,7 +631,8 @@ class AnalysisService:
             }
 
         except Exception as e:
-            print(f"Error getting deduplication stats: {e}")
+            logger.error("error getting deduplication stats", error=str(e), exc_info=True)
+            # Return default stats instead of raising - stats are non-critical
             return {
                 "error": str(e),
                 "total_analyses": 0,
@@ -692,15 +730,181 @@ class AnalysisService:
                 "has_next": offset + limit < total
             }
 
+        except KeyError as e:
+            logger.error("missing_list_field", field=str(e), exc_info=True)
+            raise DatabaseException(f"Missing required field in analysis list: {e}", operation="list_analyses")
+        except ValueError as e:
+            logger.error("invalid_list_value", error=str(e), exc_info=True)
+            raise DatabaseException(f"Invalid value in analysis list: {str(e)}", operation="list_analyses")
         except Exception as e:
-            print(f"Error listando análisis: {e}")
+            logger.error("error listing analyses", error=str(e), exc_info=True)
+            raise DatabaseException(f"Error listing analyses: {str(e)}", operation="list_analyses")
+
+    async def get_heatmap_data(
+        self,
+        limit: int = 1000,
+        risk_level: Optional[str] = None,
+        since: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Obtener datos georeferenciados para visualización de mapa de calor
+
+        Incluye información de tipo de criadero para diferenciación de colores
+
+        Args:
+            limit: Número máximo de análisis a retornar
+            risk_level: Filtrar por nivel de riesgo (ALTO, MEDIO, BAJO)
+            since: Filtrar análisis desde fecha ISO
+
+        Returns:
+            Dict con datos de ubicaciones para heatmap, incluyendo breeding_site_types
+        """
+        try:
+            # Check if Supabase client is properly configured
+            if not self.supabase or not hasattr(self.supabase, 'client') or not self.supabase.client:
+                logger.warning("supabase_not_configured", message="Supabase not configured, returning empty heatmap data")
+                return {
+                    "status": "success",
+                    "data": [],
+                    "count": 0
+                }
+
+            # Construir query con filtros
+            query = self.supabase.client.table("analyses")\
+                .select("id, google_maps_url, risk_level, total_detections, created_at")\
+                .not_.is_("google_maps_url", "null")\
+                .order("created_at", desc=True)\
+                .limit(limit)
+
+            if risk_level:
+                query = query.eq("risk_level", risk_level.upper())
+            if since:
+                query = query.gte("created_at", since)
+
+            result = query.execute()
+
+            if not result.data:
+                return {
+                    "status": "success",
+                    "data": [],
+                    "count": 0
+                }
+
+            # Fetch detections for these analyses to get breeding site types
+            analysis_ids = [analysis['id'] for analysis in result.data]
+
+            detections_query = self.supabase.client.table("detections")\
+                .select("analysis_id, breeding_site_type, risk_level")\
+                .in_("analysis_id", analysis_ids)
+
+            detections_result = detections_query.execute()
+
+            # Group detections by analysis_id and breeding_site_type
+            detections_by_analysis = {}
+            for detection in (detections_result.data or []):
+                aid = detection['analysis_id']
+                if aid not in detections_by_analysis:
+                    detections_by_analysis[aid] = []
+                detections_by_analysis[aid].append(detection)
+
+            # Enrich analysis data with detection types
+            for analysis in result.data:
+                aid = analysis['id']
+                analysis['detections'] = detections_by_analysis.get(aid, [])
+
             return {
-                "analyses": [],
-                "total": 0,
-                "limit": limit,
-                "offset": offset,
-                "has_next": False
+                "status": "success",
+                "data": result.data,
+                "count": len(result.data)
             }
+
+        except (OSError, ConnectionError) as e:
+            # Handle DNS/network errors gracefully (e.g., Supabase not reachable)
+            logger.warning("supabase_connection_error", error=str(e), message="Supabase connection failed, returning empty data")
+            return {
+                "status": "success",
+                "data": [],
+                "count": 0
+            }
+        except KeyError as e:
+            logger.error("heatmap_missing_field", field=str(e), exc_info=True)
+            raise DatabaseException(f"Missing required field in heatmap data: {e}", operation="fetch_heatmap")
+        except Exception as e:
+            # Check if it's a network/DNS error
+            error_str = str(e).lower()
+            if 'getaddrinfo' in error_str or 'connection' in error_str or 'dns' in error_str:
+                logger.warning("supabase_network_error", error=str(e), message="Network error accessing Supabase, returning empty data")
+                return {
+                    "status": "success",
+                    "data": [],
+                    "count": 0
+                }
+            logger.error("heatmap_fetch_error", error=str(e), exc_info=True)
+            raise DatabaseException(f"Error fetching heatmap data: {str(e)}", operation="fetch_heatmap")
+
+    async def get_map_statistics(self) -> Dict[str, Any]:
+        """
+        Obtener estadísticas agregadas para visualización de mapa
+
+        Returns:
+            Dict con estadísticas del sistema: total de análisis, detecciones,
+            distribución de riesgo, área monitoreada
+        """
+        try:
+            # Check if Supabase client is properly configured
+            if not self.supabase or not hasattr(self.supabase, 'client') or not self.supabase.client:
+                logger.warning("supabase_not_configured", message="Supabase not configured, returning empty statistics")
+                return {
+                    "total_analyses": 0,
+                    "total_detections": 0,
+                    "data": []
+                }
+
+            # Fetch analyses from database
+            analyses = self.supabase.client.table("analyses")\
+                .select("risk_level, total_detections, google_maps_url, created_at")\
+                .execute()
+
+            if not analyses.data:
+                return {
+                    "total_analyses": 0,
+                    "total_detections": 0,
+                    "data": []
+                }
+
+            return {
+                "status": "success",
+                "data": analyses.data,
+                "total_analyses": len(analyses.data),
+                "total_detections": sum(a.get("total_detections", 0) for a in analyses.data)
+            }
+
+        except (OSError, ConnectionError) as e:
+            # Handle DNS/network errors gracefully (e.g., Supabase not reachable)
+            logger.warning("supabase_connection_error", error=str(e), message="Supabase connection failed, returning empty stats")
+            return {
+                "total_analyses": 0,
+                "total_detections": 0,
+                "data": []
+            }
+        except KeyError as e:
+            logger.error("map_stats_missing_field", field=str(e), exc_info=True)
+            raise DatabaseException(f"Missing required field in statistics: {e}", operation="fetch_map_stats")
+        except ValueError as e:
+            logger.error("map_stats_invalid_value", error=str(e), exc_info=True)
+            raise DatabaseException(f"Invalid value in statistics calculation: {str(e)}", operation="fetch_map_stats")
+        except Exception as e:
+            # Check if it's a network/DNS error
+            error_str = str(e).lower()
+            if 'getaddrinfo' in error_str or 'connection' in error_str or 'dns' in error_str:
+                logger.warning("supabase_network_error", error=str(e), message="Network error accessing Supabase, returning empty stats")
+                return {
+                    "total_analyses": 0,
+                    "total_detections": 0,
+                    "data": []
+                }
+            logger.error("map_stats_fetch_error", error=str(e), exc_info=True)
+            raise DatabaseException(f"Error fetching map statistics: {str(e)}", operation="fetch_map_stats")
 
 
 # Instancia singleton

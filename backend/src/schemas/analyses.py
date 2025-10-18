@@ -8,7 +8,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field, validator
 from uuid import UUID
 
-from shared.data_models import (
+from sentrix_shared.data_models import (
     RiskLevelEnum, DetectionRiskEnum, BreedingSiteTypeEnum,
     LocationSourceEnum, ValidationStatusEnum
 )

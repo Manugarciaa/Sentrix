@@ -6,18 +6,15 @@ Integrates the shared temporal persistence model with backend detection creation
 Integra el modelo de persistencia temporal compartido con la creación de detecciones en backend.
 """
 
-import sys
-import os
 from datetime import datetime
 from typing import Dict, Any, Optional
 
-# Add shared to path
-shared_path = os.path.join(os.path.dirname(__file__), '..', '..', '..')
-if shared_path not in sys.path:
-    sys.path.insert(0, shared_path)
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
 
 try:
-    from shared.temporal_persistence import (
+    from sentrix_shared.temporal_persistence import (
         calculate_validity_period,
         calculate_expiration_date,
         get_persistence_type,
@@ -26,10 +23,10 @@ try:
         PersistenceTypeEnum,
         WeatherConditionEnum
     )
-    from shared.data_models import BreedingSiteTypeEnum, DetectionRiskEnum
+    from sentrix_shared.data_models import BreedingSiteTypeEnum, DetectionRiskEnum
     TEMPORAL_PERSISTENCE_AVAILABLE = True
 except ImportError as e:
-    print(f"Warning: Temporal persistence not available: {e}")
+    logger.warning("temporal persistence not available", error=str(e))
     TEMPORAL_PERSISTENCE_AVAILABLE = False
 
 
@@ -144,7 +141,7 @@ def calculate_detection_validity(
         }
 
     except Exception as e:
-        print(f"Error calculating detection validity: {e}")
+        logger.error("error calculating detection validity", error=str(e))
         # Return safe defaults on error
         return {
             "validity_period_days": 30,
@@ -230,7 +227,7 @@ def get_detection_validity_status(expires_at: str) -> Dict[str, Any]:
         expires_datetime = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
         return get_validity_status(expires_datetime)
     except (ValueError, AttributeError) as e:
-        print(f"Error parsing expiration date: {e}")
+        logger.error("error parsing expiration date", error=str(e), expires_at=expires_at)
         return {
             "is_expired": False,
             "is_expiring_soon": False,
@@ -295,7 +292,7 @@ def extend_detection_validity(
         }
 
     except (ValueError, AttributeError) as e:
-        print(f"Error extending validity: {e}")
+        logger.error("error extending validity", error=str(e), current_expires_at=current_expires_at)
         return {
             "error": str(e)
         }

@@ -5,10 +5,7 @@ YOLO service integration utilities
 from typing import Dict, Any, Optional
 
 # Import shared risk assessment
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-from shared.risk_assessment import assess_dengue_risk
+from sentrix_shared.risk_assessment import assess_dengue_risk
 
 def calculate_risk_assessment(detections: list) -> Dict[str, Any]:
     """

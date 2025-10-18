@@ -3,13 +3,10 @@ Database enums using shared data models
 Enums de base de datos usando modelos de datos compartidos
 """
 
-import sys
-import os
 from sqlalchemy import Enum
 
 # Import from shared library
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
-from shared.data_models import (
+from sentrix_shared.data_models import (
     DetectionRiskEnum,
     BreedingSiteTypeEnum,
     AnalysisStatusEnum,

@@ -2,12 +2,17 @@
 Database migrations module
 """
 
+from ...logging_config import get_logger
+
+logger = get_logger(__name__)
+
+
 def run_migrations():
     """
     Run database migrations
     Placeholder function for migration system
     """
-    print("Migrations placeholder - would run database migrations here")
+    logger.info("migrations placeholder - would run database migrations here")
     return True
 
 def check_migration_status():

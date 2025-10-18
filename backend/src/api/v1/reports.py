@@ -12,6 +12,10 @@ from sqlalchemy import text, func
 from ...database.connection import get_db
 from ...utils.auth import get_current_active_user
 from ...database.models.models import UserProfile
+from ...exceptions import DatabaseException, ImageProcessingException
+from ...logging_config import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -46,11 +50,12 @@ async def get_dashboard_statistics(
 
         return stats
 
+    except KeyError as e:
+        logger.error("stats_missing_field", field=str(e), exc_info=True)
+        raise DatabaseException(f"Missing required field in statistics: {e}", operation="get_dashboard_stats")
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving statistics: {str(e)}"
-        )
+        logger.error("stats_retrieval_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving statistics: {str(e)}", operation="get_dashboard_stats")
 
 
 @router.get("/risk-distribution")
@@ -73,10 +78,8 @@ async def get_risk_distribution(
         return distribution
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving risk distribution: {str(e)}"
-        )
+        logger.error("risk_distribution_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving risk distribution: {str(e)}", operation="get_risk_distribution")
 
 
 @router.get("/monthly-analyses")
@@ -101,10 +104,8 @@ async def get_monthly_analyses(
         return monthly_data
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving monthly analyses: {str(e)}"
-        )
+        logger.error("monthly_analyses_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving monthly analyses: {str(e)}", operation="get_monthly_analyses")
 
 
 @router.get("/recent-activity")
@@ -156,10 +157,8 @@ async def get_recent_activity(
         return recent_activity[:limit]
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving recent activity: {str(e)}"
-        )
+        logger.error("recent_activity_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving recent activity: {str(e)}", operation="get_recent_activity")
 
 
 @router.get("/quality-metrics")
@@ -183,10 +182,8 @@ async def get_quality_metrics(
         return metrics
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving quality metrics: {str(e)}"
-        )
+        logger.error("quality_metrics_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving quality metrics: {str(e)}", operation="get_quality_metrics")
 
 
 @router.get("/validation-stats")
@@ -213,10 +210,8 @@ async def get_validation_stats(
         return stats
 
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error retrieving validation stats: {str(e)}"
-        )
+        logger.error("validation_stats_error", error=str(e), exc_info=True)
+        raise DatabaseException(f"Error retrieving validation stats: {str(e)}", operation="get_validation_stats")
 
 
 @router.get("/list")
@@ -314,12 +309,24 @@ async def generate_report(
                 "data": stats
             }
 
-    except Exception as e:
-        logger.error(f"Error generating report: {e}")
+    except ImportError as e:
+        logger.error("report_service_not_available", error=str(e))
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error generating report: {str(e)}"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Report generation service not available"
         )
+    except ValueError as e:
+        logger.error("report_invalid_config", error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid report configuration: {str(e)}"
+        )
+    except OSError as e:
+        logger.error("report_io_error", error=str(e), exc_info=True)
+        raise ImageProcessingException(f"Error writing report file: {str(e)}")
+    except Exception as e:
+        logger.error("report_generation_error", error=str(e), exc_info=True)
+        raise ImageProcessingException(f"Error generating report: {str(e)}")
 
 
 @router.delete("/{report_id}")
@@ -345,8 +352,15 @@ async def delete_report(
             "report_id": report_id
         }
 
-    except Exception as e:
+    except FileNotFoundError as e:
+        logger.error("report_not_found", report_id=report_id, error=str(e))
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error deleting report: {str(e)}"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Report not found: {report_id}"
         )
+    except OSError as e:
+        logger.error("report_delete_io_error", report_id=report_id, error=str(e), exc_info=True)
+        raise ImageProcessingException(f"Error deleting report file: {str(e)}")
+    except Exception as e:
+        logger.error("report_delete_error", report_id=report_id, error=str(e), exc_info=True)
+        raise DatabaseException(f"Error deleting report: {str(e)}", operation="delete_report")

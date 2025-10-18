@@ -13,8 +13,6 @@ import psutil
 import platform
 from datetime import datetime
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 try:
     import requests

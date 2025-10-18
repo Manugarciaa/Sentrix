@@ -8,7 +8,7 @@ from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 
-from shared.data_models import UserRoleEnum
+from sentrix_shared.data_models import UserRoleEnum
 
 
 class UserBase(BaseModel):

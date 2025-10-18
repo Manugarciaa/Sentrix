@@ -10,6 +10,10 @@ from pathlib import Path
 from io import BytesIO
 from supabase import create_client, Client
 
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
+
 # Handle config import gracefully
 try:
     from ..config import get_settings
@@ -28,7 +32,7 @@ except ImportError:
 
         # Only show warning if not in testing mode
         if not os.getenv('TESTING_MODE', 'false').lower() == 'true':
-            print("Info: Using mock configuration (set TESTING_MODE=true to suppress)")
+            logger.info("using mock configuration for testing")
 
 
 class SupabaseManager:

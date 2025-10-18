@@ -9,11 +9,24 @@ Controlador principal para manejar peticiones API y coordinar servicios
 from typing import List, Dict, Any, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+import httpx
 
 from ..database.models import Analysis, Detection
 from ..schemas.analyses import AnalysisCreate, AnalysisResponse
 from .services.yolo_service import YOLOServiceClient
 from ..utils.database_utils import get_db_context
+from ..config import get_settings
+from ..exceptions import (
+    YOLOServiceException,
+    YOLOTimeoutException,
+    DatabaseException,
+    AnalysisNotFoundException
+)
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
+
+settings = get_settings()
 
 
 class SentrixAPIManager:
@@ -34,7 +47,7 @@ class SentrixAPIManager:
             # Process image with YOLO service
             yolo_results = await self.yolo_client.detect_breeding_sites(
                 image_path=analysis_data.image_path,
-                confidence_threshold=analysis_data.confidence_threshold or 0.5
+                confidence_threshold=analysis_data.confidence_threshold or settings.yolo_confidence_threshold
             )
 
             # Store in database
@@ -43,7 +56,7 @@ class SentrixAPIManager:
                 db_analysis = Analysis(
                     image_path=analysis_data.image_path,
                     user_id=analysis_data.user_id,
-                    confidence_threshold=analysis_data.confidence_threshold or 0.5,
+                    confidence_threshold=analysis_data.confidence_threshold or settings.yolo_confidence_threshold,
                     total_detections=len(yolo_results.get("detections", [])),
                     risk_level=yolo_results.get("risk_assessment", {}).get("level", "UNKNOWN")
                 )
@@ -75,11 +88,21 @@ class SentrixAPIManager:
                     yolo_results=yolo_results
                 )
 
+        except httpx.TimeoutException:
+            logger.error("yolo_service_timeout", image_path=analysis_data.image_path)
+            raise YOLOTimeoutException(timeout_seconds=settings.yolo_timeout_seconds)
+        except httpx.HTTPStatusError as e:
+            logger.error("yolo_http_error", status=e.response.status_code, error=str(e))
+            raise YOLOServiceException(f"YOLO service HTTP error: {e.response.status_code}")
+        except httpx.HTTPError as e:
+            logger.error("yolo_connection_error", error=str(e))
+            raise YOLOServiceException(f"Failed to connect to YOLO service: {str(e)}")
+        except KeyError as e:
+            logger.error("missing_yolo_field", field=str(e), exc_info=True)
+            raise YOLOServiceException(f"Missing required field in YOLO response: {e}")
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error processing analysis: {str(e)}"
-            )
+            logger.error("analysis_creation_failed", error=str(e), exc_info=True)
+            raise DatabaseException(f"Error creating analysis: {str(e)}", operation="create_analysis")
 
     def get_analysis(self, analysis_id: int, user_id: Optional[int] = None) -> Dict[str, Any]:
         """

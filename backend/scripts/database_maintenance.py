@@ -10,13 +10,10 @@ import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Agregar directorio raíz del proyecto al path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
 from sqlalchemy import text, func
 from src.database import get_db_session
 from ..database.models.models import Analysis, Detection, UserProfile
-from shared.data_models import ValidationStatusEnum
+from sentrix_shared.data_models import ValidationStatusEnum
 
 
 def imprimir_encabezado(titulo):

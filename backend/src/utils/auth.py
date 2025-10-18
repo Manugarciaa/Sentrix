@@ -172,3 +172,49 @@ def create_user_tokens(user: UserProfile) -> tuple[str, str]:
     refresh_token = AuthService.create_refresh_token(token_data)
 
     return access_token, refresh_token
+
+
+# Compatibility functions for tests
+def get_password_hash(password: str) -> str:
+    """Hash a password using bcrypt (compatibility wrapper)"""
+    return AuthService.hash_password(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password against its hash (compatibility wrapper)"""
+    return AuthService.verify_password(plain_password, hashed_password)
+
+
+async def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[UserProfile]:
+    """
+    Dependency to optionally get the current authenticated user.
+
+    Returns None if no credentials provided or if credentials are invalid.
+    This allows endpoints to work both with and without authentication.
+
+    Args:
+        credentials: Optional HTTP bearer token
+        db: Database session
+
+    Returns:
+        UserProfile if authenticated, None otherwise
+    """
+    if not credentials:
+        return None
+
+    try:
+        token = credentials.credentials
+        token_data = AuthService.verify_token(token, "access")
+        if token_data is None:
+            return None
+    except JWTError:
+        return None
+
+    user = db.query(UserProfile).filter(UserProfile.id == token_data.user_id).first()
+    if user is None or not user.is_active:
+        return None
+
+    return user

@@ -5,8 +5,11 @@ Validación de configuración y secrets para Sentrix Backend
 
 import os
 import sys
+import logging
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -108,8 +111,13 @@ class ConfigValidator:
         # Check DATABASE_URL format
         database_url = os.getenv("DATABASE_URL")
         if database_url:
-            if not database_url.startswith(("postgresql://", "postgres://")):
-                errors.append("DATABASE_URL must start with postgresql:// or postgres://")
+            # In production, require PostgreSQL
+            if environment == "production":
+                if not database_url.startswith(("postgresql://", "postgres://")):
+                    errors.append("DATABASE_URL must start with postgresql:// or postgres:// in production")
+            # In development, allow SQLite or PostgreSQL
+            elif not database_url.startswith(("sqlite://", "postgresql://", "postgres://")):
+                warnings.append(f"DATABASE_URL format may be invalid: {database_url.split('://')[0]}://")
 
         # Check YOLO_SERVICE_URL format
         yolo_url = os.getenv("YOLO_SERVICE_URL")
@@ -140,40 +148,39 @@ class ConfigValidator:
 
     @classmethod
     def print_validation_report(cls, result: ValidationResult) -> None:
-        """Print colored validation report to console"""
+        """Log validation report using logging"""
 
-        print("\n" + "=" * 60)
-        print("[CONFIG] CONFIGURATION VALIDATION REPORT")
-        print("=" * 60)
+        logger.info("=" * 60)
+        logger.info("CONFIGURATION VALIDATION REPORT")
+        logger.info("=" * 60)
 
         if result.is_valid:
-            print("✓ Configuration is VALID")
+            logger.info("Configuration is VALID")
         else:
-            print("X Configuration is INVALID")
+            logger.error("Configuration is INVALID")
 
         if result.errors:
-            print(f"\nX ERRORS ({len(result.errors)}):")
+            logger.error(f"ERRORS ({len(result.errors)}):")
             for error in result.errors:
-                print(f"   - {error}")
+                logger.error(f"   - {error}")
 
         if result.warnings:
-            print(f"\n[WARN] WARNINGS ({len(result.warnings)}):")
+            logger.warning(f"WARNINGS ({len(result.warnings)}):")
             for warning in result.warnings:
-                print(f"   - {warning}")
+                logger.warning(f"   - {warning}")
 
         if result.missing_required:
-            print(f"\n[INFO] MISSING REQUIRED ({len(result.missing_required)}):")
+            logger.error(f"MISSING REQUIRED ({len(result.missing_required)}):")
             for var in result.missing_required:
-                print(f"   - {var}")
+                logger.error(f"   - {var}")
 
         if result.weak_secrets:
-            print(f"\n[SECURITY] WEAK SECRETS ({len(result.weak_secrets)}):")
+            logger.error(f"WEAK SECRETS ({len(result.weak_secrets)}):")
             for var in result.weak_secrets:
-                print(f"   - {var}")
-            print("\n[TIP] Generate strong secrets with:")
-            print("   openssl rand -hex 32")
+                logger.error(f"   - {var}")
+            logger.info("Generate strong secrets with: openssl rand -hex 32")
 
-        print("\n" + "=" * 60 + "\n")
+        logger.info("=" * 60)
 
     @classmethod
     def validate_or_exit(cls, strict: bool = False) -> None:
@@ -187,8 +194,8 @@ class ConfigValidator:
         cls.print_validation_report(result)
 
         if not result.is_valid:
-            print("X Cannot start application with invalid configuration")
-            print("   Please fix the errors above and try again\n")
+            logger.critical("Cannot start application with invalid configuration")
+            logger.critical("Please fix the errors above and try again")
             sys.exit(1)
 
 

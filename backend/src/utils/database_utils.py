@@ -9,6 +9,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from contextlib import contextmanager
 from .paths import get_database_url_from_env
+from ..logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 def get_db_session():
@@ -53,10 +56,10 @@ def validate_connection():
             return result.fetchone() is not None
 
     except SQLAlchemyError as e:
-        print(f"ERROR: Error de conexión a la base de datos: {e}")
+        logger.error("database connection error", error=str(e))
         return False
     except Exception as e:
-        print(f"ERROR: Error inesperado: {e}")
+        logger.error("unexpected database error", error=str(e))
         return False
 
 

@@ -26,9 +26,6 @@ def main():
     backend_dir = Path(__file__).parent.parent  # Go to backend root directory
     os.chdir(backend_dir)
 
-    # Add backend directory to Python path for imports
-    if str(backend_dir) not in sys.path:
-        sys.path.insert(0, str(backend_dir))
 
     print("Iniciando Sentrix FastAPI Backend")
     print(f"Working directory: {backend_dir}")
@@ -40,11 +37,10 @@ def main():
 
     try:
         uvicorn.run(
-            "app.main:app",
+            "app:app",
             host=host,
             port=port,
             reload=reload,
-            reload_dirs=["app"],
             log_level=log_level
         )
     except KeyboardInterrupt:

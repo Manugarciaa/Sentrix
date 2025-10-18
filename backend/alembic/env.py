@@ -5,8 +5,6 @@ from alembic import context
 import os
 import sys
 
-# Add the app directory to the Python path
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from ..database.models.base import Base
 from ..database.models.models import UserProfile, Analysis, Detection

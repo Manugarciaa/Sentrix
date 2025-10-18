@@ -11,11 +11,24 @@ from typing import List, Dict, Any, Optional
 from pathlib import Path
 import json
 from datetime import datetime
+import httpx
 
 from .services.yolo_service import YOLOServiceClient
 from ..utils.paths import get_logs_dir
 from ..utils.database_utils import get_db_context
 from ..database.models import Analysis, Detection
+from ..logging_config import get_logger
+from ..config import get_settings
+from ..exceptions import (
+    YOLOServiceException,
+    YOLOTimeoutException,
+    DatabaseException,
+    ImageProcessingException,
+    BatchProcessingException
+)
+
+logger = get_logger(__name__)
+settings = get_settings()
 
 
 class AnalysisProcessor:
@@ -32,13 +45,17 @@ class AnalysisProcessor:
         self,
         image_paths: List[str],
         user_id: int,
-        confidence_threshold: float = 0.5,
+        confidence_threshold: float = None,
         include_gps: bool = True
     ) -> Dict[str, Any]:
         """
         Process multiple images in batch
         Procesar múltiples imágenes por lotes
         """
+        # Set default confidence threshold from settings
+        if confidence_threshold is None:
+            confidence_threshold = settings.yolo_confidence_threshold
+
         results = {
             "total_images": len(image_paths),
             "processed": 0,
@@ -86,10 +103,28 @@ class AnalysisProcessor:
 
                 results["processed"] += 1
 
-            except Exception as e:
+            except httpx.TimeoutException:
+                logger.warning("batch_yolo_timeout", image_path=image_path)
                 results["errors"].append({
                     "image_path": image_path,
-                    "error": str(e)
+                    "error": "YOLO service timeout",
+                    "error_type": "timeout"
+                })
+                results["failed"] += 1
+            except httpx.HTTPError as e:
+                logger.warning("batch_yolo_error", image_path=image_path, error=str(e))
+                results["errors"].append({
+                    "image_path": image_path,
+                    "error": f"YOLO service error: {str(e)}",
+                    "error_type": "yolo_service"
+                })
+                results["failed"] += 1
+            except Exception as e:
+                logger.error("batch_processing_error", image_path=image_path, error=str(e), exc_info=True)
+                results["errors"].append({
+                    "image_path": image_path,
+                    "error": str(e),
+                    "error_type": "processing"
                 })
                 results["failed"] += 1
 
@@ -156,8 +191,10 @@ class AnalysisProcessor:
         try:
             with open(log_file, 'w', encoding='utf-8') as f:
                 json.dump(log_data, f, indent=2, ensure_ascii=False)
+        except OSError as e:
+            logger.error("batch_log_io_error", log_file=str(log_file), error=str(e), exc_info=True)
         except Exception as e:
-            print(f"ERROR: Error saving batch log: {e}")
+            logger.error("batch_log_save_error", log_file=str(log_file), error=str(e), exc_info=True)
 
     async def get_batch_statistics(self, days: int = 30) -> Dict[str, Any]:
         """
