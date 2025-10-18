@@ -13,8 +13,6 @@ import platform
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-
 try:
     import torch
     TORCH_AVAILABLE = True

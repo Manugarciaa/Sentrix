@@ -4,7 +4,10 @@ Utilidades de paths para hacer el proyecto portable entre diferentes PCs
 """
 
 import os
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def get_project_root():
@@ -125,9 +128,9 @@ def resolve_model_path(model_path_str):
 
     # 3. Si no existe localmente, permitir que YOLO lo descargue
     # pero retornar el path donde debería estar en models/
-    print(f"[WARN] Modelo {model_path_str} no encontrado localmente.")
-    print(f"       YOLO lo descargará automáticamente.")
-    print(f"       Recomendación: Mover el modelo descargado a {models_dir}/")
+    logger.warning(f"model {model_path_str} not found locally")
+    logger.info("yolo will download it automatically")
+    logger.info(f"recommendation: move downloaded model to {models_dir}/")
 
     return project_root / model_path_str  # Dejar que YOLO lo descargue en raíz
 

@@ -9,8 +9,7 @@ Ahora usa utilidades GPS compartidas para consistencia entre servicios
 import os
 import sys
 # Import shared GPS utilities
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-from shared.gps_utils import (
+from sentrix_shared.gps_utils import (
     extract_gps_from_exif as shared_extract_gps,
     extract_camera_info_from_exif as shared_extract_camera,
     extract_complete_image_metadata as shared_extract_metadata,

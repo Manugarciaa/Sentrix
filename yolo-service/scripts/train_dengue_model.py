@@ -1,8 +1,6 @@
 import argparse
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from src.core import train_dengue_model
 from src.utils import find_all_yolo_seg_models, get_yolo_model_specs, get_model_info, get_system_info
 from src.utils.file_ops import print_section_header

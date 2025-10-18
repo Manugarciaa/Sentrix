@@ -11,8 +11,6 @@ from datetime import datetime
 from pathlib import Path
 
 # Agregar el directorio raíz al path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from ultralytics import YOLO
 from configs.classes import DENGUE_CLASSES
 from src.utils import ensure_directory, detect_device

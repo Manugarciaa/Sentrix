@@ -3,8 +3,6 @@ import os
 import glob
 from pathlib import Path
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from src.core import detect_breeding_sites
 from src.reports import generate_report, save_report
 from src.utils import validate_model_file, validate_file_exists, get_image_extensions, ensure_directory, get_results_dir

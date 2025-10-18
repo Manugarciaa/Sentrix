@@ -4,6 +4,7 @@ Módulo de entrenamiento para detección de criaderos de dengue
 """
 
 import os
+import logging
 from datetime import datetime
 from ultralytics import YOLO
 
@@ -11,6 +12,8 @@ from ..utils import (
     detect_device, validate_file_exists, validate_model_file, cleanup_unwanted_downloads,
     get_models_dir, get_default_dataset_config, resolve_path, resolve_model_path, ensure_project_directories
 )
+
+logger = logging.getLogger(__name__)
 
 
 def train_dengue_model(model_path='yolo11n-seg.pt',
@@ -55,8 +58,8 @@ def train_dengue_model(model_path='yolo11n-seg.pt',
         experiment_name = base_name
 
     try:
-        print(f"Iniciando entrenamiento con {model_path}...")
-        print(f"Experimento: {experiment_name}")
+        logger.info(f"starting training with {model_path}")
+        logger.info(f"experiment: {experiment_name}")
         # Evitar descargas innecesarias de YOLO
         os.environ['YOLO_VERBOSE'] = 'False'
         os.environ['YOLO_AUTODOWNLOAD'] = 'False'
@@ -79,10 +82,10 @@ def train_dengue_model(model_path='yolo11n-seg.pt',
             copy_paste=0.3,
             amp=False  # Deshabilitar AMP para evitar descargas
         )
-        print("Entrenamiento completado exitosamente")
+        logger.info("training completed successfully")
         # Limpiar descargas no deseadas inmediatamente
         cleanup_unwanted_downloads()
         return results
     except Exception as e:
-        print(f"Error durante el entrenamiento: {e}")
+        logger.error(f"error during training: {e}")
         raise

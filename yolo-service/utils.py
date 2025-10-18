@@ -3,26 +3,39 @@ Utilidades comunes para el proyecto YOLO Dengue Detection
 """
 import os
 import sys
+import logging
 import torch
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 def setup_project_path():
-    """Configura el path del proyecto para imports"""
+    """
+    Configura el path del proyecto para imports
+    DEPRECATED: Use proper package imports instead (e.g., from sentrix_shared import X)
+    This function is kept for backward compatibility but should not be used in new code.
+    """
+    import warnings
+    warnings.warn(
+        "setup_project_path() is deprecated. Use proper package imports instead.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     project_root = Path(__file__).parent
     if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
+        sys.path.append(str(project_root))
 
 def detect_device():
     """Detecta automaticamente GPU/CPU y advierte si es necesario"""
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name(0)
         memory_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
-        print(f"GPU detectada: {device_name} ({memory_gb:.1f}GB)")
+        logger.info(f"GPU detectada: {device_name} ({memory_gb:.1f}GB)")
         return 'cuda'
     else:
-        print("GPU no disponible - usando CPU")
-        print("ADVERTENCIA: Entrenamiento sera significativamente mas lento")
-        print("Para GPU: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118")
+        logger.warning("GPU no disponible - usando CPU")
+        logger.warning("ADVERTENCIA: Entrenamiento sera significativamente mas lento")
+        logger.info("Para GPU: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118")
         return 'cpu'
 
 def validate_file_exists(file_path, file_type="archivo"):
@@ -49,7 +62,7 @@ def ensure_directory(directory_path):
 
 def print_section_header(title):
     """Imprime encabezado de seccion formateado"""
-    print(f"\n{'='*3} {title.upper()} {'='*3}")
+    logger.info(f"\n{'='*3} {title.upper()} {'='*3}")
 
 def get_system_info():
     """Obtiene informacion del sistema para debugging"""
@@ -196,6 +209,6 @@ def cleanup_unwanted_downloads():
         if os.path.exists(filename):
             try:
                 os.remove(filename)
-                print(f"Eliminado archivo no deseado: {filename}")
+                logger.info(f"Eliminado archivo no deseado: {filename}")
             except:
                 pass

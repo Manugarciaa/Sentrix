@@ -12,11 +12,8 @@ from pathlib import Path
 
 # Add project root and src to path
 project_root = os.path.dirname(os.path.dirname(__file__))
-sys.path.insert(0, project_root)
-sys.path.insert(0, os.path.join(project_root, 'src'))
-
-from ..core.detector import detect_breeding_sites
-from ..core.evaluator import assess_dengue_risk
+from src.core.detector import detect_breeding_sites
+from src.core.evaluator import assess_dengue_risk
 
 
 class TestModelInference:
@@ -46,15 +43,23 @@ class TestModelInference:
 
     def test_model_inference_on_test_image(self):
         """Test model inference on test image"""
-        detections = detect_breeding_sites(
+        result = detect_breeding_sites(
             model_path=self.model_path,
             source=self.test_image,
             conf_threshold=0.3,
             include_gps=True
         )
 
-        # Model should return results (even if empty)
+        # Model should return dict with required keys
+        assert isinstance(result, dict)
+        assert 'detections' in result
+        assert 'processed_image_path' in result
+        assert 'source_path' in result
+        assert 'total_detections' in result
+
+        detections = result['detections']
         assert isinstance(detections, list)
+        assert result['total_detections'] == len(detections)
 
         # If detections found, verify structure
         if detections:
@@ -63,8 +68,8 @@ class TestModelInference:
             for key in required_keys:
                 assert key in detection
 
-            # Verify class is one of our trained classes (allow both singular and plural forms)
-            valid_classes = ["Basura", "Calles mal hechas", "Charcos/Cumulos de agua", "Charcos/Cumulo de agua", "Huecos"]
+            # Verify class is one of our trained classes
+            valid_classes = ["Basura", "Calles mal hechas", "Charcos/Cumulo de agua", "Huecos"]
             assert detection['class'] in valid_classes
 
             # Verify confidence is in valid range
@@ -79,7 +84,7 @@ class TestModelInference:
         previous_count = float('inf')
 
         for threshold in thresholds:
-            detections = detect_breeding_sites(
+            result = detect_breeding_sites(
                 model_path=self.model_path,
                 source=self.test_image,
                 conf_threshold=threshold,
@@ -87,19 +92,20 @@ class TestModelInference:
             )
 
             # Higher threshold should result in fewer or equal detections
-            current_count = len(detections)
+            current_count = result['total_detections']
             assert current_count <= previous_count
             previous_count = current_count
 
     def test_risk_assessment_integration(self):
         """Test risk assessment with model detections"""
-        detections = detect_breeding_sites(
+        result = detect_breeding_sites(
             model_path=self.model_path,
             source=self.test_image,
             conf_threshold=0.3,
             include_gps=False
         )
 
+        detections = result['detections']
         risk_assessment = assess_dengue_risk(detections)
 
         # Verify risk assessment structure
@@ -108,7 +114,7 @@ class TestModelInference:
             assert key in risk_assessment
 
         # Verify risk level is valid
-        assert risk_assessment['level'] in ["ALTO", "MEDIO", "BAJO", "MÍNIMO"]
+        assert risk_assessment['level'] in ["ALTO", "MEDIO", "BAJO", "MINIMO"]
 
         # Verify risk score is numeric and in range
         assert isinstance(risk_assessment['risk_score'], (int, float))
@@ -119,12 +125,14 @@ class TestModelInference:
 
     def test_gps_metadata_extraction(self):
         """Test GPS metadata extraction functionality"""
-        detections = detect_breeding_sites(
+        result = detect_breeding_sites(
             model_path=self.model_path,
             source=self.test_image,
             conf_threshold=0.5,
             include_gps=True
         )
+
+        detections = result['detections']
 
         # Check that location data structure is present
         if detections:
@@ -146,7 +154,7 @@ class TestModelInference:
         import time
 
         start_time = time.time()
-        detections = detect_breeding_sites(
+        result = detect_breeding_sites(
             model_path=self.model_path,
             source=self.test_image,
             conf_threshold=0.5,
@@ -160,7 +168,7 @@ class TestModelInference:
         assert inference_time < 5.0, f"Inference took too long: {inference_time:.2f}s"
 
         print(f"Inference time: {inference_time:.3f}s")
-        print(f"Detections found: {len(detections)}")
+        print(f"Detections found: {result['total_detections']}")
 
     def test_batch_processing(self):
         """Test batch processing with multiple images"""
@@ -177,7 +185,7 @@ class TestModelInference:
                 test_images.append(temp_path)
 
             # Test batch processing
-            detections = detect_breeding_sites(
+            result = detect_breeding_sites(
                 model_path=self.model_path,
                 source=temp_dir,
                 conf_threshold=0.5,
@@ -185,7 +193,9 @@ class TestModelInference:
             )
 
             # Should process all images in directory
-            assert isinstance(detections, list)
+            assert isinstance(result, dict)
+            assert 'detections' in result
+            assert isinstance(result['detections'], list)
 
         finally:
             # Clean up temporary files

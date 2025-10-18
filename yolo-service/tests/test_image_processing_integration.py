@@ -11,10 +11,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
 # Add paths for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-
-from ..core.evaluator import assess_dengue_risk, process_image_for_detection
+from src.core.evaluator import assess_dengue_risk, process_image_for_detection
 
 
 class TestYoloImageProcessingIntegration:

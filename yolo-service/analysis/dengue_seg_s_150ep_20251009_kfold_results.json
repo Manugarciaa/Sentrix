@@ -1,0 +1,26 @@
+{
+  "experiment_name": "dengue_seg_s_150ep_20251009",
+  "timestamp": "2025-10-09T14:57:12.933107",
+  "n_folds": 5,
+  "config": {
+    "model": "models/yolo11s-seg.pt",
+    "data_root": "./data",
+    "epochs": 150,
+    "batch": 8,
+    "imgsz": 640,
+    "use_kfold": true,
+    "n_folds": 5,
+    "optimizer": "AdamW",
+    "lr0": 0.001,
+    "lrf": 0.01,
+    "weight_decay": 0.0005,
+    "dropout": 0.2,
+    "label_smoothing": 0.1,
+    "augment_strength": "extreme",
+    "patience": 50,
+    "name": "dengue_seg_s_150ep_20251009",
+    "seed": 42
+  },
+  "aggregated_metrics": {},
+  "per_fold_results": []
+}

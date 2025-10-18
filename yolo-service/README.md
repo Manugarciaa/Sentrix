@@ -1,173 +1,123 @@
-# Sentrix YOLO Service - Servicio de Detección IA
+# YOLO Service - Servicio de Detección IA
 
-Servicio de inteligencia artificial para la detección automatizada de criaderos de *Aedes aegypti* usando modelos YOLOv11. Incluye servidor HTTP FastAPI para integración con el backend.
+Servicio de inteligencia artificial para detección automatizada de criaderos de *Aedes aegypti* usando modelos YOLOv11.
 
 ## Descripción
 
-Este servicio constituye el **núcleo de IA** de la plataforma Sentrix, proporcionando capacidades avanzadas de visión por computadora para detectar sitios de reproducción del mosquito *Aedes aegypti*:
+Núcleo de IA de la plataforma Sentrix que proporciona capacidades de visión por computadora para detectar sitios de reproducción del mosquito *Aedes aegypti*:
 
-- **Basura** - Nivel de riesgo medio
-- **Calles deterioradas** - Nivel de riesgo alto
-- **Acumulaciones de agua** - Nivel de riesgo alto
-- **Huecos y depresiones** - Nivel de riesgo alto
-- **Generación de imágenes procesadas** - Con marcadores azules de detecciones
-- **Integración con nomenclatura estandarizada** - Nombres profesionales para archivos
+- **Charcos/Cúmulo de agua**: Nivel ALTO
+- **Basura**: Nivel ALTO
+- **Huecos**: Nivel MEDIO
+- **Calles mal hechas**: Nivel MEDIO
 
-## Arquitectura
+### Características
 
-### Estructura del Proyecto
+- **Modelos YOLOv11**: Segmentación de instancias a nivel pixel
+- **Detección Automática de Modelo**: Usa el modelo entrenado más reciente
+- **Imágenes Procesadas**: Generación automática con marcadores azules
+- **Evaluación de Riesgo**: Clasificación epidemiológica (ALTO/MEDIO/BAJO/MÍNIMO)
+- **Aceleración GPU**: Soporte CUDA automático
+- **Múltiples Formatos**: JPEG, PNG, HEIC, TIFF, WebP, BMP
+
+## Estructura del Proyecto
 
 ```
 yolo-service/
-├── server.py              # Servidor FastAPI (puerto 8001)
-├── main.py                # CLI para detección
-├── utils.py               # Utilidades generales
-├── diagnostic.py          # Diagnóstico de sistema
-├── Dockerfile             # Imagen Docker optimizada
-├── requirements.txt       # Dependencias Python
-├── src/                   # Código fuente
-│   ├── core/             # Detección, evaluación, training
-│   ├── utils/            # Device, file ops, GPS, models
-│   └── reports/          # Generación de reportes
-├── scripts/              # Scripts de utilidad
-│   ├── batch_detection.py
-│   ├── predict_new_images.py
-│   └── train_dengue_model.py
-├── configs/              # Archivos de configuración
-├── models/               # Modelos YOLO entrenados
-├── tests/                # Tests automatizados
-├── test_images/          # Imágenes de prueba
-├── data/                 # Dataset (images/labels)
-├── logs/                 # Logs del servicio
-└── results/              # Resultados de detecciones
+├── server.py                   # Servidor FastAPI (puerto 8001)
+├── main.py                     # CLI para detección manual
+├── train_simple.py             # Script de entrenamiento simplificado
+├── train_optimized.py          # Entrenamiento con k-fold cross-validation
+├── evaluate_final.py           # Evaluación de modelos entrenados
+├── diagnostic.py               # Diagnóstico de sistema y hardware
+├── requirements.txt            # Dependencias Python
+├── src/
+│   ├── core/                  # Módulos principales
+│   │   ├── detector.py        # Detector YOLO (inferencia)
+│   │   ├── evaluator.py       # Evaluador de modelos
+│   │   └── trainer.py         # Entrenador de modelos
+│   ├── reports/               # Generación de reportes
+│   │   └── report_generator.py # PDF y análisis de resultados
+│   └── utils/                 # Utilidades
+│       ├── device.py          # Gestión de GPU/CPU
+│       ├── file_ops.py        # Operaciones de archivo
+│       ├── gps_metadata.py    # Extracción GPS de imágenes
+│       └── paths.py           # Gestión de rutas
+├── scripts/                   # Scripts de utilidad
+│   ├── batch_detection.py     # Detección en batch
+│   ├── predict_new_images.py  # Predicción de nuevas imágenes
+│   └── train_dengue_model.py  # Script legacy de entrenamiento
+├── configs/                   # Configuraciones de entrenamiento
+│   ├── classes.py             # Definición de clases
+│   └── fold_*.yaml            # Configs para k-fold (5 folds)
+├── models/                    # Modelos YOLO entrenados
+│   ├── best.pt               # Mejor modelo manual
+│   ├── yolo11*-seg.pt        # Modelos base de Ultralytics
+│   └── dengue_seg_*/         # Runs de entrenamiento (auto-detectados)
+│       └── weights/best.pt
+├── tests/                     # Suite de tests
+│   ├── test_unified.py        # Tests unificados principales
+│   ├── test_model_inference.py # Tests de inferencia
+│   ├── test_gps_metadata.py   # Tests de extracción GPS
+│   ├── test_api_server.py     # Tests del servidor API
+│   └── test_complete_system.py # Tests de sistema completo
+├── test_images/               # Imágenes de prueba
+│   └── processed/             # Imágenes procesadas de tests
+└── results/                   # Resultados de detecciones
+    └── analysis/              # Análisis de dataset
 ```
 
-## Características Principales
-
-### Core de IA
-- **Modelos YOLOv11** optimizados para detección de criaderos
-- **Segmentación de instancias** con precisión a nivel de pixel
-- **Múltiples arquitecturas** (nano, small, medium, large)
-- **Selección automática** según capacidades de hardware
-- **Generación de imágenes procesadas** con marcadores azules de detecciones
-- **OpenCV integrado** para visualización y post-procesamiento
-
-### Evaluación de Riesgo
-- **Algoritmo epidemiológico** para clasificación de riesgo
-- **Análisis contextual** de tipos de criaderos detectados
-- **Métricas de confianza** por detección
-- **Reportes estructurados** en JSON
-
-### Optimización
-- **Aceleración GPU** automática con CUDA
-- **Procesamiento por lotes** para múltiples imágenes
-- **Arquitectura modular** para mantenimiento
-- **Paths portables** multiplataforma
-
-### Funcionalidades Avanzadas
-- **Imágenes Procesadas**: Generación automática con marcadores azules de detecciones
-- **Visualización de Polígonos**: Dibujo preciso de boundaries de detección
-- **Etiquetas Informativas**: Clase y confianza mostradas en cada detección
-- **Integración con Nomenclatura**: Soporte para sistema estandarizado de archivos
-
-## Configuración
-
-### Variables de Entorno
-
-```bash
-# Puerto del servicio
-YOLO_SERVICE_PORT=8001
-
-# Configuración del modelo
-YOLO_MODEL_PATH=models/best.pt  # Opcional: el servidor auto-detecta el modelo más reciente
-YOLO_CONFIDENCE_THRESHOLD=0.5
-YOLO_DEVICE=auto
-
-# Rendimiento
-YOLO_BATCH_SIZE=10
-YOLO_MAX_DETECTIONS=100
-YOLO_TIMEOUT_SECONDS=60
-```
-
-### Instalación
+## Instalación Rápida
 
 ```bash
 # Instalar dependencias
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Configurar variables de entorno
+# Configurar .env (opcional)
 cp ../.env.example ../.env
 
 # Ejecutar servidor
 python server.py
 ```
 
-## Interfaces de Uso
-
-### 1. Servidor HTTP (Puerto 8001)
-
-API REST para integración con backend:
+## Variables de Entorno
 
 ```bash
-# Health check
-curl http://localhost:8001/health
+# Puerto del servicio
+YOLO_SERVICE_PORT=8001
 
-# Detección de imagen
-curl -X POST "http://localhost:8001/detect" \
-  -F "file=@imagen.jpg" \
-  -F "confidence_threshold=0.5"
+# Configuración del modelo (opcional - auto-detección)
+YOLO_MODEL_PATH=models/best.pt
+YOLO_CONFIDENCE_THRESHOLD=0.5
+YOLO_DEVICE=auto  # auto, cuda, cpu
 
-# Listar modelos disponibles
-curl http://localhost:8001/models
-```
-
-### 2. CLI (Línea de Comandos)
-
-```bash
-# Detección individual
-python main.py detect imagen.jpg
-
-# Detección por lotes
-python main.py batch-detect directorio_imagenes/
-
-# Entrenamiento
-python main.py train --data dataset.yaml --epochs 100
-
-# Evaluación
-python main.py evaluate --model models/best.pt --data test/
-```
-
-### 3. Scripts Especializados
-
-```bash
-# Procesamiento masivo
-python scripts/batch_detection.py --input imagenes/ --output resultados/
-
-# Predicción con modelo específico
-python scripts/predict_new_images.py --model models/custom.pt --image test.jpg
-
-# Entrenamiento simplificado (recomendado)
-python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --batch 8
-
-# Entrenamiento personalizado
-python scripts/train_dengue_model.py --config training_config.yaml
+# Rendimiento
+YOLO_BATCH_SIZE=10
+YOLO_TIMEOUT_SECONDS=60
 ```
 
 ## API Endpoints
 
-### Health y Estado
-- `GET /health` - Estado del servicio
-- `GET /models` - Modelos disponibles
+### Health Check
+```bash
+curl http://localhost:8001/health
+```
 
-### Detección Principal
-- `POST /detect` - Detectar criaderos en imagen
-  - `file`: Archivo de imagen (jpg, png, heic, etc.)
-  - `confidence_threshold`: Umbral de confianza (0.1-1.0)
-  - `include_gps`: Extraer metadatos GPS (default: true)
-  - `generate_processed_image`: Crear imagen con marcadores (default: true)
-  - `output_dir`: Directorio para imagen procesada (opcional)
+### Detección de Imagen
+```bash
+curl -X POST "http://localhost:8001/detect" \
+  -F "file=@imagen.jpg" \
+  -F "confidence_threshold=0.5"
+```
 
-### Respuesta de Detección
+### Listar Modelos
+```bash
+curl http://localhost:8001/models
+```
+
+## Respuesta de Detección
 
 ```json
 {
@@ -176,10 +126,8 @@ python scripts/train_dengue_model.py --config training_config.yaml
   "detections": [
     {
       "class_name": "Charcos/Cumulo de agua",
-      "class_id": 2,
       "confidence": 0.85,
       "risk_level": "ALTO",
-      "breeding_site_type": "Charcos/Cumulo de agua",
       "polygon": [[x1,y1], [x2,y2], ...],
       "mask_area": 1234.5
     }
@@ -187,7 +135,6 @@ python scripts/train_dengue_model.py --config training_config.yaml
   "total_detections": 3,
   "risk_assessment": {
     "overall_risk_level": "ALTO",
-    "total_detections": 3,
     "high_risk_count": 2,
     "medium_risk_count": 1,
     "risk_score": 0.75
@@ -195,161 +142,154 @@ python scripts/train_dengue_model.py --config training_config.yaml
   "location": {
     "has_location": true,
     "latitude": -26.831314,
-    "longitude": -65.123456,
-    "altitude_meters": 450.2
+    "longitude": -65.123456
   },
   "processed_image": {
     "generated": true,
-    "file_path": "temp/processed_image.jpg",
-    "markers_count": 3,
-    "marker_color": "blue"
+    "file_path": "temp/processed_image.jpg"
   },
   "processing_time_ms": 1234,
   "model_used": "models/best.pt"
 }
 ```
 
-## 🎯 Gestión Automática de Modelos
+## Gestión Automática de Modelos
 
-### Detección Automática del Modelo Más Reciente
+El servidor detecta automáticamente el modelo más reciente en este orden:
 
-El servidor **detecta automáticamente** el modelo entrenado más reciente siguiendo esta prioridad:
-
-1. **Variable de entorno** `YOLO_MODEL_PATH` (máxima prioridad)
-2. **Último modelo entrenado** en carpetas `models/dengue_seg_*/weights/best.pt` (ordenado por fecha)
-3. **Modelo manual** `models/best.pt`
-4. **Modelos base** `models/yolo11*-seg.pt` (fallback)
-
-### Flujo de Entrenamiento
-
-Cuando ejecutas un entrenamiento:
-
-```bash
-python main.py train --epochs 100
-```
-
-**Se crea automáticamente:**
-```
-models/
-├── dengue_seg_n_100ep_20251003/    <- Nueva carpeta de entrenamiento
-│   ├── weights/
-│   │   ├── best.pt                 <- ✅ Modelo con mejor mAP
-│   │   └── last.pt                 <- Último checkpoint
-│   ├── results.png
-│   └── confusion_matrix.png
-└── best.pt                          <- Modelo anterior (opcional)
-```
-
-**El servidor detectará y usará automáticamente** `models/dengue_seg_n_100ep_20251003/weights/best.pt`
-
-### Opciones de Configuración
-
-**Opción 1: Automático (Recomendado)**
-```bash
-# No configurar YOLO_MODEL_PATH
-# El servidor auto-detecta el modelo más reciente
-python server.py
-# ✓ Detectado modelo entrenado reciente: models/dengue_seg_n_100ep_20251003/weights/best.pt
-```
-
-**Opción 2: Manual**
-```bash
-# Especificar modelo exacto
-export YOLO_MODEL_PATH=models/dengue_seg_n_100ep_20251003/weights/best.pt
-python server.py
-```
-
-**Opción 3: Copiar modelo**
-```bash
-# Copiar el mejor modelo a la raíz
-cp models/dengue_seg_n_100ep_20251003/weights/best.pt models/best.pt
-# El servidor usará models/best.pt
-```
+1. Variable de entorno `YOLO_MODEL_PATH` (máxima prioridad)
+2. Último modelo en `models/dengue_seg_*/weights/best.pt` (por fecha)
+3. Modelo manual en `models/best.pt`
+4. Modelos base `models/yolo11*-seg.pt` (fallback)
 
 ### Verificar Modelo en Uso
 
 ```bash
-# Endpoint de health muestra el modelo actual
 curl http://localhost:8001/health
-
-# Respuesta:
-{
-  "status": "healthy",
-  "model_available": true,
-  "model_path": "models/dengue_seg_n_100ep_20251003/weights/best.pt"
-}
+# Respuesta incluye: "model_path": "models/dengue_seg_n_100ep_20251003/weights/best.pt"
 ```
 
----
+## Entrenamiento de Modelos
+
+### Script Simplificado (Recomendado)
+
+```bash
+# Entrenamiento básico (50 épocas)
+python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --batch 8
+
+# Entrenamiento extendido (100 épocas)
+python train_simple.py --epochs 100 --batch 8
+
+# Personalizar nombre
+python train_simple.py --epochs 50 --name mi_modelo
+```
+
+**Características:**
+- ✅ Configuración optimizada y probada
+- ✅ Sin problemas de freeze durante validación
+- ✅ Augmentación balanceada de datos
+- ✅ Early stopping automático
+- ✅ Guardado del mejor modelo
+
+**Resultados en:**
+```
+models/dengue_seg_s_50ep_YYYYMMDD/
+├── weights/
+│   ├── best.pt      # Usar este modelo
+│   └── last.pt      # Último checkpoint
+└── results.csv      # Métricas
+```
+
+### Parámetros de Entrenamiento
+
+| Parámetro | Descripción | Default |
+|-----------|-------------|---------|
+| `--model` | Modelo base | `models/yolo11s-seg.pt` |
+| `--epochs` | Número de épocas | `100` |
+| `--batch` | Tamaño de batch | `8` |
+| `--imgsz` | Tamaño de imagen | `640` |
+| `--name` | Nombre del run | Auto |
+
+## Uso por CLI
+
+```bash
+# Detección individual
+python main.py detect imagen.jpg
+
+# Detección por lotes
+python main.py batch-detect directorio_imagenes/
+
+# Procesamiento masivo
+python scripts/batch_detection.py --input imagenes/ --output resultados/
+```
+
+## Testing
+
+```bash
+# Tests unificados
+python -m pytest tests/test_unified.py -v
+
+# Tests de detección
+python -m pytest tests/test_model_inference.py -v
+
+# Todos los tests
+python -m pytest tests/ -v
+```
+
+## Diagnóstico del Sistema
+
+```bash
+python diagnostic.py
+```
+
+**Información proporcionada:**
+- Hardware (CPU, memoria, disco)
+- Estado GPU y CUDA
+- Modelos disponibles y recomendaciones
+- Dependencias y rendimiento
 
 ## Integración con Shared Library
 
-El servicio utiliza la librería compartida para:
-
 ```python
-# Importación de enums unificados
-from shared.data_models import (
+# Enums y tipos de datos
+from sentrix_shared.data_models import (
     DetectionRiskEnum,
     BreedingSiteTypeEnum,
     CLASS_ID_TO_BREEDING_SITE
 )
 
 # Evaluación de riesgo
-from shared.risk_assessment import assess_dengue_risk
+from sentrix_shared.risk_assessment import assess_dengue_risk
 
-# Utilidades de archivos e imágenes
-from shared.file_utils import validate_image_file
-from shared.image_formats import ImageFormatConverter
-
-# Sistema de nomenclatura estandarizada (integración con backend)
-from shared.file_utils import generate_standardized_filename
-
-# Logging centralizado
-from shared.logging_utils import setup_yolo_logging
+# Utilidades
+from sentrix_shared.file_utils import validate_image_file
+from sentrix_shared.image_formats import ImageFormatConverter
+from sentrix_shared.gps_utils import extract_image_gps
 ```
 
-## Generación de Imágenes Procesadas
+**Instalación de Shared Library:**
+```bash
+cd ../shared && pip install -e .
+python -c "from sentrix_shared import risk_assessment; print('OK')"
+```
 
-### Funcionalidad de Marcadores
-El YOLO service ahora genera automáticamente imágenes procesadas con marcadores visuales:
+## Imágenes Procesadas
+
+El servicio genera automáticamente imágenes con marcadores visuales:
+
+- **Color azul** consistente para detecciones
+- **Polígonos precisos** siguiendo boundaries
+- **Etiquetas informativas** con clase y confianza
+- **Calidad preservada** de imagen original
 
 ```python
-def _create_processed_image(source_path, result, output_dir=None):
-    """
-    Crear imagen procesada con marcadores azules de detecciones
-    """
-    # Cargar imagen original
-    image = cv2.imread(source_path)
-
-    # Dibujar polígonos y etiquetas para cada detección
-    for detection in result.detections:
-        color = (255, 100, 0)  # Azul en formato BGR
-
-        # Dibujar polígono de la detección
-        cv2.polylines(image, [polygon], isClosed=True, color=color, thickness=3)
-
-        # Agregar etiqueta con clase y confianza
-        label = f"{detection.class_name}: {detection.confidence:.2f}"
-        cv2.putText(image, label, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
-
-    # Guardar imagen procesada
-    cv2.imwrite(output_path, image)
+# Ejemplo de generación
+processed_image_path = _create_processed_image(
+    source_path="imagen.jpg",
+    result=detection_result,
+    output_dir="temp/"
+)
 ```
-
-### Características de los Marcadores
-- **Color azul** consistente para todas las detecciones
-- **Polígonos precisos** siguiendo los boundaries de segmentación
-- **Etiquetas informativas** con clase detectada y nivel de confianza
-- **Calidad preservada** de la imagen original
-
-## Formatos de Imagen Soportados
-
-- **JPEG/JPG** - Formato estándar
-- **PNG** - Con transparencia
-- **HEIC/HEIF** - Formato Apple (conversión automática)
-- **TIFF** - Alta calidad
-- **WebP** - Formato web
-- **BMP** - Bitmap básico
 
 ## Requisitos del Sistema
 
@@ -364,100 +304,45 @@ def _create_processed_image(source_path, result, output_dir=None):
 - GPU NVIDIA con CUDA 11.8+
 - 10GB espacio en disco
 
-## Entrenamiento de Modelos
-
-### Script Simplificado (Recomendado)
-
-El script `train_simple.py` ofrece entrenamiento estable y confiable:
-
-```bash
-# Entrenamiento básico (50 épocas)
-python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --batch 8
-
-# Entrenamiento extendido (100 épocas)
-python train_simple.py --model models/yolo11s-seg.pt --epochs 100 --batch 8
-
-# Personalizar nombre del run
-python train_simple.py --model models/yolo11s-seg.pt --epochs 50 --name mi_modelo
-```
-
-**Características:**
-- ✅ Configuración optimizada y probada
-- ✅ Sin problemas de freeze durante validación
-- ✅ Augmentación de datos balanceada
-- ✅ Early stopping automático
-- ✅ Guardado automático del mejor modelo
-
-**Resultados guardados en:**
-```
-runs/segment/dengue_seg_s_50ep_YYYYMMDD/
-├── weights/
-│   ├── best.pt      # Mejor modelo (usar este)
-│   └── last.pt      # Último checkpoint
-└── results.csv      # Métricas de entrenamiento
-```
-
-### Parámetros Disponibles
-
-| Parámetro | Descripción | Default |
-|-----------|-------------|---------|
-| `--model` | Modelo base a entrenar | `models/yolo11s-seg.pt` |
-| `--epochs` | Número de épocas | `100` |
-| `--batch` | Tamaño de batch | `8` |
-| `--imgsz` | Tamaño de imagen | `640` |
-| `--name` | Nombre del run | Auto-generado |
-
-## Desarrollo
-
-### Ejecutar Tests
-
-```bash
-# Tests básicos
-python -m pytest tests/test_unified.py -v
-
-# Tests de detección
-python -m pytest tests/test_model_inference.py -v
-
-# Tests completos
-python -m pytest tests/ -v
-```
-
-### Diagnóstico del Sistema
-
-```bash
-# Diagnóstico completo del hardware y modelos
-python diagnostic.py
-```
-
-**Información proporcionada:**
-- Hardware del sistema (CPU, memoria, disco)
-- Estado de GPU y CUDA
-- Modelos disponibles y recomendaciones
-- Estado de dependencias
-- Información de rendimiento
-
-### Configuración GPU
+## Configuración GPU
 
 ```bash
 # Verificar CUDA
 python -c "import torch; print(torch.cuda.is_available())"
 
-# Configurar dispositivo
-export YOLO_DEVICE=cuda  # o 'cpu' para forzar CPU
+# Forzar dispositivo
+export YOLO_DEVICE=cuda  # o 'cpu'
 ```
 
-## Configuración de Puertos
+## Solución de Problemas
 
-- **YOLO Service**: Puerto 8001 (estandarizado)
-- **Backend API**: Puerto 8000
-- **Frontend**: Puerto 3000
+**Error: Modelo no encontrado**
+```bash
+# Verificar modelos disponibles
+ls -la models/
+
+# Descargar modelo base
+python -c "from ultralytics import YOLO; YOLO('yolo11s-seg.pt')"
+```
+
+**Error: CUDA out of memory**
+```bash
+# Reducir batch size
+python train_simple.py --batch 4
+```
+
+**Error: Timeout en detección**
+```bash
+# Aumentar timeout
+export YOLO_TIMEOUT_SECONDS=120
+```
 
 ## Documentación Adicional
 
-- [Backend](../backend/README.md)
-- [Shared Library](../shared/README.md)
-- [Scripts](../scripts/README.md)
+- **[Backend](../backend/README.md)**: API REST y integración
+- **[Shared Library](../shared/README.md)**: Librería compartida
+- **[Documentación completa](../docs/)**: Arquitectura y guías
 
 ---
 
-**Puerto**: 8001 | **Modelo**: YOLOv11 | **Python**: 3.8+
+**Puerto**: 8001 | **Modelo**: YOLOv11 | **Python**: 3.8+ | **Actualizado**: Octubre 2025

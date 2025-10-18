@@ -9,16 +9,14 @@ import tempfile
 from pathlib import Path
 
 # Agregar directorio raíz al path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from ..utils import (
+from src.utils import (
     get_project_root, get_models_dir, get_configs_dir, get_data_dir,
     resolve_path, resolve_model_path, ensure_project_directories,
     get_default_dataset_config, get_default_model_paths,
     find_all_yolo_seg_models, detect_device
 )
-from ..core import train_dengue_model, detect_breeding_sites, assess_dengue_risk
-from ..reports import generate_report, save_report
+from src.core import train_dengue_model, detect_breeding_sites, assess_dengue_risk
+from src.reports import generate_report, save_report
 
 
 def test_paths_portables():
@@ -138,21 +136,21 @@ def test_imports_structure():
 
     # Test 1: Imports desde src.core
     try:
-        from ..core import train_dengue_model, detect_breeding_sites, assess_dengue_risk
+        from src.core import train_dengue_model, detect_breeding_sites, assess_dengue_risk
         print("✓ Imports src.core: OK")
     except ImportError as e:
         raise AssertionError(f"Error importando src.core: {e}")
 
     # Test 2: Imports desde src.utils
     try:
-        from ..utils import get_models_dir, resolve_model_path, detect_device
+        from src.utils import get_models_dir, resolve_model_path, detect_device
         print("✓ Imports src.utils: OK")
     except ImportError as e:
         raise AssertionError(f"Error importando src.utils: {e}")
 
     # Test 3: Imports desde src.reports
     try:
-        from ..reports import generate_report, save_report
+        from src.reports import generate_report, save_report
         print("✓ Imports src.reports: OK")
     except ImportError as e:
         raise AssertionError(f"Error importando src.reports: {e}")

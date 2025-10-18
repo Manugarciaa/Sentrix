@@ -9,13 +9,12 @@ Ahora usa utilidades de archivos compartidas y logging para consistencia
 import os
 import sys
 # Import shared utilities
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-from shared.file_utils import (
+from sentrix_shared.file_utils import (
     validate_image_file,
     ensure_directory_exists,
     SUPPORTED_IMAGE_EXTENSIONS
 )
-from shared.logging_utils import get_module_logger
+from sentrix_shared.logging_utils import get_module_logger
 
 # Setup module logger
 logger = get_module_logger(__name__, 'yolo-service')

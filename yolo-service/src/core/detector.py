@@ -4,6 +4,7 @@ Módulo de detección para criaderos de dengue
 """
 
 import os
+import logging
 import cv2
 import numpy as np
 from pathlib import Path
@@ -11,6 +12,8 @@ from ultralytics import YOLO
 
 from configs.classes import DENGUE_CLASSES, RISK_LEVEL_BY_ID
 from ..utils import validate_model_file, validate_file_exists, cleanup_unwanted_downloads, extract_image_gps, get_image_camera_info
+
+logger = logging.getLogger(__name__)
 
 
 def detect_breeding_sites(model_path, source, conf_threshold=0.5, include_gps=True, save_processed_image=True, output_dir=None):
@@ -94,7 +97,7 @@ def detect_breeding_sites(model_path, source, conf_threshold=0.5, include_gps=Tr
         }
 
     except Exception as e:
-        print(f"Error durante la detección: {e}")
+        logger.error(f"error during detection: {e}")
         raise
     finally:
         # Limpiar descargas no deseadas
@@ -230,9 +233,9 @@ def _create_processed_image(source_path, result, output_dir=None):
         # Guardar imagen procesada
         cv2.imwrite(str(output_path), image, [cv2.IMWRITE_JPEG_QUALITY, 95])
 
-        print(f"Imagen procesada guardada en: {output_path}")
+        logger.info(f"processed image saved at: {output_path}")
         return str(output_path)
 
     except Exception as e:
-        print(f"Error creando imagen procesada: {e}")
+        logger.error(f"error creating processed image: {e}")
         return None

@@ -4,15 +4,13 @@ Combina tests de funciones, GPU y sistema en un solo archivo
 """
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import torch
 import numpy as np
-from ..core.evaluator import assess_dengue_risk
-from ..reports.generator import generate_report
-from ..utils.device import detect_device, get_system_info
-from ..utils.model_utils import find_available_model, get_model_info
-from ..utils.file_ops import print_section_header
+from src.core.evaluator import assess_dengue_risk
+from src.reports.generator import generate_report
+from src.utils.device import detect_device, get_system_info
+from src.utils.model_utils import find_available_model, get_model_info
+from src.utils.file_ops import print_section_header
 
 def test_system_and_gpu():
     """Test unificado de sistema y GPU"""
@@ -149,30 +147,31 @@ def test_core_functions():
     
     try:
         # Test de evaluación de riesgo - Alto
+        # Need 3+ high-risk sites for ALTO level
         detections_high = [
-            {'class': 'Huecos', 'confidence': 0.9},
-            {'class': 'Charcos/Cumulos de agua', 'confidence': 0.8},
-            {'class': 'Calles mal hechas', 'confidence': 0.7}
+            {'class': 'Charcos/Cumulo de agua', 'confidence': 0.9},  # HIGH risk
+            {'class': 'Basura', 'confidence': 0.8},  # HIGH risk
+            {'class': 'Charcos/Cumulo de agua', 'confidence': 0.7}  # HIGH risk
         ]
-        
+
         risk = assess_dengue_risk(detections_high)
         assert risk['level'] == 'ALTO'
         assert risk['high_risk_sites'] == 3
         print("✓ Test riesgo alto")
         
-        # Test de evaluación de riesgo - Medio
+        # Test de evaluación de riesgo - Medio (1 high-risk site)
         detections_medium = [
-            {'class': 'Basura', 'confidence': 0.8}
+            {'class': 'Basura', 'confidence': 0.8}  # HIGH risk
         ]
-        
+
         risk = assess_dengue_risk(detections_medium)
-        assert risk['level'] == 'BAJO'  # Un solo sitio medio = riesgo BAJO
-        assert risk['medium_risk_sites'] == 1
+        assert risk['level'] == 'MEDIO'  # 1 high-risk site = MEDIO
+        assert risk['high_risk_sites'] == 1
         print("✓ Test riesgo medio")
-        
+
         # Test sin detecciones
         risk = assess_dengue_risk([])
-        assert risk['level'] == 'MÍNIMO'
+        assert risk['level'] == 'MINIMO'  # No accent
         print("✓ Test sin detecciones")
         
         # Test de generación de reporte

@@ -7,8 +7,7 @@ Ahora usa modelos de datos compartidos para consistencia entre servicios
 import sys
 import os
 # Import shared data models
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-from shared.data_models import (
+from sentrix_shared.data_models import (
     CLASS_ID_TO_BREEDING_SITE,
     BREEDING_SITE_TO_CLASS_ID,
     HIGH_RISK_CLASSES,

@@ -9,26 +9,44 @@ import os
 import sys
 import tempfile
 import uuid
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
-# Load environment variables
-from dotenv import load_dotenv
-load_dotenv()
+# Load environment variables from project root
+from dotenv import load_dotenv, find_dotenv
+
+# Setup basic logging for module initialization
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Find .env in project root (searches up directory tree)
+dotenv_path = find_dotenv(usecwd=False)
+if dotenv_path:
+    load_dotenv(dotenv_path)
+    logger.info(f"Loaded environment from: {dotenv_path}")
+else:
+    # Fallback: try parent directory
+    parent_env = Path(__file__).parent.parent / ".env"
+    if parent_env.exists():
+        load_dotenv(parent_env)
+        logger.info(f"Loaded environment from: {parent_env}")
+    else:
+        logger.warning("No .env file found, using environment variables only")
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Agregar src al path para imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.core.detector import detect_breeding_sites
 from src.core.evaluator import process_image_for_detection
 from src.utils.file_ops import validate_file_exists
-from shared.risk_assessment import assess_dengue_risk
+from sentrix_shared.risk_assessment import assess_dengue_risk
 
 app = FastAPI(
     title="YOLO Dengue Detection Service",
@@ -84,10 +102,10 @@ def find_latest_trained_model():
             # Copiar el modelo entrenado más reciente a models/best.pt
             try:
                 shutil.copy2(trained_model, best_pt_path)
-                print(f"[OK] Modelo actualizado: {trained_model} -> {best_pt_path}")
+                logger.info(f"Modelo actualizado: {trained_model} -> {best_pt_path}")
                 return str(best_pt_path)
             except Exception as e:
-                print(f"[WARN] No se pudo copiar modelo: {e}")
+                logger.warning(f"No se pudo copiar modelo: {e}")
                 return str(trained_model)
 
     # 3. Modelo entrenado en raíz de models/
@@ -102,13 +120,13 @@ def find_latest_trained_model():
     ]
     for model in available_models:
         if os.path.exists(model):
-            print(f"[WARN] Usando modelo base (no entrenado): {model}")
+            logger.warning(f"Usando modelo base (no entrenado): {model}")
             return model
 
     raise FileNotFoundError("No se encontro ningun modelo YOLO disponible")
 
 MODEL_PATH = find_latest_trained_model()
-print(f"Usando modelo: {MODEL_PATH}")
+logger.info(f"Usando modelo: {MODEL_PATH}")
 
 
 # Esquemas de respuesta
@@ -192,8 +210,7 @@ async def detect_dengue_breeding_sites(
         raise HTTPException(status_code=400, detail="No se proporcionó nombre de archivo")
 
     # Validar extensión usando shared library
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-    from shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
+    from sentrix_shared import is_format_supported, SUPPORTED_IMAGE_FORMATS
 
     file_ext = Path(file.filename).suffix.lower()
     if not is_format_supported(file_ext):
@@ -367,8 +384,7 @@ if __name__ == "__main__":
     import os
 
     # Setup logging
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-    from shared.logging_utils import setup_yolo_logging, log_system_info, log_model_info
+    from sentrix_shared.logging_utils import setup_yolo_logging, log_system_info, log_model_info
 
     logger = setup_yolo_logging('INFO')
 

@@ -4,7 +4,10 @@ Utilidades de detección de dispositivo para detección de criaderos de dengue
 """
 
 import sys
+import logging
 import torch
+
+logger = logging.getLogger(__name__)
 
 
 def detect_device():
@@ -12,12 +15,12 @@ def detect_device():
     if torch.cuda.is_available():
         device_name = torch.cuda.get_device_name(0)
         memory_gb = torch.cuda.get_device_properties(0).total_memory / 1024**3
-        print(f"GPU detectada: {device_name} ({memory_gb:.1f}GB)")
+        logger.info(f"gpu detected: {device_name} ({memory_gb:.1f}GB)")
         return 'cuda'
     else:
-        print("GPU no disponible - usando CPU")
-        print("ADVERTENCIA: Entrenamiento sera significativamente mas lento")
-        print("Para GPU: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118")
+        logger.warning("gpu not available - using cpu")
+        logger.warning("training will be significantly slower")
+        logger.info("for gpu: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118")
         return 'cpu'
 
 
