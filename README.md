@@ -3,125 +3,139 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![YOLO v11](https://img.shields.io/badge/YOLO-v11-brightgreen.svg)](https://github.com/ultralytics/ultralytics)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![Tests](https://img.shields.io/badge/tests-532+-success.svg)](./backend/tests/)
+[![Coverage](https://img.shields.io/badge/coverage-69--91%25-yellow.svg)](./PENDING_IMPROVEMENTS.md)
 
-Plataforma de inteligencia artificial para la detección automatizada de criaderos de mosquitos del dengue usando visión por computadora, evaluación de riesgo epidemiológico y sistema avanzado de gestión de imágenes.
+Sistema de inteligencia artificial para la detección automatizada de criaderos de mosquitos del dengue usando visión por computadora y evaluación de riesgo epidemiológico.
 
-## Descripción
+## Características Principales
 
-Sistema completo de detección de sitios de reproducción de *Aedes aegypti* que combina:
-
-- **Detección IA** - Modelos YOLOv11 para identificar criaderos en imágenes
-- **Evaluación de riesgo** - Algoritmos epidemiológicos para clasificación automática
-- **API REST** - Backend completo con base de datos PostgreSQL
-- **Geolocalización** - Extracción automática de coordenadas GPS desde metadatos EXIF
-- **Gestión Inteligente de Imágenes** - Sistema de nomenclatura estandarizada y deduplicación automática
-- **Almacenamiento Dual** - Imágenes originales y procesadas con marcadores de detección
+- **Detección IA**: Modelos YOLOv11 para identificar criaderos en imágenes
+- **Evaluación de Riesgo**: Clasificación automática de riesgo epidemiológico (ALTO/MEDIO/BAJO/MÍNIMO)
+- **API REST**: Backend completo con FastAPI, PostgreSQL/Supabase y circuit breakers
+- **Geolocalización**: Extracción automática de coordenadas GPS desde metadatos EXIF
+- **Gestión Inteligente**: Nomenclatura estandarizada y deduplicación automática de imágenes
+- **Almacenamiento Dual**: Imágenes originales y procesadas con marcadores de detección
+- **Testing Robusto**: 532+ tests con cobertura del 69-91% en módulos críticos
+- **Observabilidad**: Logging estructurado, OpenTelemetry y health checks completos
 
 ## Arquitectura
 
 ```
 sentrix/
-├── backend/                # API REST (puerto 8000)
-├── yolo-service/           # Detección IA (puerto 8001)
-├── shared/                 # Librería compartida
-├── frontend/               # Interfaz web React (puerto 3000)
-├── scripts/                # Scripts de utilidad y deployment
-├── docker-compose.yml      # Orquestación Docker
-├── supabase-schema.sql     # Schema de base de datos
-└── .env.example            # Template de configuración
+├── backend/          # API REST (FastAPI, puerto 8000)
+│   ├── src/          # Código fuente (api, services, database, core)
+│   └── tests/        # 532+ tests (unit, integration, performance)
+├── yolo-service/     # Servicio de detección IA (puerto 8001)
+│   ├── src/          # Detector, evaluator, trainer
+│   ├── models/       # Modelos YOLO entrenados
+│   └── tests/        # Tests de detección e inferencia
+├── shared/           # Paquete sentrix_shared
+│   └── sentrix_shared/  # Librería compartida (enums, risk assessment, utils)
+├── frontend/         # Interfaz web React + TypeScript (puerto 5173)
+│   └── src/          # Componentes, hooks, servicios
+├── scripts/          # Scripts de utilidad y deployment
+└── docs/             # Documentación técnica completa
 ```
 
-## Configuración del Proyecto
+### Flujo de Datos
 
-### Requisitos del Sistema
+```
+Usuario → Frontend → Backend API → YOLO Service → Modelo AI
+                ↓           ↓
+            Supabase   PostgreSQL
+              (Storage)  (Database)
+```
 
-- Python 3.8+
-- Node.js 16+
-- PostgreSQL (Supabase)
+## Inicio Rápido
+
+### Requisitos
+- Python 3.8+, Node.js 16+, Redis, PostgreSQL (Supabase)
 - 4GB RAM mínimo (8GB recomendado)
 
-### Variables de Entorno
-
-El proyecto utiliza archivos `.env` para configuración. Ejemplo de configuración en `.env.example`:
+### Instalación
 
 ```bash
-# Puertos
-BACKEND_PORT=8000
-YOLO_SERVICE_PORT=8001
-
-# Supabase
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu_key_aqui
-DATABASE_URL=postgresql://...
-
-# Seguridad
-SECRET_KEY=tu_secret_key
-JWT_SECRET_KEY=tu_jwt_secret
-
-# YOLO
-YOLO_MODEL_PATH=models/best.pt
-YOLO_CONFIDENCE_THRESHOLD=0.5
-```
-
-### Base de Datos (Supabase)
-
-El schema de base de datos se encuentra en `supabase-schema.sql` e incluye:
-- 3 tablas principales: `user_profiles`, `analyses`, `detections`
-- 6 ENUMs para tipos de datos estandarizados
-- 2 buckets de storage: `sentrix-images` (originales) y `sentrix-processed` (con marcadores)
-
-### Dependencias
-
-**Backend:**
-```bash
+# Backend
 cd backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
+pip install -e ../shared
 
-**YOLO Service:**
-```bash
-cd yolo-service
+# YOLO Service
+cd ../yolo-service
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-```
 
-**Frontend:**
-```bash
-cd frontend
+# Frontend
+cd ../frontend
 npm install
 ```
 
-### Ejecución de Servicios
+### Configuración
 
-**Terminal 1 - Backend API (puerto 8000):**
+**Importante**: Sentrix usa un solo archivo `.env` centralizado en la raíz del proyecto. Todos los servicios (backend, yolo-service, frontend) leen desde este único archivo.
+
 ```bash
-cd backend
-python -m uvicorn app:app --reload
+# Copiar .env.example a .env
+cp .env.example .env
+
+# Editar .env con tus valores
+nano .env  # o tu editor preferido
 ```
 
-**Terminal 2 - YOLO Service (puerto 8001):**
+Variables mínimas para desarrollo:
+
 ```bash
-cd yolo-service
-python server.py
+# En el archivo .env (raíz del proyecto)
+ENVIRONMENT=development
+DEBUG=true
+
+# Servicios
+YOLO_SERVICE_URL=http://localhost:8001
+REDIS_URL=redis://localhost:6379/0
+
+# Base de datos
+DATABASE_URL=sqlite:///./test.db
+
+# Seguridad (generar en producción)
+SECRET_KEY=dev-secret-key-change-in-production-min32chars
+JWT_SECRET_KEY=dev-jwt-secret-key-change-in-production-min32chars
+
+# Supabase (si usas Supabase)
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu_key_aqui
 ```
 
-**Terminal 3 - Frontend (puerto 3000):**
+**Nota**: No crear `.env` en subdirectorios (backend/, yolo-service/). Solo usa el `.env` en la raíz.
+
+### Ejecución
+
 ```bash
-cd frontend
-npm run dev
+# Terminal 1: Backend API
+cd backend && python -m uvicorn app:app --reload
+
+# Terminal 2: YOLO Service
+cd yolo-service && python server.py
+
+# Terminal 3: Frontend
+cd frontend && npm run dev
+
+# Terminal 4 (opcional): Celery Worker
+cd backend && celery -A src.celery_app worker --loglevel=info
 ```
 
-### Acceso a la Aplicación
-
+### Acceso
 - Frontend: http://localhost:3000
 - API Docs: http://localhost:8000/docs
 - YOLO Health: http://localhost:8001/health
 
-## Uso
-
-### Subir y Analizar Imagen
+## Uso Básico
 
 ```bash
-# API completa con almacenamiento
+# Análisis completo con almacenamiento
 curl -X POST "http://localhost:8000/api/v1/analyses" \
   -F "file=@imagen.jpg" \
   -F "confidence_threshold=0.5"
@@ -135,161 +149,68 @@ curl -X POST "http://localhost:8001/detect" \
 
 | Tipo de Criadero | Nivel de Riesgo | Descripción |
 |------------------|-----------------|-------------|
-| **Basura** | Medio | Acumulación de residuos con retención de agua |
-| **Calles deterioradas** | Alto | Superficies irregulares que forman charcos |
-| **Acumulaciones de agua** | Alto | Agua estancada visible, hábitat directo |
-| **Huecos/depresiones** | Alto | Cavidades que retienen agua de lluvia |
+| Charcos/Cúmulo de agua | ALTO | Agua estancada visible, hábitat directo |
+| Basura | ALTO | Acumulación de residuos con retención de agua |
+| Huecos | MEDIO | Cavidades que retienen agua de lluvia |
+| Calles mal hechas | MEDIO | Superficies irregulares que forman charcos |
 
-## Funcionalidades Avanzadas
+**Clasificación de Riesgo:**
+- **ALTO**: ≥3 sitios alto riesgo O ≥1 alto + ≥3 medio
+- **MEDIO**: ≥1 sitio alto riesgo O ≥3 sitios medio
+- **BAJO**: ≥1 sitio medio riesgo O ≥5 detecciones totales
+- **MÍNIMO**: Sin sitios detectados
 
-### Sistema de Nomenclatura Estandarizada
-```
-SENTRIX_YYYYMMDD_HHMMSS_DEVICE_LOCATION_ID.ext
-```
-- **Fecha/Hora**: Timestamp del análisis en formato ISO
-- **Dispositivo**: Detección automática desde EXIF (IPHONE15, SAMSUNG, etc.)
-- **Ubicación**: Codificación GPS (LATn34p604_LONn58p382) o NOLOC
-- **ID único**: Hash de 8 caracteres para evitar colisiones
+## Testing
 
-### Almacenamiento Dual Inteligente
-- **Imagen Original**: Archivo sin modificaciones para análisis futuro
-- **Imagen Procesada**: Con marcadores azules de detecciones YOLO
-- **Nomenclatura Diferenciada**: Prefijos `original_` y `processed_`
+El proyecto cuenta con **532+ tests** con cobertura del **69-91%** en módulos críticos.
 
-### Sistema de Deduplicación
-- **Detección por Contenido**: Hash SHA-256 de datos binarios
-- **Scoring de Similitud**: Metadatos de cámara y ubicación GPS
-- **Almacenamiento Referencial**: Duplicados no almacenan archivos físicos
-- **Optimización Automática**: Ahorro de espacio transparente al usuario
-
-## Componentes
-
-### [YOLO Service](./yolo-service/README.md)
-- Detección con modelos YOLOv11 optimizados
-- Servidor FastAPI en puerto 8001
-- Extracción automática de GPS/EXIF
-- Generación de imágenes procesadas con marcadores
-- Soporte para JPEG, PNG, HEIC, TIFF
-
-### [Backend](./backend/README.md)
-- API REST con FastAPI
-- Base de datos PostgreSQL/Supabase
-- Autenticación y gestión de usuarios
-- Integración automática con YOLO service
-- Sistema de nomenclatura estandarizada
-- Almacenamiento dual de imágenes (Supabase Storage)
-- Deduplicación automática de contenido
-
-### [Frontend](./frontend/README.md)
-- Interfaz React con TypeScript
-- Dashboard interactivo con mapas
-- Sistema de upload y análisis
-- Autenticación y gestión de roles
-
-### [Shared Library](./shared/README.md)
-- Enums unificados para consistencia
-- Algoritmos de evaluación de riesgo
-- Utilidades de archivos e imágenes avanzadas
-- Sistema de nomenclatura estandarizada
-- Deduplicación inteligente de imágenes
-- Sistema de logging centralizado
-
-### [Scripts de Utilidad](./scripts/README.md)
-- Scripts de configuración inicial (`setup/`)
-- Scripts de mantenimiento y verificación (`maintenance/`)
-- Scripts deprecados archivados (`deprecated/`)
-
-## Estado del Proyecto
-
-| Componente | Estado | Puerto |
-|-----------|--------|--------|
-| **YOLO Service** | ✅ Completo | 8001 |
-| **Backend API** | ✅ Completo | 8000 |
-| **Frontend React** | ✅ Completo | 3000 |
-| **Shared Library** | ✅ Completo | - |
-
-
-## Testing y Validación
-
-### Verificación Rápida del Sistema
 ```bash
-# Pruebas básicas de funcionalidad
-python scripts/simple_test.py
-
-# Verificación rápida de componentes críticos
-python scripts/quick_smoke_tests.py
-
-# Pruebas específicas de deduplicación
-python scripts/test_deduplication.py
-```
-
-### Verificación de Servicios
-```bash
-# Verificar que todos los servicios estén ejecutándose
-curl http://localhost:8000/health    # Backend
-curl http://localhost:8001/health    # YOLO Service
-curl http://localhost:3000           # Frontend
-
-# Test de funcionalidad avanzada
-curl -X POST "http://localhost:8000/api/v1/analyses" \
-  -F "file=@test_image.jpg" \
-  -F "confidence_threshold=0.5"
-```
-
-### Tests Unitarios y de Integración
-```bash
-# Tests por componente
+# Backend (532+ tests)
 cd backend && python -m pytest tests/ -v
+
+# Con cobertura
+cd backend && pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+# Tests específicos
+cd backend && pytest tests/test_yolo_service_unit.py -v       # 29 tests (91% coverage)
+cd backend && pytest tests/test_analysis_service.py -v        # 39 tests (69% coverage)
+cd backend && pytest tests/test_transformers.py -v             # 49 tests (100% coverage)
+cd backend && pytest tests/integration/ -v -m integration      # 4 tests E2E
+cd backend && pytest tests/performance/ -v -m performance      # 11 tests de performance
+
+# YOLO Service
 cd yolo-service && python -m pytest tests/ -v
 
-# Test de integración completa con almacenamiento dual
-curl -X POST "http://localhost:8001/detect" -F "file=@test_image.jpg"
+# Shared Library
+cd shared && python -m pytest tests/ -v
+
+# Scripts de utilidad
+python scripts/simple_test.py
+python scripts/quick_smoke_tests.py
 ```
 
-## Diagnóstico del Sistema
+### Cobertura por Módulo (Backend)
 
-```bash
-# Diagnóstico del YOLO Service (GPU, modelos, hardware)
-cd yolo-service && python diagnostic.py
-
-# Diagnóstico del Backend (conexiones, dependencias, puertos)
-cd backend && python diagnostic.py
-```
-
-**Los scripts de diagnóstico proporcionan:**
-- Estado completo del hardware y software
-- Recomendaciones de modelos YOLO según GPU disponible
-- Verificación de conexiones entre servicios
-- Estado de dependencias y configuración
-
-## Evaluación de Riesgo
-
-El sistema calcula automáticamente el nivel de riesgo epidemiológico:
-
-- **ALTO**: ≥3 sitios de alto riesgo O ≥1 alto + ≥3 medio
-- **MEDIO**: ≥1 sitio de alto riesgo O ≥3 sitios de riesgo medio
-- **BAJO**: ≥1 sitio de riesgo medio
-- **MÍNIMO**: Sin sitios de riesgo detectados
-
-## Proyecto de Investigación
-
-**Objetivo**: Desarrollar un sistema de IA para la detección, geolocalización y análisis de focos de *Aedes aegypti* en zonas urbanas.
-
-**Metodología**: Modelos YOLOv11 + algoritmos epidemiológicos + integración ambiental
-
-**Resultados**: Sistema funcional con 56.1% de cobertura GPS en dataset argentino
+| Módulo | Coverage | Tests |
+|--------|----------|-------|
+| `transformers/` | 100% | 49 tests |
+| `validators/` | 100% | 52 tests |
+| `core/services/yolo_service.py` | 91% | 29 tests |
+| `schemas/analyses.py` | 95% | Incluidos |
+| `services/analysis_service.py` | 69% | 39 tests |
 
 ## Documentación
 
-- [Backend API](./backend/README.md) - Documentación completa del backend
-- [YOLO Service](./yolo-service/README.md) - Servicio de detección IA
-- [Shared Library](./shared/README.md) - Librería compartida
-- [Import Conventions](./shared/IMPORT_CONVENTIONS.md) - Convenciones de código
+- **[Documentación Técnica](./docs/)**: Arquitectura, implementaciones, fases del proyecto
+- **[Backend](./backend/README.md)**: API REST, endpoints, configuración
+- **[YOLO Service](./yolo-service/README.md)**: Servicio de detección IA
+- **[Shared Library](./shared/README.md)**: Librería compartida, risk assessment
+- **[Scripts](./scripts/README.md)**: Scripts de utilidad y deployment
 
 ## Licencia
 
-MIT License - Ver [LICENSE](LICENSE) para detalles.
+MIT License - Sistema desarrollado para investigación en control epidemiológico del dengue.
 
 ---
 
-**Versión**: 2.3.0 | **Estado**: Sistema completo con funcionalidades avanzadas | **Actualizado**: Octubre 2025
+**Versión**: 2.6.0 | **Actualizado**: Octubre 2025
