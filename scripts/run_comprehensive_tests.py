@@ -19,11 +19,10 @@ import unittest
 import coverage
 from io import StringIO
 
-# Add project paths
+# Add project root to sys.path for imports (if needed when running standalone)
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "backend" / "src"))
-sys.path.insert(0, str(project_root / "shared"))
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
 
 class TestResult:

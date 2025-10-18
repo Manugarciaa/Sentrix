@@ -8,9 +8,10 @@ import sys
 import os
 from pathlib import Path
 
-# Add project root to path
+# Add project root to sys.path for imports (if needed when running standalone)
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
 def test_port_configuration():
     """Test that port configuration is consistent"""
@@ -48,16 +49,14 @@ def test_shared_library_imports():
 
     try:
         # Test backend imports from shared
-        sys.path.insert(0, str(project_root / "backend"))
-        from shared.data_models import (
+        from sentrix_shared.data_models import (
             DetectionRiskEnum, BreedingSiteTypeEnum, AnalysisStatusEnum,
             ValidationStatusEnum, UserRoleEnum, RiskLevelEnum, LocationSourceEnum
         )
         print("   ✅ Backend can import shared enums")
 
         # Test YOLO service imports from shared
-        sys.path.insert(0, str(project_root / "yolo-service"))
-        from shared.data_models import DetectionRiskEnum as YoloDetectionRiskEnum
+        from sentrix_shared.data_models import DetectionRiskEnum as YoloDetectionRiskEnum
         print("   ✅ YOLO service can import shared enums")
 
         # Test enum values consistency
@@ -86,8 +85,8 @@ def test_risk_assessment_consistency():
     print("[INFO] Testing risk assessment consistency...")
 
     try:
-        from shared.risk_assessment import assess_dengue_risk
-        from shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
+        from sentrix_shared.risk_assessment import assess_dengue_risk
+        from sentrix_shared.data_models import DetectionRiskEnum, BreedingSiteTypeEnum
 
         # Test sample detections
         sample_detections = [
@@ -152,7 +151,7 @@ def test_configuration_system():
         print("   ✅ All required environment variables defined")
 
         # Test shared config manager
-        from shared.config_manager import YoloServiceConfig
+        from sentrix_shared.config_manager import YoloServiceConfig
         yolo_config = YoloServiceConfig()
 
         # Check that default URL uses correct port
@@ -210,8 +209,6 @@ def test_backend_integration():
     print("[INFO] Testing backend integration...")
 
     try:
-        sys.path.insert(0, str(project_root / "backend"))
-
         # Test that schemas import from shared correctly
         from backend.src.schemas.analyses import AnalysisUploadRequest
         print("   ✅ Backend schemas import successfully")
@@ -233,10 +230,8 @@ def test_yolo_service_integration():
     print("[INFO] Testing YOLO service integration...")
 
     try:
-        sys.path.insert(0, str(project_root / "yolo-service"))
-
         # Test that YOLO service can import shared components
-        from shared.data_models import DetectionRiskEnum
+        from sentrix_shared.data_models import DetectionRiskEnum
         print("   ✅ YOLO service can import shared enums")
 
         # Test that YOLO service server can initialize

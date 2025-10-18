@@ -16,11 +16,10 @@ from datetime import datetime
 # Set testing mode to suppress warnings
 os.environ['TESTING_MODE'] = 'true'
 
-# Add project paths
+# Add project root to sys.path for imports (if needed when running standalone)
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "backend" / "src"))
-sys.path.insert(0, str(project_root / "shared"))
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
 
 def test_imports():
@@ -28,11 +27,11 @@ def test_imports():
     print("Testing imports...")
 
     tests = [
-        ("Shared file utils", "shared.file_utils"),
-        ("Shared image formats", "shared.image_formats"),
-        ("Backend analysis service", "services.analysis_service"),
-        ("Backend Supabase client", "utils.supabase_client"),
-        ("Backend YOLO client", "core.services.yolo_service"),
+        ("Shared file utils", "sentrix_shared.file_utils"),
+        ("Shared image formats", "sentrix_shared.image_formats"),
+        ("Backend analysis service", "backend.src.services.analysis_service"),
+        ("Backend Supabase client", "backend.src.utils.supabase_client"),
+        ("Backend YOLO client", "backend.src.core.services.yolo_service"),
     ]
 
     failures = []
@@ -53,7 +52,7 @@ def test_filename_generation():
     print("\nTesting filename generation...")
 
     try:
-        from shared.file_utils import generate_standardized_filename, parse_standardized_filename
+        from sentrix_shared.file_utils import generate_standardized_filename, parse_standardized_filename
 
         # Test basic generation
         filename = generate_standardized_filename(
@@ -94,7 +93,7 @@ def test_image_format_detection():
     print("\nTesting image format detection...")
 
     try:
-        from shared.image_formats import detect_image_format, is_format_supported
+        from sentrix_shared.image_formats import detect_image_format, is_format_supported
 
         # Test format detection
         test_cases = [
@@ -125,7 +124,7 @@ def test_supabase_client_creation():
     print("\nTesting Supabase client creation...")
 
     try:
-        from utils.supabase_client import SupabaseManager
+        from backend.src.utils.supabase_client import SupabaseManager
 
         # This should not fail even without valid credentials
         manager = SupabaseManager()
@@ -148,7 +147,7 @@ def test_yolo_client_creation():
     print("\nTesting YOLO client creation...")
 
     try:
-        from core.services.yolo_service import YOLOServiceClient
+        from backend.src.core.services.yolo_service import YOLOServiceClient
 
         client = YOLOServiceClient()
 
@@ -170,7 +169,7 @@ def test_analysis_service_creation():
     print("\nTesting analysis service creation...")
 
     try:
-        from services.analysis_service import AnalysisService
+        from backend.src.services.analysis_service import AnalysisService
 
         service = AnalysisService()
 
@@ -199,7 +198,7 @@ def test_filename_variations():
     print("\nTesting filename variations...")
 
     try:
-        from shared.file_utils import create_filename_variations
+        from sentrix_shared.file_utils import create_filename_variations
 
         variations = create_filename_variations(
             base_filename="IMG_1234.jpg",

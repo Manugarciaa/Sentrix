@@ -12,11 +12,10 @@ from datetime import datetime
 # Set testing mode to suppress warnings
 os.environ['TESTING_MODE'] = 'true'
 
-# Add project paths
+# Add project root to sys.path for imports (if needed when running standalone)
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "backend" / "src"))
-sys.path.insert(0, str(project_root / "shared"))
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
 
 
 def test_shared_functionality():
@@ -24,7 +23,7 @@ def test_shared_functionality():
     print("=== Testing Shared Library ===")
 
     try:
-        import file_utils
+        from sentrix_shared import file_utils
         print("[OK] file_utils import successful")
 
         # Test filename generation
@@ -67,7 +66,7 @@ def test_backend_functionality():
     print("\n=== Testing Backend Services ===")
 
     try:
-        from services.analysis_service import AnalysisService
+        from backend.src.services.analysis_service import AnalysisService
         print("[OK] AnalysisService import successful")
 
         service = AnalysisService()
@@ -94,7 +93,7 @@ def test_supabase_client():
     print("\n=== Testing Supabase Client ===")
 
     try:
-        from utils.supabase_client import SupabaseManager
+        from backend.src.utils.supabase_client import SupabaseManager
         print("[OK] SupabaseManager import successful")
 
         manager = SupabaseManager()
@@ -132,7 +131,7 @@ def test_complete_workflow():
     print("\n=== Testing Complete Workflow ===")
 
     try:
-        from services.analysis_service import generate_standardized_filename, create_filename_variations
+        from backend.src.services.analysis_service import generate_standardized_filename, create_filename_variations
 
         # Simulate complete workflow
         original_filename = "IMG_1234.jpg"
