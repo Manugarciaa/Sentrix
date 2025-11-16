@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Sentrix - Plataforma integral para la detección y control de criaderos de Aedes aegypti utilizando inteligencia artificial" />
+    <meta name="theme-color" content="#059669" />
+
+    <!-- DNS Prefetch for external resources -->
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+
+    <!-- Preload critical assets -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="modulepreload" href="/src/App.tsx" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sentrix - Control de Dengue" />
+    <meta property="og:description" content="Plataforma integral para la detección y control de criaderos de Aedes aegypti" />
+    <meta property="og:image" content="/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content="Sentrix - Control de Dengue" />
+    <meta property="twitter:description" content="Plataforma integral para la detección y control de criaderos de Aedes aegypti" />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/Icon-Sentrix-w.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/Icon-Sentrix-w.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/Icon-Sentrix-w.png" />
+
+    <!-- Fonts - optimized loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" /></noscript>
+
+    <!-- Custom Fonts - optimized -->
+    <link rel="preload" href="/fonts/akira/Akira Expanded Demo.otf" as="font" type="font/otf" crossorigin />
+    <style>
+      @font-face {
+        font-family: 'Akira';
+        src: url('/fonts/akira/Akira Expanded Demo.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
+
+    <!-- Leaflet CSS - deferred loading -->
+    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style" onload="this.onload=null;this.rel='stylesheet'" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <noscript><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" /></noscript>
+
+    <title>Sentrix - Control de Dengue</title>
+
+    <!-- Theme Script - Runs before React mounts to prevent flash -->
+    <script>
+      (function() {
+        // Get theme from localStorage or system preference
+        const stored = localStorage.getItem('theme');
+        let theme = 'light';
+
+        if (stored === 'dark' || stored === 'light') {
+          theme = stored;
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          theme = 'dark';
+        }
+
+        // Apply theme immediately to prevent flash
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Inline critical CSS for initial render -->
+    <style>
+      #root { min-height: 100vh; }
+      .min-h-screen { min-height: 100vh; }
+      body { margin: 0; padding: 0; }
+    </style>
+
+    <script>
+      // Polyfill for axios
+      window.global = window;
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
