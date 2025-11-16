@@ -1,0 +1,81 @@
+# FastAPI and ASGI
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
+email-validator==2.3.0
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.16.5
+asyncpg==0.29.0
+psycopg2-binary==2.9.9
+
+# PostGIS and Geospatial
+geoalchemy2==0.18.0
+shapely==2.0.2
+numpy<2.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+bcrypt==4.0.1
+python-multipart==0.0.20
+
+# Image processing and metadata
+pillow==11.3.0
+pillow-heif==1.1.0
+
+# PDF Generation
+reportlab==4.4.4
+
+# HTTP client
+httpx==0.28.1
+tenacity==8.2.3
+pybreaker==1.2.0
+
+# Environment and configuration
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
+
+# Shared library (editable install for development)
+-e ../shared
+
+# Supabase Integration
+supabase==2.19.0
+postgrest==2.19.0
+storage3==2.19.0
+realtime==2.19.0
+supabase-auth==2.19.0
+
+# Rate Limiting and Security
+slowapi==0.1.9
+python-magic==0.4.27  # MIME type validation (Windows users: pip install python-magic-bin)
+
+# Structured Logging
+structlog==25.4.0
+python-json-logger==2.0.7
+
+# Async Task Queue
+celery==5.3.4
+redis==7.0.0
+hiredis==3.3.0
+flower==2.0.1
+
+# OpenTelemetry - Distributed Tracing
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation-fastapi==0.43b0
+opentelemetry-instrumentation-httpx==0.43b0
+opentelemetry-instrumentation-redis==0.43b0
+opentelemetry-instrumentation-sqlalchemy==0.43b0
+opentelemetry-instrumentation-celery==0.43b0
+opentelemetry-exporter-otlp==1.22.0
+opentelemetry-exporter-jaeger==1.21.0
+
+# Development and Testing
+pytest==8.4.1
+pytest-asyncio==1.2.0
+pytest-cov==7.0.0
+pytest-mock==3.12.0
+black==25.9.0
+ruff==0.13.1
+coverage==7.10.6
+psutil==5.9.6
