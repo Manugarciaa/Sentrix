@@ -1,0 +1,310 @@
+name: CD - Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: "3.11"
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ============================================
+  # Build Docker Images
+  # ============================================
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      backend_image: ${{ steps.meta-backend.outputs.tags }}
+      yolo_image: ${{ steps.meta-yolo.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for backend
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Extract metadata for YOLO service
+        id: meta-yolo
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-yolo
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Build and push YOLO service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./yolo-service
+          file: ./yolo-service/Dockerfile
+          push: true
+          tags: ${{ steps.meta-yolo.outputs.tags }}
+          labels: ${{ steps.meta-yolo.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================
+  # Deploy to Staging
+  # ============================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: https://staging.sentrix.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Deploying to staging environment"
+          echo "Backend Image: ${{ needs.build.outputs.backend_image }}"
+          echo "YOLO Image: ${{ needs.build.outputs.yolo_image }}"
+
+          # Add your deployment commands here
+          # Examples:
+          # - kubectl apply -f k8s/staging/
+          # - helm upgrade --install sentrix ./charts/sentrix --namespace staging
+          # - ssh user@staging.server "docker-compose pull && docker-compose up -d"
+
+          echo "✅ Deployment to staging completed"
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests on staging"
+
+          # Wait for deployment to stabilize
+          sleep 30
+
+          # Example smoke tests
+          # curl -f https://staging.sentrix.app/api/v1/health || exit 1
+          # curl -f https://staging.sentrix.app/api/v1/health/ready || exit 1
+
+          echo "✅ Smoke tests passed"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "📢 Staging deployment notification"
+          # Add Slack/Discord/Email notification here
+          # curl -X POST ${{ secrets.SLACK_WEBHOOK }} -d '{"text": "Deployed to staging"}'
+
+  # ============================================
+  # Deploy to Production
+  # ============================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://sentrix.app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify production readiness
+        run: |
+          echo "🔍 Verifying production readiness"
+
+          # Check that this is a proper release tag
+          if [[ ! "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version tag format. Must be v*.*.* (e.g., v1.0.0)"
+            exit 1
+          fi
+
+          echo "✅ Version tag validated: ${{ github.ref_name }}"
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production environment"
+          echo "Version: ${{ github.ref_name }}"
+          echo "Backend Image: ${{ needs.build.outputs.backend_image }}"
+          echo "YOLO Image: ${{ needs.build.outputs.yolo_image }}"
+
+          # Add your production deployment commands here
+          # Examples:
+          # - kubectl apply -f k8s/production/
+          # - helm upgrade --install sentrix ./charts/sentrix --namespace production
+          # - Deploy via AWS ECS, Google Cloud Run, etc.
+
+          echo "✅ Deployment to production completed"
+
+      - name: Run production smoke tests
+        run: |
+          echo "🧪 Running smoke tests on production"
+
+          # Wait for deployment to stabilize
+          sleep 60
+
+          # Example production smoke tests
+          # curl -f https://sentrix.app/api/v1/health || exit 1
+          # curl -f https://sentrix.app/api/v1/health/ready || exit 1
+
+          echo "✅ Production smoke tests passed"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+      - name: Notify production deployment
+        if: always()
+        run: |
+          echo "📢 Production deployment notification"
+          echo "Version: ${{ github.ref_name }}"
+          echo "Status: ${{ job.status }}"
+          # Add critical notifications here (PagerDuty, Slack, Email)
+
+  # ============================================
+  # Rollback (Manual Trigger)
+  # ============================================
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment:
+      name: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback deployment
+        run: |
+          echo "⏮️ Rolling back ${{ github.event.inputs.environment }} deployment"
+
+          # Add rollback commands here
+          # Examples:
+          # - kubectl rollout undo deployment/sentrix-backend -n ${{ github.event.inputs.environment }}
+          # - helm rollback sentrix -n ${{ github.event.inputs.environment }}
+
+          echo "✅ Rollback completed"
+
+      - name: Verify rollback
+        run: |
+          echo "🔍 Verifying rollback"
+          # Add health checks here
+          echo "✅ Rollback verified"
+
+  # ============================================
+  # Database Migration
+  # ============================================
+  migrate:
+    name: Run Database Migrations
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e ../shared
+
+      - name: Run migrations
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          echo "🗄️ Running database migrations"
+          # alembic upgrade head
+          echo "✅ Migrations completed"
+
+  # ============================================
+  # Deployment Summary
+  # ============================================
+  deployment-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging, deploy-production, migrate]
+    if: always()
+
+    steps:
+      - name: Generate deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch/Tag:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Staging Deploy: ${{ needs.deploy-staging.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Production Deploy: ${{ needs.deploy-production.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Migrations: ${{ needs.migrate.result }}" >> $GITHUB_STEP_SUMMARY

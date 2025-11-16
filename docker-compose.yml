@@ -1,0 +1,138 @@
+# Sentrix - Docker Compose for Dokploy
+# Stack completo: Backend + YOLO Service + PostgreSQL
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: postgis/postgis:15-3.4
+    container_name: sentrix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-sentrix}
+      POSTGRES_USER: ${POSTGRES_USER:-sentrix_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentrix-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentrix_user} -d ${POSTGRES_DB:-sentrix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  # ==========================================
+  # Backend API Service
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sentrix-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sentrix_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentrix}
+
+      # Supabase (para storage/auth)
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+
+      # File Upload
+      MAX_FILE_SIZE: 10485760
+      ALLOWED_EXTENSIONS: '["jpg","jpeg","png","tiff","bmp"]'
+
+      # Environment
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      PORT: 8000
+
+      # YOLO Service (internal network)
+      YOLO_SERVICE_URL: http://yolo:8001
+
+      # CORS - actualizar con tu dominio de Dokploy
+      ALLOWED_ORIGINS: ${FRONTEND_URL},https://${DOKPLOY_DOMAIN}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    networks:
+      - sentrix-network
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ==========================================
+  # YOLO Detection Service
+  # ==========================================
+  yolo:
+    build:
+      context: ./yolo-service
+      dockerfile: Dockerfile
+    container_name: sentrix-yolo
+    restart: unless-stopped
+    environment:
+      YOLO_MODEL_PATH: models/yolo11n-seg.pt
+      YOLO_CONFIDENCE_THRESHOLD: 0.5
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      PORT: 8001
+      # CORS interno - solo backend puede acceder
+      ALLOWED_ORIGINS: http://backend:8000
+    volumes:
+      - yolo_models:/app/models
+    networks:
+      - sentrix-network
+    # Puerto interno, no expuesto públicamente
+    expose:
+      - "8001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # YOLO necesita más recursos
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+networks:
+  sentrix-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_logs:
+    driver: local
+  yolo_models:
+    driver: local
