@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: Sentrix
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Garcia
+    given-names: Manuel Antonio
+  - family-names: Laudani
+    given-names: Ricardo
+  - family-names: Warnes
+    given-names: Mercedes
+version: 2.7.1
+date-released: 2025-11-16
+url: "https://github.com/Manugarciaa/Sentrix"
+abstract: "AI-powered system for automated detection and analysis of Aedes aegypti breeding sites using YOLOv11 instance segmentation, designed for dengue prevention and epidemiological surveillance."
+keywords:
+  - dengue
+  - aedes-aegypti
+  - computer-vision
+  - yolo
+  - public-health
+  - epidemiology
+  - argentina
+  - deep-learning
+license: MIT

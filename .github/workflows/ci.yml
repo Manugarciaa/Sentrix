@@ -1,0 +1,312 @@
+name: CI - Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ============================================
+  # Backend Tests
+  # ============================================
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e ../shared
+
+      - name: Run tests with coverage
+        working-directory: backend
+        env:
+          ENVIRONMENT: development
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          pytest tests/ \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: backend/coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      - name: Upload coverage HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-backend
+          path: backend/htmlcov/
+          retention-days: 7
+
+  # ============================================
+  # Code Quality Checks
+  # ============================================
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install linting tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black ruff mypy
+
+      - name: Check code formatting with Black
+        working-directory: backend
+        run: |
+          black --check src/ tests/
+        continue-on-error: true
+
+      - name: Lint with Ruff
+        working-directory: backend
+        run: |
+          ruff check src/ tests/
+        continue-on-error: true
+
+      - name: Type check with mypy
+        working-directory: backend
+        run: |
+          mypy src/ --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+  # ============================================
+  # Security Checks
+  # ============================================
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+
+      - name: Run Bandit security scan
+        working-directory: backend
+        run: |
+          bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Check for known vulnerabilities
+        working-directory: backend
+        run: |
+          safety check --file requirements.txt --json > safety-report.json
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            backend/bandit-report.json
+            backend/safety-report.json
+          retention-days: 30
+
+  # ============================================
+  # YOLO Service Tests
+  # ============================================
+  yolo-tests:
+    name: YOLO Service Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: yolo-service/requirements.txt
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
+      - name: Install dependencies
+        working-directory: yolo-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e ../shared
+          pip install pytest pytest-cov
+
+      - name: Run YOLO service tests
+        working-directory: yolo-service
+        run: |
+          pytest tests/ -v --cov=. --cov-report=xml
+        if: hashFiles('yolo-service/tests/**/*.py') != ''
+        continue-on-error: true
+
+  # ============================================
+  # Shared Library Tests
+  # ============================================
+  shared-tests:
+    name: Shared Library Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install shared library
+        working-directory: shared
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov
+
+      - name: Run shared library tests
+        working-directory: shared
+        run: |
+          pytest tests/ -v --cov=sentrix_shared --cov-report=xml
+        if: hashFiles('shared/tests/**/*.py') != ''
+        continue-on-error: true
+
+  # ============================================
+  # Build Check
+  # ============================================
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [backend-tests, code-quality]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
+      - name: Verify backend can start
+        working-directory: backend
+        env:
+          ENVIRONMENT: development
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e ../shared
+          # Test that the app can import without errors
+          python -c "from app import app; print('✅ Backend app imports successfully')"
+
+      - name: Check for import errors
+        working-directory: backend
+        run: |
+          python -c "
+          import sys
+          try:
+              from src.config import get_settings
+              from src.logging_config import setup_logging
+              from src.celery_app import celery_app
+              print('✅ All critical imports successful')
+          except Exception as e:
+              print(f'❌ Import error: {e}')
+              sys.exit(1)
+          "
+
+  # ============================================
+  # Test Summary
+  # ============================================
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [backend-tests, code-quality, security, yolo-tests, shared-tests, build-check]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ All checks completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Status" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend Tests: ${{ needs.backend-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Scan: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- YOLO Tests: ${{ needs.yolo-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Shared Tests: ${{ needs.shared-tests.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build Check: ${{ needs.build-check.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if critical jobs failed
+        if: |
+          needs.backend-tests.result == 'failure' ||
+          needs.build-check.result == 'failure'
+        run: |
+          echo "❌ Critical jobs failed"
+          exit 1

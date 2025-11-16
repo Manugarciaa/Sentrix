@@ -1,0 +1,114 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Frontend build outputs
+/frontend/build/
+/frontend/dist/
+/frontend/components.json
+
+# YOLO models and datasets (use Git LFS or external storage)
+yolo-service/models/*.pt
+yolo-service/models/*.pth
+yolo-service/models/dengue_production_v2/
+yolo-service/models/dengue_seg_*/
+yolo-service/runs/
+!yolo-service/models/.gitkeep
+
+# YOLO training data (large datasets)
+yolo-service/data/images/train/
+yolo-service/data/images/val/
+yolo-service/data/images/test/
+yolo-service/data/labels/train/
+yolo-service/data/labels/val/
+yolo-service/data/labels/test/
+!yolo-service/data/.gitkeep
+
+# Results and temporary files (generated outputs)
+yolo-service/results/*.jpg
+yolo-service/results/*.png
+yolo-service/results/*.json
+yolo-service/predictions/*.jpg
+yolo-service/predictions/*.png
+yolo-service/resultados/
+backend/uploads/*.jpg
+backend/uploads/*.png
+backend/uploads/*.jpeg
+backend/temp/
+*.tmp
+
+# Allow test images (needed for tests)
+!yolo-service/test_images/**/*.jpg
+!yolo-service/test_images/**/*.png
+!yolo-service/test_images/**/*.jpeg
+
+# Allow frontend public assets
+!frontend/public/**/*.png
+!frontend/public/**/*.jpg
+!frontend/public/**/*.jpeg
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+test.db
+
+# Environment configuration (only .env in project root)
+.env
+.env.local
+.env.production
+.env.development
+backend/.env
+yolo-service/.env
+frontend/.env
+secrets/
+
+# Backup files
+*.bak
+*.backup
