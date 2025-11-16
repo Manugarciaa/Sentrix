@@ -1,0 +1,42 @@
+# YOLO Dengue Detection - Dependencias esenciales
+ultralytics==8.3.198
+torch==2.7.1
+torchvision==0.22.1
+
+# Procesamiento de imágenes (requeridas por YOLO)
+opencv-python-headless==4.12.0.88
+pillow==11.3.0
+pillow-heif==1.1.0
+numpy==2.2.6
+
+# Utilidades básicas
+PyYAML==6.0.2
+tqdm==4.67.1
+exifread==3.0.0
+pandas==2.3.2
+requests==2.32.4
+psutil==7.0.0
+
+# Validación y configuración
+pydantic==2.11.7
+pydantic-settings==2.1.0
+
+# Visualización
+matplotlib==3.10.5
+
+# API web (habilitado para integración)
+fastapi==0.116.1
+uvicorn==0.35.0
+python-multipart==0.0.20
+python-dotenv==1.1.1
+
+# Seguridad
+slowapi==0.1.9  # Rate limiting
+python-magic==0.4.27  # MIME type validation (Windows users: pip install python-magic-bin)
+
+# Testing
+pytest==8.4.1
+httpx==0.27.0  # Required for FastAPI TestClient
+
+# Shared library (editable install for development)
+-e ../shared
