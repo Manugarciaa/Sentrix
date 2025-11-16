@@ -12,6 +12,7 @@ from pathlib import Path
 from src.core.services.yolo_service import YOLOServiceClient
 
 
+@pytest.mark.integration
 class TestProcessedImageIntegration:
     """Tests de integración para imagen procesada"""
 

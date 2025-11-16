@@ -7,8 +7,11 @@ import asyncio
 import httpx
 import base64
 from pathlib import Path
+import pytest
 
 
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_yolo_service_processed_image():
     """Test: Verificar que YOLO service genera imagen procesada"""
     print("\n" + "="*80)

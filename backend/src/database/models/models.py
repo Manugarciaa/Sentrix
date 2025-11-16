@@ -2,12 +2,11 @@ from sqlalchemy import (
     Column, String, Integer, DateTime, Boolean, Text, DECIMAL,
     ForeignKey, ARRAY, JSON as JSONB, func
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geography
 from geoalchemy2.types import Geometry
 
-from .base import Base
+from .base import Base, GUID
 from .enums import (
     risk_level_enum, detection_risk_enum, breeding_site_type_enum,
     user_role_enum, location_source_enum, validation_status_enum,
@@ -18,7 +17,7 @@ from .enums import (
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    id = Column(GUID, primary_key=True, server_default=func.gen_random_uuid())
 
     # Authentication fields
     email = Column(String(255), unique=True, nullable=False, index=True)
@@ -45,8 +44,8 @@ class UserProfile(Base):
 class Analysis(Base):
     __tablename__ = "analyses"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user_profiles.id"))
+    id = Column(GUID, primary_key=True, server_default=func.gen_random_uuid())
+    user_id = Column(GUID, ForeignKey("user_profiles.id"))
     image_url = Column(Text, nullable=False)
     image_filename = Column(Text)
     image_size_bytes = Column(Integer)
@@ -100,8 +99,8 @@ class UserSettings(Base):
     """
     __tablename__ = "user_settings"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    user_id = Column(UUID(as_uuid=True), ForeignKey("user_profiles.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id = Column(GUID, primary_key=True, server_default=func.gen_random_uuid())
+    user_id = Column(GUID, ForeignKey("user_profiles.id", ondelete="CASCADE"), unique=True, nullable=False)
 
     # Settings stored as JSONB for flexibility
     settings = Column(JSONB, nullable=False, default={})
@@ -117,8 +116,8 @@ class UserSettings(Base):
 class Detection(Base):
     __tablename__ = "detections"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
-    analysis_id = Column(UUID(as_uuid=True), ForeignKey("analyses.id", ondelete="CASCADE"))
+    id = Column(GUID, primary_key=True, server_default=func.gen_random_uuid())
+    analysis_id = Column(GUID, ForeignKey("analyses.id", ondelete="CASCADE"))
 
     # Información básica de detección
     class_id = Column(Integer)
@@ -153,7 +152,7 @@ class Detection(Base):
     image_datetime = Column(Text)
 
     # Validación por expertos
-    validated_by = Column(UUID(as_uuid=True), ForeignKey("user_profiles.id"))
+    validated_by = Column(GUID, ForeignKey("user_profiles.id"))
     validation_status = Column(validation_status_enum, default="pending")
     validation_notes = Column(Text)
     validated_at = Column(DateTime(timezone=True))
