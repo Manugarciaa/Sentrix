@@ -1,0 +1,695 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ========================================
+       SENTRIX - Paleta "Profesional Institucional"
+       Modo Claro (Light Mode)
+       ======================================== */
+
+    /* Colores Base */
+    --background: 0 0% 100%; /* #FFFFFF - Fondo blanco */
+    --foreground: 20 17% 15%; /* #2B2520 - Marrón muy oscuro */
+    --card: 0 0% 100%; /* #FFFFFF - Cards blancos */
+    --card-foreground: 20 17% 15%; /* #2B2520 */
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 20 17% 15%; /* #2B2520 */
+
+    /* Colores Principales */
+    --primary: 27 35% 36%; /* #7D5A3B - Marrón chocolate */
+    --primary-foreground: 0 0% 100%; /* Blanco */
+    --secondary: 205 34% 54%; /* #5B8FB9 - Azul grisáceo */
+    --secondary-foreground: 0 0% 100%; /* Blanco */
+    --accent: 45 81% 52%; /* #E8B923 - Amarillo mostaza */
+    --accent-foreground: 20 17% 15%; /* Marrón oscuro */
+
+    /* Colores de UI */
+    --muted: 30 26% 95%; /* #F5F3F0 - Beige muy claro */
+    --muted-foreground: 20 10% 40%; /* #5C5651 - Marrón grisáceo */
+    --border: 30 20% 88%; /* #E5E0DB - Beige/gris claro */
+    --input: 30 26% 95%; /* #F5F3F0 - Beige muy claro */
+    --ring: 27 35% 36%; /* Marrón chocolate */
+
+    /* Estado Destructivo */
+    --destructive: 10 75% 45%; /* #C73E1D - Rojo terracota */
+    --destructive-foreground: 0 0% 98%; /* Casi blanco */
+
+    --radius: 0.5rem;
+
+    /* Colores de Gráficos */
+    --chart-1: 27 35% 36%; /* #7D5A3B - Marrón chocolate */
+    --chart-2: 205 34% 54%; /* #5B8FB9 - Azul grisáceo */
+    --chart-3: 45 81% 52%; /* #E8B923 - Amarillo mostaza */
+    --chart-4: 27 36% 29%; /* #654A30 - Marrón oscuro */
+    --chart-5: 23 62% 54%; /* #D97941 - Naranja quemado */
+
+    /* Status Colors - Success/Low Risk (usando azul institucional) */
+    --status-success-bg: 205 34% 54%; /* #5B8FB9 - Azul institucional */
+    --status-success-bg-light: 205 100% 96%; /* #F0F7FF */
+    --status-success-border: 205 76% 73%; /* #86C1EF */
+    --status-success-text: 205 70% 25%; /* #134A6E */
+    --status-success-text-muted: 205 34% 54%; /* #5B8FB9 */
+
+    /* Status Colors - Warning/Medium Risk */
+    --status-warning-bg: 45 81% 52%; /* #E8B923 - Amarillo mostaza */
+    --status-warning-bg-light: 48 100% 96%; /* #FFFBEB */
+    --status-warning-border: 45 96% 67%; /* #F5D467 */
+    --status-warning-text: 36 75% 30%; /* #78350F */
+    --status-warning-text-muted: 45 75% 45%; /* #C99D1E */
+
+    /* Status Colors - Danger/High Risk */
+    --status-danger-bg: 23 62% 54%; /* #D97941 - Naranja quemado */
+    --status-danger-bg-light: 23 100% 96%; /* #FFF7ED */
+    --status-danger-border: 23 96% 72%; /* #F5A774 */
+    --status-danger-text: 23 62% 35%; /* #8C4A26 */
+    --status-danger-text-muted: 23 62% 45%; /* #B25F31 */
+
+    /* Status Colors - Critical */
+    --status-critical-bg: 10 75% 45%; /* #C73E1D - Rojo terracota */
+    --status-critical-bg-light: 10 86% 97%; /* #FEF2F2 */
+    --status-critical-border: 10 94% 72%; /* #F57A5A */
+    --status-critical-text: 10 74% 30%; /* #7A2515 */
+    --status-critical-text-muted: 10 75% 40%; /* #9E3018 */
+
+    /* Status Colors - Info */
+    --status-info-bg: 195 7% 52%; /* #7D8A8F - Gris azulado */
+    --status-info-bg-light: 195 20% 96%; /* #F0F3F5 */
+    --status-info-border: 195 30% 70%; /* #A3B5BA */
+    --status-info-text: 195 30% 30%; /* #364D54 */
+    --status-info-text-muted: 195 15% 45%; /* #5F6E73 */
+
+    /* Sidebar */
+    --sidebar-background: 30 26% 98%;
+    --sidebar-foreground: 20 17% 25%;
+    --sidebar-primary: 27 35% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 26% 94%;
+    --sidebar-accent-foreground: 20 17% 25%;
+    --sidebar-border: 30 20% 88%;
+    --sidebar-ring: 27 35% 36%;
+  }
+
+  .dark {
+    /* ========================================
+       SENTRIX - Paleta "Profesional Institucional"
+       Modo Oscuro (Dark Mode) - Azul Oscuro
+       ======================================== */
+
+    /* Colores Base */
+    --background: 210 23% 8%; /* #0F1418 - Azul oscuro profundo */
+    --foreground: 30 26% 95%; /* #F5F3F0 - Beige claro */
+    --card: 210 20% 13%; /* #1A2026 - Azul gris oscuro */
+    --card-foreground: 30 26% 95%; /* #F5F3F0 */
+    --popover: 210 20% 13%; /* #1A2026 */
+    --popover-foreground: 30 26% 95%; /* #F5F3F0 */
+
+    /* Colores Principales - Más brillantes para mejor visibilidad */
+    --primary: 30 40% 62%; /* #C5A578 - Marrón cálido más brillante */
+    --primary-foreground: 210 23% 8%; /* #0F1418 - Azul oscuro */
+    --secondary: 205 55% 70%; /* #8EBBDE - Azul más brillante */
+    --secondary-foreground: 210 23% 8%; /* #0F1418 - Azul oscuro */
+    --accent: 208 70% 75%; /* #9CC4ED - Azul celeste más brillante */
+    --accent-foreground: 210 23% 8%; /* #0F1418 - Azul oscuro */
+
+    /* Colores de UI */
+    --muted: 210 17% 17%; /* #232B32 - Azul medio oscuro */
+    --muted-foreground: 210 10% 70%; /* #A8B1B8 - Gris azulado claro */
+    --border: 210 18% 22%; /* #2E3A42 - Azul gris */
+    --input: 210 17% 17%; /* #232B32 - Azul medio oscuro */
+    --ring: 30 29% 52%; /* #A9825F - Marrón cálido */
+
+    /* Estado Destructivo */
+    --destructive: 10 78% 58%; /* #E85D42 - Rojo brillante */
+    --destructive-foreground: 0 0% 98%;
+
+    /* Colores de Gráficos - Más brillantes y saturados */
+    --chart-1: 30 45% 65%; /* #D4B088 - Marrón cálido brillante */
+    --chart-2: 205 65% 72%; /* #A2C8E8 - Azul brillante */
+    --chart-3: 45 92% 65%; /* #F5D95C - Amarillo brillante */
+    --chart-4: 30 40% 68%; /* #D1AC86 - Marrón claro */
+    --chart-5: 23 95% 68%; /* #FF9A5A - Naranja luminoso */
+
+    /* Status Colors - Success/Low Risk (usando azul brillante) */
+    --status-success-bg: 205 41% 64%; /* #7BA8CC - Azul brillante */
+    --status-success-bg-light: 205 60% 15%; /* #0F2433 */
+    --status-success-border: 205 50% 35%; /* #2D5673 */
+    --status-success-text: 205 76% 75%; /* #A4C9F0 */
+    --status-success-text-muted: 205 41% 64%; /* #7BA8CC */
+
+    /* Status Colors - Warning/Medium Risk */
+    --status-warning-bg: 47 89% 63%; /* #F5D049 - Amarillo brillante */
+    --status-warning-bg-light: 47 70% 20%; /* #3D3315 */
+    --status-warning-border: 47 70% 40%; /* #9E8329 */
+    --status-warning-text: 47 96% 75%; /* #FFE066 */
+    --status-warning-text-muted: 47 89% 63%; /* #F5D049 */
+
+    /* Status Colors - Danger/High Risk */
+    --status-danger-bg: 23 88% 61%; /* #F48442 - Naranja luminoso */
+    --status-danger-bg-light: 23 60% 18%; /* #3D1F0D */
+    --status-danger-border: 23 60% 35%; /* #8C4826 */
+    --status-danger-text: 23 96% 75%; /* #FFA874 */
+    --status-danger-text-muted: 23 88% 61%; /* #F48442 */
+
+    /* Status Colors - Critical */
+    --status-critical-bg: 10 78% 58%; /* #E85D42 - Rojo brillante */
+    --status-critical-bg-light: 10 50% 15%; /* #330F09 */
+    --status-critical-border: 10 60% 30%; /* #7A2515 */
+    --status-critical-text: 10 91% 71%; /* #F57A5A */
+    --status-critical-text-muted: 10 78% 58%; /* #E85D42 */
+
+    /* Status Colors - Info */
+    --status-info-bg: 195 13% 65%; /* #9EABB0 - Gris azul claro */
+    --status-info-bg-light: 195 20% 18%; /* #1A2326 */
+    --status-info-border: 195 20% 35%; /* #3D4F54 */
+    --status-info-text: 195 30% 75%; /* #B3C9CF */
+    --status-info-text-muted: 195 13% 65%; /* #9EABB0 */
+
+    /* Sidebar */
+    --sidebar-background: 210 23% 9%; /* #0F1419 */
+    --sidebar-foreground: 30 26% 90%; /* #E8E5E0 */
+    --sidebar-primary: 30 29% 52%; /* #A9825F */
+    --sidebar-primary-foreground: 210 23% 8%; /* #0F1418 */
+    --sidebar-accent: 210 20% 15%; /* #1A2026 */
+    --sidebar-accent-foreground: 30 26% 90%; /* #E8E5E0 */
+    --sidebar-border: 210 18% 22%; /* #2E3A42 */
+    --sidebar-ring: 30 29% 52%; /* #A9825F */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background;
+    /* Mejor renderizado de texto */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* Transición suave coordinada para theme switching */
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Asegurar que position: fixed funcione correctamente */
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Prevenir sombras de texto durante scroll */
+    /* COMENTADO: Estas propiedades causan que position:fixed se comporte como absolute */
+    /* -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden; */
+    /* Transición suave coordinada para theme switching */
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* NO overflow hidden que corte los toasts */
+    overflow: visible;
+  }
+
+  #root {
+    @apply bg-background;
+    min-height: 100vh;
+    /* Transición suave coordinada para theme switching */
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* NO overflow hidden */
+    overflow: visible;
+  }
+
+  /* Fix browser autofill styles to respect theme */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsl(var(--foreground));
+    transition: background-color 5000s ease-in-out 0s;
+    box-shadow: inset 0 0 20px 20px hsl(var(--background));
+  }
+
+  /* Firefox autofill */
+  input:-moz-autofill,
+  input:-moz-autofill:hover,
+  input:-moz-autofill:focus {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+}
+
+/* Custom styles for Sentrix - TweakCN Style */
+@layer components {
+  /* Contenedor Global */
+  .sentrix-container {
+    @apply max-w-7xl mx-auto px-6 sm:px-10 lg:px-20;
+  }
+
+  /* Sección con espaciado vertical consistente */
+  .sentrix-section {
+    @apply py-12 md:py-16 lg:py-24;
+  }
+
+  /* Gradiente principal de Sentrix */
+  .sentrix-gradient {
+    background: linear-gradient(135deg, #4DD0E1 0%, #26C6DA 100%);
+  }
+
+  /* Card estilo TweakCN */
+  .sentrix-card {
+    @apply bg-card text-card-foreground border border-border rounded-xl shadow-sm;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:shadow-md hover:-translate-y-0.5;
+  }
+
+  /* Botón estilo Sentrix */
+  .sentrix-button {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium;
+    @apply ring-offset-background transition-all duration-200 ease-out;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Input estilo Sentrix */
+  .sentrix-input {
+    @apply flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm;
+    @apply ring-offset-background transition-colors duration-200;
+    @apply file:border-0 file:bg-transparent file:text-sm file:font-medium;
+    @apply placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Risk levels with Sentrix palette - Optimized for both themes */
+  .risk-level-alto {
+    @apply bg-red-100 text-red-800 border-red-300;
+  }
+
+  .risk-level-medio {
+    @apply bg-orange-100 text-orange-800 border-orange-300;
+  }
+
+  .risk-level-bajo {
+    @apply bg-emerald-100 text-emerald-800 border-emerald-300;
+  }
+
+  .risk-level-minimo {
+    @apply bg-slate-100 text-slate-700 border-slate-300;
+  }
+
+  /* Dark mode variants - More vibrant and visible */
+  .dark .risk-level-alto {
+    @apply bg-red-950/40 text-red-400 border-red-800/60;
+  }
+
+  .dark .risk-level-medio {
+    @apply bg-orange-950/40 text-orange-400 border-orange-800/60;
+  }
+
+  .dark .risk-level-bajo {
+    @apply bg-emerald-950/40 text-emerald-400 border-emerald-800/60;
+  }
+
+  .dark .risk-level-minimo {
+    @apply bg-slate-800/50 text-slate-400 border-slate-700/60;
+  }
+
+
+  /* Recharts components styling - Dark mode compatible */
+  .recharts-text {
+    @apply fill-foreground;
+  }
+
+  .recharts-cartesian-axis-tick-value {
+    @apply fill-muted-foreground;
+  }
+
+  .recharts-cartesian-axis-line {
+    @apply stroke-border;
+  }
+
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    @apply stroke-border opacity-50;
+  }
+
+  .recharts-tooltip-wrapper {
+    @apply bg-card border border-border rounded-lg shadow-lg;
+  }
+
+  .recharts-default-tooltip {
+    @apply bg-card border border-border rounded-lg shadow-lg;
+  }
+
+  /* Custom chart colors for Sentrix */
+  .sentrix-chart-primary {
+    fill: hsl(var(--primary));
+    stroke: hsl(var(--primary));
+  }
+
+  .sentrix-chart-secondary {
+    fill: hsl(var(--accent));
+    stroke: hsl(var(--accent));
+  }
+}
+
+/* Loading animations y optimizaciones */
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-pulse-fast {
+    animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-bounce-subtle {
+    animation: bounce 2s infinite;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-in forwards;
+  }
+
+  /* Optimizar transformaciones para prevenir sombras de texto */
+  .transform-gpu {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-perspective: 1000px;
+    perspective: 1000px;
+  }
+
+  .smooth-transform {
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  /* Mejor rendimiento en hover - Efecto lift estilo TweakCN */
+  .hover-lift {
+    @apply transition-all duration-200 ease-out;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+
+  /* Efecto de elevación más pronunciado */
+  .hover-lift-lg {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift-lg:hover {
+    @apply -translate-y-1 shadow-xl;
+  }
+}
+
+/* Custom scrollbar with dark mode support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Global scrollbar styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 5px;
+  border: 2px solid hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .sentrix-button {
+    @apply border-2 border-current;
+  }
+
+  .sentrix-card {
+    @apply border-2;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce,
+  .animate-spin-slow,
+  .animate-pulse-fast,
+  .animate-bounce-subtle {
+    animation: none;
+  }
+}
+
+/* Dashboard stat cards */
+.stat-card {
+  @apply bg-card border-t border-r border-b border-l-4 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+.stat-card-primary {
+  @apply border-primary/40 hover:border-primary/60;
+}
+
+.stat-card-secondary {
+  @apply border-secondary/40 hover:border-secondary/60;
+}
+
+.stat-card-accent {
+  @apply border-accent/40 hover:border-accent/60;
+}
+
+.stat-card-chart-1 {
+  border-left-color: hsl(var(--chart-1));
+  border-top-color: hsl(var(--border));
+  border-right-color: hsl(var(--border));
+  border-bottom-color: hsl(var(--border));
+}
+
+.stat-card-chart-2 {
+  border-left-color: hsl(var(--chart-2));
+  border-top-color: hsl(var(--border));
+  border-right-color: hsl(var(--border));
+  border-bottom-color: hsl(var(--border));
+}
+
+.stat-card-chart-3 {
+  border-left-color: hsl(var(--chart-3));
+  border-top-color: hsl(var(--border));
+  border-right-color: hsl(var(--border));
+  border-bottom-color: hsl(var(--border));
+}
+
+.stat-card-chart-5 {
+  border-left-color: hsl(var(--chart-5));
+  border-top-color: hsl(var(--border));
+  border-right-color: hsl(var(--border));
+  border-bottom-color: hsl(var(--border));
+}
+
+.stat-label-primary {
+  @apply text-xs font-medium mb-1 text-primary/70;
+}
+
+.stat-label-secondary {
+  @apply text-xs font-medium mb-1 text-secondary/70;
+}
+
+.stat-label-accent {
+  @apply text-xs font-medium mb-1;
+  color: hsl(var(--accent) / 0.8);
+}
+
+.stat-label-chart-2 {
+  @apply text-xs font-medium mb-1;
+  color: hsl(var(--chart-2) / 0.8);
+}
+
+.stat-label-chart-3 {
+  @apply text-xs font-medium mb-1;
+  color: hsl(var(--chart-3) / 0.8);
+}
+
+.stat-label-chart-5 {
+  @apply text-xs font-medium mb-1;
+  color: hsl(var(--chart-5) / 0.8);
+}
+
+.stat-value-primary {
+  @apply text-2xl font-bold text-primary;
+}
+
+.stat-value-secondary {
+  @apply text-2xl font-bold text-secondary;
+}
+
+.stat-value-accent {
+  @apply text-2xl font-bold;
+  color: hsl(var(--foreground));
+}
+
+.dark .stat-value-accent {
+  color: hsl(var(--accent));
+}
+
+.stat-value-chart-2 {
+  @apply text-2xl font-bold;
+  color: hsl(var(--chart-2));
+}
+
+.stat-value-chart-3 {
+  @apply text-2xl font-bold;
+  color: hsl(var(--chart-3));
+}
+
+.stat-value-chart-5 {
+  @apply text-2xl font-bold;
+  color: hsl(var(--chart-5));
+}
+
+/* Dashboard background - lighter variant */
+.dashboard-bg {
+  @apply bg-background;
+}
+
+.dark .dashboard-bg {
+  background: hsl(210 23% 11%); /* Más claro que el background por defecto para mejor contraste */
+}
+
+/* Critical alert panel */
+.critical-alert-panel {
+  @apply border rounded-lg p-4;
+  background-color: hsl(var(--status-critical-bg-light));
+  border-color: hsl(var(--status-critical-border));
+}
+
+.critical-alert-icon {
+  @apply h-5 w-5 flex-shrink-0 mt-0.5;
+  color: hsl(var(--status-critical-bg));
+}
+
+.critical-alert-count {
+  @apply font-semibold;
+  color: hsl(var(--status-critical-text));
+}
+
+/* Leaflet map container - ensure it doesn't overlap navbar */
+.leaflet-container {
+  position: relative;
+  z-index: 0 !important;
+  background: hsl(var(--muted));
+  font-family: 'Poppins', sans-serif;
+}
+
+.leaflet-pane {
+  z-index: auto !important;
+}
+
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 10 !important;
+}
+
+/* Ensure Leaflet tiles load properly */
+.leaflet-tile-container {
+  transition: none !important;
+}
+
+.leaflet-tile {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Fix Leaflet controls visibility in modals */
+.leaflet-control-container {
+  position: relative;
+  z-index: 20;
+}
+
+.leaflet-control-zoom {
+  border: 2px solid hsl(var(--border)) !important;
+  background: hsl(var(--card)) !important;
+}
+
+.leaflet-control-zoom a {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: hsl(var(--muted)) !important;
+}
+
+/* Custom marker icon styles */
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker-icon svg {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+  transition: transform 0.2s ease;
+}
+
+.custom-marker-icon:hover svg {
+  transform: scale(1.1);
+}
