@@ -1,0 +1,89 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+.Python
+**/env/
+**/venv/
+**/ENV/
+**/.venv
+
+# Testing
+**/.pytest_cache/
+**/.coverage
+**/htmlcov/
+**/.tox/
+**/*.cover
+
+# IDE
+.vscode/
+.idea/
+**/*.swp
+**/*.swo
+**/*~
+
+# Logs
+**/*.log
+**/logs/
+**/*.log.*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Temporary files
+**/temp/
+**/tmp/
+**/*.tmp
+
+# Uploads
+**/uploads/
+
+# Database
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+**/postgres_data/
+**/redis_data/
+
+# Documentation
+docs/
+**/*.md
+!README.md
+DEPLOYMENT.md
+VPS_DEPLOYMENT.md
+
+# Docker (exclude other docker files, but keep what we need)
+docker-compose.yml
+docker-compose.*.yml
+**/.dockerignore
+
+# Frontend (exclude when building backend)
+frontend/
+node_modules/
+
+# YOLO models (exclude when building backend)
+yolo-service/models/
+**/*.pt
+**/*.pth
+**/*.weights
+
+# Build artifacts
+**/build/
+**/dist/
+**/*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Alembic temp
+**/alembic/versions/__pycache__/
