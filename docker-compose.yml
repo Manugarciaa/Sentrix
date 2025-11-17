@@ -83,6 +83,7 @@ services:
 
       # Environment
       ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-False}
       PORT: 8000
 
       # YOLO Service (internal network)
