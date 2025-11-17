@@ -1,8 +1,6 @@
 # Sentrix - Docker Compose for Dokploy
 # Stack completo: Backend + YOLO Service + PostgreSQL
 
-version: '3.8'
-
 services:
   # ==========================================
   # PostgreSQL Database
