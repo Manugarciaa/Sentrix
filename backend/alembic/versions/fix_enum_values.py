@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers
 revision = 'fix_enum_values'
-down_revision = None
+down_revision = '0001'
 branch_labels = None
 depends_on = None
 
