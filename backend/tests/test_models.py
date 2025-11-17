@@ -35,10 +35,11 @@ class TestEnums:
 
     def test_risk_level_enum(self):
         """Test que los valores de RiskLevelEnum son correctos"""
-        assert RiskLevelEnum.MINIMAL.value == "MINIMAL"
-        assert RiskLevelEnum.LOW.value == "LOW"
-        assert RiskLevelEnum.MEDIUM.value == "MEDIUM"
-        assert RiskLevelEnum.HIGH.value == "HIGH"
+        # RiskLevelEnum is an alias for DetectionRiskEnum (Spanish values)
+        assert RiskLevelEnum.MINIMO.value == "MINIMO"
+        assert RiskLevelEnum.BAJO.value == "BAJO"
+        assert RiskLevelEnum.MEDIO.value == "MEDIO"
+        assert RiskLevelEnum.ALTO.value == "ALTO"
 
     def test_detection_risk_enum(self):
         """Test que DetectionRiskEnum coincide con el servicio YOLO"""
@@ -68,8 +69,10 @@ class TestEnums:
     def test_validation_status_enum(self):
         """Test que los valores de ValidationStatusEnum son correctos"""
         assert ValidationStatusEnum.PENDING.value == "pending"
-        assert ValidationStatusEnum.CONFIRMED.value == "confirmed"
-        assert ValidationStatusEnum.REJECTED.value == "rejected"
+        assert ValidationStatusEnum.PENDING_VALIDATION.value == "pending_validation"
+        assert ValidationStatusEnum.VALIDATED_POSITIVE.value == "validated_positive"
+        assert ValidationStatusEnum.VALIDATED_NEGATIVE.value == "validated_negative"
+        assert ValidationStatusEnum.REQUIRES_REVIEW.value == "requires_review"
 
 
 class TestUserProfileModel:
@@ -339,7 +342,7 @@ class TestDetectionModel:
 
         # Validate detection
         detection.validated_by = expert_id
-        detection.validation_status = ValidationStatusEnum.CONFIRMED
+        detection.validation_status = ValidationStatusEnum.VALIDATED_POSITIVE
         detection.validation_notes = "Confirmed by expert review"
         detection.validated_at = datetime.utcnow()
 
@@ -348,7 +351,7 @@ class TestDetectionModel:
         # Verify validation
         retrieved = db_session.query(Detection).filter_by(analysis_id=analysis.id).first()
         assert retrieved.validated_by == expert_id
-        assert retrieved.validation_status == ValidationStatusEnum.CONFIRMED
+        assert retrieved.validation_status == ValidationStatusEnum.VALIDATED_POSITIVE
         assert retrieved.validation_notes == "Confirmed by expert review"
         assert retrieved.validated_at is not None
 

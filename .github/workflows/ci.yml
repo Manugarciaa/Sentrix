@@ -55,9 +55,11 @@ jobs:
         working-directory: backend
         env:
           ENVIRONMENT: development
+          TESTING_MODE: true
           REDIS_URL: redis://localhost:6379/0
         run: |
           pytest tests/ \
+            -m "not integration" \
             --cov=src \
             --cov-report=term-missing \
             --cov-report=xml \

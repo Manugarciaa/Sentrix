@@ -3,14 +3,18 @@ Rate limiting middleware for Sentrix API
 Middleware de limitación de tasa para la API de Sentrix
 """
 
+import os
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi import Request, Response
 from typing import Callable
 
-# Create limiter instance
-limiter = Limiter(key_func=get_remote_address)
+# Check if we're in testing mode - disable rate limiting for tests
+_is_testing = os.getenv('TESTING_MODE', 'false').lower() == 'true' or os.getenv('ENVIRONMENT', '') == 'development'
+
+# Create limiter instance (disabled in testing)
+limiter = Limiter(key_func=get_remote_address, enabled=not _is_testing)
 
 
 def get_limiter():

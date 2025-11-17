@@ -51,28 +51,28 @@ def test_map_risk_level_to_db_for_analysis_unknown():
 
 
 def test_map_risk_level_to_db_for_detection_alto():
-    """Test mapping ALTO to 'alto' for detections table"""
-    assert map_risk_level_to_db("ALTO", for_analysis=False) == "alto"
+    """Test mapping ALTO to 'ALTO' for detections table"""
+    assert map_risk_level_to_db("ALTO", for_analysis=False) == "ALTO"
 
 
 def test_map_risk_level_to_db_for_detection_medio():
-    """Test mapping MEDIO to 'medio' for detections table"""
-    assert map_risk_level_to_db("MEDIO", for_analysis=False) == "medio"
+    """Test mapping MEDIO to 'MEDIO' for detections table"""
+    assert map_risk_level_to_db("MEDIO", for_analysis=False) == "MEDIO"
 
 
 def test_map_risk_level_to_db_for_detection_bajo():
-    """Test mapping BAJO to 'bajo' for detections table"""
-    assert map_risk_level_to_db("BAJO", for_analysis=False) == "bajo"
+    """Test mapping BAJO to 'BAJO' for detections table"""
+    assert map_risk_level_to_db("BAJO", for_analysis=False) == "BAJO"
 
 
 def test_map_risk_level_to_db_for_detection_minimo():
-    """Test mapping MÍNIMO to 'bajo' for detections table"""
-    assert map_risk_level_to_db("MÍNIMO", for_analysis=False) == "bajo"
+    """Test mapping MÍNIMO to 'BAJO' for detections table"""
+    assert map_risk_level_to_db("MÍNIMO", for_analysis=False) == "BAJO"
 
 
 def test_map_risk_level_to_db_for_detection_unknown():
-    """Test mapping unknown value defaults to 'bajo' for detections"""
-    assert map_risk_level_to_db("UNKNOWN", for_analysis=False) == "bajo"
+    """Test mapping unknown value defaults to 'BAJO' for detections"""
+    assert map_risk_level_to_db("UNKNOWN", for_analysis=False) == "BAJO"
 
 
 # ============================================

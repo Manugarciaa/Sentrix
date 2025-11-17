@@ -1,8 +1,6 @@
 # Sentrix - Docker Compose for Dokploy
 # Stack completo: Backend + YOLO Service + PostgreSQL
 
-version: '3.8'
-
 services:
   # ==========================================
   # PostgreSQL Database
@@ -29,20 +27,44 @@ services:
       - "5432:5432"
 
   # ==========================================
+  # Redis Cache & Queue
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: sentrix-redis
+    restart: unless-stopped
+    networks:
+      - sentrix-network
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================
   # Backend API Service
   # ==========================================
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: sentrix-backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # Database
       DATABASE_URL: postgresql://${POSTGRES_USER:-sentrix_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentrix}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
 
       # Supabase (para storage/auth)
       SUPABASE_URL: ${SUPABASE_URL}
@@ -61,13 +83,14 @@ services:
 
       # Environment
       ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-False}
       PORT: 8000
 
       # YOLO Service (internal network)
       YOLO_SERVICE_URL: http://yolo:8001
 
       # CORS - actualizar con tu dominio de Dokploy
-      ALLOWED_ORIGINS: ${FRONTEND_URL},https://${DOKPLOY_DOMAIN}
+      ALLOWED_ORIGINS: '["${FRONTEND_URL}","https://${DOKPLOY_DOMAIN}"]'
 
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
@@ -90,8 +113,8 @@ services:
   # ==========================================
   yolo:
     build:
-      context: ./yolo-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: yolo-service/Dockerfile
     container_name: sentrix-yolo
     restart: unless-stopped
     environment:
@@ -129,6 +152,8 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
   backend_uploads:
     driver: local
