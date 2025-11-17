@@ -65,7 +65,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: .
           file: ./backend/Dockerfile
           push: true
           tags: ${{ steps.meta-backend.outputs.tags }}
@@ -88,7 +88,7 @@ jobs:
       - name: Build and push YOLO service image
         uses: docker/build-push-action@v5
         with:
-          context: ./yolo-service
+          context: .
           file: ./yolo-service/Dockerfile
           push: true
           tags: ${{ steps.meta-yolo.outputs.tags }}
