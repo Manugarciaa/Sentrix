@@ -8,8 +8,8 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database.models.base import Base
-from database.models.models import UserProfile, Analysis, Detection
+from src.database.models.base import Base
+from src.database.models.models import UserProfile, Analysis, Detection
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
