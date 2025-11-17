@@ -112,8 +112,8 @@ services:
   # ==========================================
   yolo:
     build:
-      context: ./yolo-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: yolo-service/Dockerfile
     container_name: sentrix-yolo
     restart: unless-stopped
     environment:
