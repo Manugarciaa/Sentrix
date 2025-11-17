@@ -1,7 +1,7 @@
 """Complete GPS and enum restructure
 
 Revision ID: 0002
-Revises: 0001, fix_enum_values
+Revises: 0001
 Create Date: 2025-01-26 11:00:00.000000
 
 """
@@ -12,7 +12,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = '0002'
-down_revision = ('0001', 'fix_enum_values')
+down_revision = '0001'
 branch_labels = None
 depends_on = None
 

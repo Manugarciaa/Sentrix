@@ -261,7 +261,30 @@ def find_latest_trained_model():
             logger.warning(f"Usando modelo base (no entrenado): {model}")
             return model
 
-    raise FileNotFoundError("No se encontró ningún modelo YOLO disponible")
+    # 5. Descargar modelo base automáticamente si no existe
+    logger.warning("No se encontró ningún modelo local. Descargando yolo11n-seg.pt...")
+    try:
+        from ultralytics import YOLO
+        # YOLO descargará automáticamente el modelo si no existe
+        default_model_name = "yolo11n-seg.pt"
+        model = YOLO(default_model_name)
+
+        # El modelo se descarga al cache de ultralytics, copiarlo a models/
+        models_dir.mkdir(exist_ok=True)
+        target_path = models_dir / default_model_name
+
+        # Obtener la ruta del modelo descargado
+        if hasattr(model, 'model_name'):
+            downloaded_path = model.model_name
+        else:
+            # El modelo ya está cargado, solo necesitamos guardar la referencia
+            logger.info(f"Modelo descargado exitosamente: {default_model_name}")
+            return default_model_name
+
+        return str(target_path) if target_path.exists() else default_model_name
+    except Exception as e:
+        logger.error(f"Error descargando modelo: {e}")
+        raise FileNotFoundError("No se encontró ningún modelo YOLO disponible y la descarga falló")
 
 
 MODEL_PATH = find_latest_trained_model()

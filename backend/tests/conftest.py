@@ -6,6 +6,10 @@ Configuración de pytest y fixtures para tests del backend de Sentrix
 import os
 import sys
 import pytest
+
+# Set testing mode environment variable before any imports
+os.environ['TESTING_MODE'] = 'true'
+os.environ['ENVIRONMENT'] = 'development'
 import asyncio
 from typing import Generator, AsyncGenerator
 from httpx import AsyncClient

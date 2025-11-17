@@ -22,19 +22,19 @@ def upgrade() -> None:
     op.execute('CREATE EXTENSION IF NOT EXISTS postgis')
 
     # Create ENUMs
-    risk_level_enum = postgresql.ENUM('MINIMAL', 'LOW', 'MEDIUM', 'HIGH', name='risk_level_enum')
-    detection_risk_enum = postgresql.ENUM('BAJO', 'MEDIO', 'ALTO', name='detection_risk_enum')
-    breeding_site_type_enum = postgresql.ENUM('Basura', 'Calles mal hechas', 'Charcos/Cumulo de agua', 'Huecos', name='breeding_site_type_enum')
-    user_role_enum = postgresql.ENUM('admin', 'expert', 'user', name='user_role_enum')
-    location_source_enum = postgresql.ENUM('EXIF_GPS', 'MANUAL', 'ESTIMATED', name='location_source_enum')
-    validation_status_enum = postgresql.ENUM('pending', 'confirmed', 'rejected', name='validation_status_enum')
+    risk_level_enum = postgresql.ENUM('MINIMAL', 'LOW', 'MEDIUM', 'HIGH', name='risk_level_enum', create_type=False)
+    detection_risk_enum = postgresql.ENUM('BAJO', 'MEDIO', 'ALTO', name='detection_risk_enum', create_type=False)
+    breeding_site_type_enum = postgresql.ENUM('Basura', 'Calles mal hechas', 'Charcos/Cumulo de agua', 'Huecos', name='breeding_site_type_enum', create_type=False)
+    user_role_enum = postgresql.ENUM('admin', 'expert', 'user', name='user_role_enum', create_type=False)
+    location_source_enum = postgresql.ENUM('EXIF_GPS', 'MANUAL', 'ESTIMATED', name='location_source_enum', create_type=False)
+    validation_status_enum = postgresql.ENUM('pending', 'confirmed', 'rejected', name='validation_status_enum', create_type=False)
 
-    risk_level_enum.create(op.get_bind())
-    detection_risk_enum.create(op.get_bind())
-    breeding_site_type_enum.create(op.get_bind())
-    user_role_enum.create(op.get_bind())
-    location_source_enum.create(op.get_bind())
-    validation_status_enum.create(op.get_bind())
+    risk_level_enum.create(op.get_bind(), checkfirst=True)
+    detection_risk_enum.create(op.get_bind(), checkfirst=True)
+    breeding_site_type_enum.create(op.get_bind(), checkfirst=True)
+    user_role_enum.create(op.get_bind(), checkfirst=True)
+    location_source_enum.create(op.get_bind(), checkfirst=True)
+    validation_status_enum.create(op.get_bind(), checkfirst=True)
 
     # Create user_profiles table
     op.create_table('user_profiles',
@@ -124,8 +124,8 @@ def upgrade() -> None:
     op.create_index('idx_analyses_camera', 'analyses', ['camera_make', 'camera_model'], unique=False)
 
     # Create spatial indexes for analyses
-    op.execute('CREATE INDEX idx_analyses_location ON analyses USING GIST(location)')
-    op.execute('CREATE INDEX idx_analyses_location_spgist ON analyses USING SPGIST(location)')
+    op.execute('CREATE INDEX IF NOT EXISTS idx_analyses_location ON analyses USING GIST(location)')
+    op.execute('CREATE INDEX IF NOT EXISTS idx_analyses_location_spgist ON analyses USING SPGIST(location)')
 
     # Create indexes for detections
     op.create_index('idx_detections_analysis', 'detections', ['analysis_id'], unique=False)
@@ -134,8 +134,8 @@ def upgrade() -> None:
     op.create_index('idx_detections_validation', 'detections', ['validation_status'], unique=False)
 
     # Create spatial indexes for detections
-    op.execute('CREATE INDEX idx_detections_location ON detections USING GIST(location)')
-    op.execute('CREATE INDEX idx_detections_location_spgist ON detections USING SPGIST(location)')
+    op.execute('CREATE INDEX IF NOT EXISTS idx_detections_location ON detections USING GIST(location)')
+    op.execute('CREATE INDEX IF NOT EXISTS idx_detections_location_spgist ON detections USING SPGIST(location)')
 
     # Create updated_at trigger function
     op.execute("""

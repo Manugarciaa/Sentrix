@@ -18,14 +18,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgeos-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy shared library first
+COPY shared /build/shared
+
+# Copy backend requirements
+COPY backend/requirements.txt .
 
 # Create virtual environment and install dependencies
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install shared library first (NOT editable for Docker)
+RUN pip install --no-cache-dir /build/shared
+
+# Install other requirements (excluding shared which is already installed)
+RUN grep -v "^\-e.*shared" requirements.txt > requirements-docker.txt && \
+    pip install --no-cache-dir -r requirements-docker.txt
 
 # ============================================
 # Stage 2: Runtime
@@ -57,8 +68,11 @@ WORKDIR /app
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Copy shared library (needed because it's installed as editable)
+COPY --from=builder --chown=appuser:appuser /build/shared /app/shared
+
+# Copy application code from backend directory
+COPY --chown=appuser:appuser backend/ .
 
 # Switch to non-root user
 USER appuser
