@@ -33,8 +33,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Upgrade pip
 RUN pip install --no-cache-dir --upgrade pip
 
-# Install shared library first (as editable)
-RUN pip install --no-cache-dir -e /build/shared
+# Install shared library first (NOT editable for Docker)
+RUN pip install --no-cache-dir /build/shared
 
 # Install other requirements (excluding shared which is already installed)
 RUN grep -v "^\-e.*shared" requirements.txt > requirements-docker.txt && \
