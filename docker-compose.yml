@@ -29,6 +29,25 @@ services:
       - "5432:5432"
 
   # ==========================================
+  # Redis Cache & Queue
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: sentrix-redis
+    restart: unless-stopped
+    networks:
+      - sentrix-network
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================
   # Backend API Service
   # ==========================================
   backend:
@@ -40,9 +59,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       # Database
       DATABASE_URL: postgresql://${POSTGRES_USER:-sentrix_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sentrix}
+
+      # Redis
+      REDIS_URL: redis://redis:6379/0
 
       # Supabase (para storage/auth)
       SUPABASE_URL: ${SUPABASE_URL}
@@ -129,6 +153,8 @@ networks:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
   backend_uploads:
     driver: local
