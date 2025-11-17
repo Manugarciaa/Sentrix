@@ -18,8 +18,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgeos-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy shared library first (needed for requirements.txt)
+COPY shared /build/shared
+
+# Copy backend requirements
+COPY backend/requirements.txt .
 
 # Create virtual environment and install dependencies
 RUN python -m venv /opt/venv
@@ -57,8 +60,8 @@ WORKDIR /app
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Copy application code from backend directory
+COPY --chown=appuser:appuser backend/ .
 
 # Switch to non-root user
 USER appuser

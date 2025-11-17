@@ -50,8 +50,8 @@ services:
   # ==========================================
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: sentrix-backend
     restart: unless-stopped
     depends_on:
