@@ -29,12 +29,12 @@ def upgrade() -> None:
     location_source_enum = postgresql.ENUM('EXIF_GPS', 'MANUAL', 'ESTIMATED', name='location_source_enum')
     validation_status_enum = postgresql.ENUM('pending', 'confirmed', 'rejected', name='validation_status_enum')
 
-    risk_level_enum.create(op.get_bind())
-    detection_risk_enum.create(op.get_bind())
-    breeding_site_type_enum.create(op.get_bind())
-    user_role_enum.create(op.get_bind())
-    location_source_enum.create(op.get_bind())
-    validation_status_enum.create(op.get_bind())
+    risk_level_enum.create(op.get_bind(), checkfirst=True)
+    detection_risk_enum.create(op.get_bind(), checkfirst=True)
+    breeding_site_type_enum.create(op.get_bind(), checkfirst=True)
+    user_role_enum.create(op.get_bind(), checkfirst=True)
+    location_source_enum.create(op.get_bind(), checkfirst=True)
+    validation_status_enum.create(op.get_bind(), checkfirst=True)
 
     # Create user_profiles table
     op.create_table('user_profiles',
