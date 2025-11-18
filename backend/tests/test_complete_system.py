@@ -6,6 +6,8 @@ Especialmente integración con YOLO service, manejo de GPS y endpoints API
 import os
 import sys
 import pytest
+
+pytestmark = [pytest.mark.database, pytest.mark.integration]
 import tempfile
 import asyncio
 from pathlib import Path

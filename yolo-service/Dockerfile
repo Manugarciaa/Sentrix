@@ -79,6 +79,17 @@ COPY --from=builder --chown=appuser:appuser /build/shared /app/shared
 # Copy application code from yolo-service directory
 COPY --chown=appuser:appuser yolo-service/ .
 
+# Download YOLO models from Supabase Storage
+# This is done as root to ensure proper permissions
+RUN curl -L -o /app/models/best.pt \
+    "https://bnllcqmcwfuauithwgkw.supabase.co/storage/v1/object/public/yolo-models/best.pt" && \
+    curl -L -o /app/models/yolo11n-seg.pt \
+    "https://bnllcqmcwfuauithwgkw.supabase.co/storage/v1/object/public/yolo-models/yolo11n-seg.pt" && \
+    curl -L -o /app/models/yolo11s-seg.pt \
+    "https://bnllcqmcwfuauithwgkw.supabase.co/storage/v1/object/public/yolo-models/yolo11s-seg.pt" && \
+    chown -R appuser:appuser /app/models && \
+    chmod -R 755 /app/models
+
 # Switch to non-root user
 USER appuser
 

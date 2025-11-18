@@ -49,9 +49,7 @@ services:
   # Backend API Service
   # ==========================================
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/manugarciaa/sentrix-backend:main
     container_name: sentrix-backend
     restart: unless-stopped
     depends_on:
@@ -112,13 +110,11 @@ services:
   # YOLO Detection Service
   # ==========================================
   yolo:
-    build:
-      context: .
-      dockerfile: yolo-service/Dockerfile
+    image: ghcr.io/manugarciaa/sentrix-yolo:main
     container_name: sentrix-yolo
     restart: unless-stopped
     environment:
-      YOLO_MODEL_PATH: models/yolo11n-seg.pt
+      YOLO_MODEL_PATH: models/best.pt
       YOLO_CONFIDENCE_THRESHOLD: 0.5
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       ENVIRONMENT: ${ENVIRONMENT:-production}

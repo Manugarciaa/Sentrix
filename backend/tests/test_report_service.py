@@ -3,6 +3,8 @@ Unit tests for report generation service
 """
 
 import pytest
+
+pytestmark = pytest.mark.database
 import io
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine

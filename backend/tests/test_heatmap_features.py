@@ -3,6 +3,8 @@ Tests for heatmap features: authentication-aware limiting and breeding site type
 """
 
 import pytest
+
+pytestmark = pytest.mark.database
 from fastapi.testclient import TestClient
 from datetime import datetime
 import uuid

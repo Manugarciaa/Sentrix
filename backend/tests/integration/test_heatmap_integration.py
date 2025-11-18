@@ -4,6 +4,8 @@ Tests authentication-aware limiting and breeding site type differentiation
 """
 
 import pytest
+
+pytestmark = [pytest.mark.integration, pytest.mark.database]
 import asyncio
 import httpx
 from datetime import datetime

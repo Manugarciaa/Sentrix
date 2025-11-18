@@ -4,6 +4,8 @@ desde YOLO service hasta almacenamiento en Supabase
 """
 
 import pytest
+
+pytestmark = pytest.mark.integration
 import base64
 import httpx
 from unittest.mock import Mock, patch, AsyncMock

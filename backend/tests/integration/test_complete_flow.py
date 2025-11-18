@@ -4,6 +4,8 @@ Tests complete workflows from API to YOLO to Storage to DB
 """
 
 import pytest
+
+pytestmark = [pytest.mark.integration, pytest.mark.database]
 from unittest.mock import patch, Mock, MagicMock
 from fastapi.testclient import TestClient
 from io import BytesIO

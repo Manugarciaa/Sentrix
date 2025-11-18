@@ -9,6 +9,8 @@ import base64
 from pathlib import Path
 import pytest
 
+pytestmark = [pytest.mark.integration, pytest.mark.asyncio]
+
 
 @pytest.mark.integration
 @pytest.mark.asyncio
