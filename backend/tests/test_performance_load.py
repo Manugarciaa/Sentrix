@@ -389,9 +389,9 @@ class TestLoadTesting(unittest.TestCase):
 
             with patch.object(self.analysis_service, 'yolo_client') as mock_yolo_client, \
                  patch.object(self.analysis_service, 'supabase') as mock_supabase, \
-                 patch('services.analysis_service.prepare_image_for_processing') as mock_prepare, \
-                 patch('services.analysis_service.generate_standardized_filename') as mock_standardized, \
-                 patch('services.analysis_service.create_filename_variations') as mock_variations:
+                 patch('src.services.analysis_service.prepare_image_for_processing') as mock_prepare, \
+                 patch('src.services.analysis_service.generate_standardized_filename') as mock_standardized, \
+                 patch('src.services.analysis_service.create_filename_variations') as mock_variations:
 
                 # Setup mocks
                 mock_prepare.return_value = (self.test_image_data, f"user_{user_id}.jpg")
