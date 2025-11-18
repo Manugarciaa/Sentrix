@@ -4,6 +4,8 @@ Verifica que los modelos SQLAlchemy y enums funcionen correctamente
 """
 
 import pytest
+
+pytestmark = pytest.mark.database
 import uuid
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
