@@ -7,9 +7,11 @@
 
 # CSS and JS with hash in filename - cache for 1 year
 /assets/js/*.js
+  Content-Type: application/javascript; charset=utf-8
   Cache-Control: public, max-age=31536000, immutable
 
 /assets/css/*.css
+  Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=31536000, immutable
 
 # Images with hash - cache for 1 year
