@@ -16,29 +16,43 @@ from .enums import (
 
 
 class ArrayOrJSON(TypeDecorator):
-    """Type that uses ARRAY for PostgreSQL and JSON for SQLite"""
-    impl = JSONB
+    """Type that uses ARRAY for PostgreSQL and JSON/Text for SQLite"""
+    impl = Text
     cache_ok = True
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
             return dialect.type_descriptor(ARRAY(Text))
         else:
-            return dialect.type_descriptor(JSONB)
+            # SQLite stores as TEXT
+            return dialect.type_descriptor(Text)
 
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        if dialect.name != 'postgresql':
-            return json.dumps(value) if not isinstance(value, str) else value
-        return value
+        if dialect.name == 'postgresql':
+            # PostgreSQL handles arrays natively
+            return value
+        else:
+            # SQLite: serialize to JSON string
+            if isinstance(value, str):
+                return value
+            return json.dumps(value)
 
     def process_result_value(self, value, dialect):
         if value is None:
             return value
-        if dialect.name != 'postgresql':
-            return json.loads(value) if isinstance(value, str) else value
-        return value
+        if dialect.name == 'postgresql':
+            # PostgreSQL returns array directly
+            return value
+        else:
+            # SQLite: deserialize from JSON string
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except (json.JSONDecodeError, ValueError):
+                    return value
+            return value
 
 
 class UserProfile(Base):
