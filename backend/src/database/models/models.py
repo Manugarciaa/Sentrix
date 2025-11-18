@@ -1,10 +1,11 @@
 from sqlalchemy import (
     Column, String, Integer, DateTime, Boolean, Text, DECIMAL,
-    ForeignKey, ARRAY, JSON as JSONB, func
+    ForeignKey, ARRAY, JSON as JSONB, func, TypeDecorator
 )
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geography
 from geoalchemy2.types import Geometry
+import json
 
 from .base import Base, GUID
 from .enums import (
@@ -12,6 +13,32 @@ from .enums import (
     user_role_enum, location_source_enum, validation_status_enum,
     UserRoleEnum
 )
+
+
+class ArrayOrJSON(TypeDecorator):
+    """Type that uses ARRAY for PostgreSQL and JSON for SQLite"""
+    impl = JSONB
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(ARRAY(Text))
+        else:
+            return dialect.type_descriptor(JSONB)
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name != 'postgresql':
+            return json.dumps(value) if not isinstance(value, str) else value
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.name != 'postgresql':
+            return json.loads(value) if isinstance(value, str) else value
+        return value
 
 
 class UserProfile(Base):
@@ -74,7 +101,7 @@ class Analysis(Base):
     medium_risk_count = Column(Integer, default=0)
     risk_level = Column(risk_level_enum)
     risk_score = Column(DECIMAL(4, 3))
-    recommendations = Column(ARRAY(Text))
+    recommendations = Column(ArrayOrJSON)
 
     # Configuración de procesamiento
     model_used = Column(Text)
