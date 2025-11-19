@@ -46,65 +46,15 @@ export default defineConfig(({ mode }) => ({
     sourcemap: false,
     cssCodeSplit: true,
     cssMinify: true,
-    minify: 'terser',
+    minify: 'esbuild', // Use esbuild minifier which handles initialization order better
     target: 'es2015',
     reportCompressedSize: true,
     chunkSizeWarningLimit: 1000,
-    terserOptions: {
-      compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
-        passes: 2,
-      },
-      mangle: {
-        safari10: true,
-      },
-      format: {
-        comments: false,
-      },
-    },
     rollupOptions: {
       external: mode === 'production' ? ['msw'] : [],
       output: {
-        manualChunks: (id) => {
-          // Core React
-          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
-            return 'react-vendor'
-          }
-          // Router
-          if (id.includes('node_modules/react-router')) {
-            return 'router'
-          }
-          // Radix UI components - split by package
-          if (id.includes('@radix-ui')) {
-            return 'radix-ui'
-          }
-          // Maps - heavy library
-          if (id.includes('leaflet') || id.includes('react-leaflet')) {
-            return 'maps'
-          }
-          // Charts
-          if (id.includes('recharts')) {
-            return 'charts'
-          }
-          // React Query
-          if (id.includes('@tanstack/react-query')) {
-            return 'react-query'
-          }
-          // Framer Motion
-          if (id.includes('framer-motion')) {
-            return 'framer-motion'
-          }
-          // Image processing
-          if (id.includes('heic2any') || id.includes('exifr')) {
-            return 'image-processing'
-          }
-          // Other large dependencies
-          if (id.includes('node_modules')) {
-            return 'vendor'
-          }
-        },
+        // Let Vite handle chunking automatically to avoid initialization order issues
+        // manualChunks: undefined,
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split('.')
           const extType = info?.[info.length - 1]
@@ -125,6 +75,6 @@ export default defineConfig(({ mode }) => ({
     'global': 'globalThis'
   },
   optimizeDeps: {
-    exclude: mode === 'production' ? ['msw'] : []
+    exclude: mode === 'production' ? ['msw'] : [],
   }
 }))

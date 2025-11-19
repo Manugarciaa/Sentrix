@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
 import { AlertTriangle, RefreshCcw, Home, Wifi, WifiOff } from 'lucide-react'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from './Button'
 
 interface Props {

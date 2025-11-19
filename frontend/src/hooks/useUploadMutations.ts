@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { analysisService } from '@/services/analysisService'
 import { queryKeys } from '@/lib/queryKeys'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { config, apiEndpoints } from '@/lib/config'
 import type {
   AnalysisUploadData,

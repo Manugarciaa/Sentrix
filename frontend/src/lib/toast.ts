@@ -16,7 +16,8 @@
  * ```
  */
 
-import { toast as sonnerToast } from 'sonner'
+import type { ComponentProps } from 'react'
+import { toast as sonnerToast, Toaster as SonnerToaster } from 'sonner'
 
 export interface ToastOptions {
   description?: string
@@ -175,3 +176,5 @@ export const notificationToToast = (notification: {
 
 // Re-export sonner toast for advanced usage
 export { sonnerToast as toast }
+export { SonnerToaster }
+export type SonnerToasterProps = ComponentProps<typeof SonnerToaster>
