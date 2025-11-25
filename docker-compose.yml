@@ -144,7 +144,8 @@ services:
 
 networks:
   sentrix-network:
-    driver: bridge
+    external: true
+    name: dokploy-network
 
 volumes:
   postgres_data:
