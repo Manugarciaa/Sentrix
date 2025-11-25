@@ -88,7 +88,7 @@ services:
       YOLO_SERVICE_URL: http://yolo:8001
 
       # CORS - actualizar con tu dominio de Dokploy
-      ALLOWED_ORIGINS: '["${FRONTEND_URL}","https://${DOKPLOY_DOMAIN}"]'
+      ALLOWED_ORIGINS: ${FRONTEND_URL},https://${DOKPLOY_DOMAIN}
 
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
