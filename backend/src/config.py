@@ -367,9 +367,18 @@ class Settings(BaseSettings):
     @classmethod
     def parse_origins(cls, v):
         """Parse comma-separated origins from environment"""
+        # Skip validation if value is problematic, use defaults
+        if v is None:
+            return None
         if isinstance(v, str):
+            # Handle empty or malformed strings
+            if not v or v.strip() == "":
+                return None
             return [origin.strip() for origin in v.split(",") if origin.strip()]
-        return v
+        if isinstance(v, list):
+            return v
+        # If we can't parse it, return None to use defaults
+        return None
 
     @field_validator("allowed_extensions", mode="before")
     @classmethod
