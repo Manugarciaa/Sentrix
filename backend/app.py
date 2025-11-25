@@ -126,7 +126,7 @@ allowed_origins = [
     "http://127.0.0.1:3000",
     "https://sentrix.vercel.app",
     "https://sentrix.pro",
-]
+    "https://backend.sentrix.pro",
 
 # Add production origins from environment
 if allowed_origins_env:
