@@ -126,6 +126,7 @@ allowed_origins = [
     "http://127.0.0.1:3000",
     "https://sentrix.vercel.app",
     "https://sentrix.pro",
+    "https://www.sentrix.pro",
     "https://backend.sentrix.pro",
 ]
 
