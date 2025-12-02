@@ -78,18 +78,50 @@ def db_session():
     Base.metadata.drop_all(bind=engine)
 
 
+async def override_get_current_user():
+    """Override auth dependency for testing"""
+    from src.database.models.models import UserProfile
+    from uuid import uuid4
+    from datetime import datetime, timezone
+
+    return UserProfile(
+        id=uuid4(),
+        email="test@sentrix.com",
+        display_name="Test User",
+        role="user",
+        is_active=True,
+        is_verified=True,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+
+
 @pytest.fixture(scope="function")
 def client() -> Generator[TestClient, None, None]:
     """Create a test client for FastAPI app"""
+    from src.utils.auth import get_current_user, get_current_active_user
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_active_user] = override_get_current_user
+
     with TestClient(app) as test_client:
         yield test_client
+
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
 async def async_client() -> AsyncGenerator[AsyncClient, None]:
     """Create an async test client for FastAPI app"""
+    from src.utils.auth import get_current_user, get_current_active_user
+
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    app.dependency_overrides[get_current_active_user] = override_get_current_user
+
     async with AsyncClient(app=app, base_url="http://test") as async_test_client:
         yield async_test_client
+
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
