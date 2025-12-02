@@ -70,8 +70,11 @@ docker-compose.*.yml
 frontend/
 node_modules/
 
-# YOLO models (exclude when building backend)
+# YOLO models and training data (exclude when building backend)
 yolo-service/models/
+yolo-service/data/
+yolo-service/results/
+yolo-service/tests/
 **/*.pt
 **/*.pth
 **/*.weights
