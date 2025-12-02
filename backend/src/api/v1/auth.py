@@ -28,185 +28,105 @@ router = APIRouter()
 
 @router.post("/register", response_model=LoginResponse, status_code=status.HTTP_201_CREATED)
 async def register(
-    user_data: UserCreate,
-    db: Session = Depends(get_db)
+    user_data: UserCreate
 ):
     """
-    Register a new user account
+    Register a new user account using Supabase Auth
 
     Creates a new user account with the provided email and password.
     Returns access and refresh tokens for immediate login.
     """
-    # Check if user already exists
-    existing_user = UserService.get_user_by_email(db, user_data.email)
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A user with this email already exists"
-        )
+    from ...services.supabase_user_service import supabase_user_service
 
-    # Create new user
-    new_user = UserService.create_user(db, user_data)
+    # Create user in Supabase Auth + user_profiles table
+    result = supabase_user_service.create_user(user_data)
 
-    # Generate tokens
-    access_token, refresh_token = create_user_tokens(new_user)
-
-    # Update last login
-    UserService.update_last_login(db, new_user.id)
+    # Extract profile data
+    profile = result['profile']
 
     # Convert to User schema
     user_response = User(
-        id=new_user.id,
-        email=new_user.email,
-        display_name=new_user.display_name,
-        organization=new_user.organization,
-        role=new_user.role,
-        is_active=new_user.is_active,
-        is_verified=new_user.is_verified,
-        created_at=new_user.created_at,
-        updated_at=new_user.updated_at,
-        last_login=new_user.last_login
+        id=profile['id'],
+        email=profile['email'],
+        display_name=profile.get('display_name'),
+        organization=profile.get('organization'),
+        role=profile.get('role', 'user'),
+        is_active=profile.get('is_active', True),
+        is_verified=profile.get('is_verified', False),
+        created_at=profile.get('created_at'),
+        updated_at=profile.get('updated_at'),
+        last_login=profile.get('last_login')
     )
 
     return LoginResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        access_token=result['session'].access_token,
+        refresh_token=result['session'].refresh_token,
         token_type="bearer",
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        expires_in=result['session'].expires_in if hasattr(result['session'], 'expires_in') else ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         user=user_response
     )
 
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
-    login_data: LoginRequest,
-    db: Session = Depends(get_db)
+    login_data: LoginRequest
 ):
     """
-    Authenticate user and return access tokens
+    Authenticate user using Supabase Auth
 
     Validates user credentials and returns access and refresh tokens.
-
-    SECURITY: Usa ORM en lugar de raw SQL para prevenir SQL injection
     """
-    from datetime import datetime, timezone
+    from ...services.supabase_user_service import supabase_user_service
 
-    try:
-        # SEGURIDAD: Usar ORM en lugar de raw SQL
-        user = db.query(UserProfile).filter(
-            UserProfile.email == login_data.email,
-            UserProfile.is_active == True
-        ).first()
+    # Authenticate with Supabase
+    result = supabase_user_service.authenticate_user(
+        email=login_data.email,
+        password=login_data.password
+    )
 
-        # Usar mensaje genérico para evitar user enumeration
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+    # Extract profile data
+    profile = result['profile']
 
-        # Verify password
-        if not AuthService.verify_password(login_data.password, user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+    # Create user response
+    user_response = User(
+        id=profile['id'],
+        email=profile['email'],
+        display_name=profile.get('display_name'),
+        organization=profile.get('organization'),
+        role=profile.get('role', 'user'),
+        is_active=profile.get('is_active', True),
+        is_verified=profile.get('is_verified', False),
+        created_at=profile.get('created_at'),
+        updated_at=profile.get('updated_at'),
+        last_login=profile.get('last_login')
+    )
 
-        # Create tokens
-        access_token = AuthService.create_access_token(
-            data={"sub": str(user.id), "email": user.email, "role": user.role}
-        )
-        refresh_token = AuthService.create_refresh_token(
-            data={"sub": str(user.id)}
-        )
-
-        # Update last login usando ORM
-        user.last_login = datetime.now(timezone.utc)
-        user.updated_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(user)
-
-        # Create user response
-        user_response = User(
-            id=user.id,
-            email=user.email,
-            display_name=user.display_name,
-            organization=user.organization,
-            role=user.role,
-            is_active=user.is_active,
-            is_verified=user.is_verified,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            last_login=user.last_login
-        )
-
-        return LoginResponse(
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_type="bearer",
-            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            user=user_response
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception(f"Login error for {login_data.email}: {e}")
-        # SEGURIDAD: No exponer detalles internos en producción
-        import os
-        if os.getenv("ENVIRONMENT") == "production":
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error"
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error interno del servidor: {str(e)}"
-            )
+    return LoginResponse(
+        access_token=result['access_token'],
+        refresh_token=result['refresh_token'],
+        token_type="bearer",
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user_response
+    )
 
 
 @router.post("/refresh", response_model=RefreshResponse)
 async def refresh_token(
-    refresh_data: RefreshRequest,
-    db: Session = Depends(get_db)
+    refresh_data: RefreshRequest
 ):
     """
-    Refresh access token using refresh token
+    Refresh access token using Supabase refresh token
 
     Validates refresh token and returns a new access token and refresh token.
     """
-    # Verify refresh token
-    token_data = AuthService.verify_token(refresh_data.refresh_token, "refresh")
-    if not token_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    from ...services.supabase_user_service import supabase_user_service
 
-    # Get user
-    user = UserService.get_user_by_id(db, token_data.user_id)
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or inactive"
-        )
-
-    # Generate new access token and refresh token
-    access_token_data = {
-        "sub": str(user.id),
-        "email": user.email,
-        "role": user.role
-    }
-    access_token = AuthService.create_access_token(access_token_data)
-    new_refresh_token = AuthService.create_refresh_token({"sub": str(user.id)})
+    # Refresh session with Supabase
+    result = supabase_user_service.refresh_session(refresh_data.refresh_token)
 
     return RefreshResponse(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
+        access_token=result['access_token'],
+        refresh_token=result['refresh_token'],
         token_type="bearer",
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60
     )

@@ -105,10 +105,11 @@ class AuthService:
 
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> UserProfile:
-    """Dependency to get the current authenticated user"""
+    """Dependency to get the current authenticated user using Supabase Auth"""
+    from ..services.supabase_user_service import supabase_user_service
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -117,23 +118,31 @@ async def get_current_user(
 
     try:
         token = credentials.credentials
-        token_data = AuthService.verify_token(token, "access")
-        if token_data is None:
-            raise credentials_exception
-    except JWTError:
-        raise credentials_exception
 
-    user = db.query(UserProfile).filter(UserProfile.id == token_data.user_id).first()
-    if user is None:
-        raise credentials_exception
+        # Validate token with Supabase
+        result = supabase_user_service.get_user_from_token(token)
+        profile = result['profile']
 
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+        # Convert to UserProfile object
+        user = UserProfile(
+            id=profile['id'],
+            email=profile['email'],
+            display_name=profile.get('display_name'),
+            organization=profile.get('organization'),
+            role=profile.get('role', 'user'),
+            is_active=profile.get('is_active', True),
+            is_verified=profile.get('is_verified', False),
+            created_at=profile.get('created_at'),
+            updated_at=profile.get('updated_at'),
+            last_login=profile.get('last_login')
         )
 
-    return user
+        return user
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise credentials_exception
 
 
 async def get_current_active_user(
