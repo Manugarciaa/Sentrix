@@ -100,11 +100,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuccess })
         console.log(`✅ GPS detectado: ${lat}, ${lng} (Ref: ${exifData.GPSLatitudeRef}, ${exifData.GPSLongitudeRef})`)
         showToast.success('GPS detectado', `Ubicación encontrada en la imagen`)
       } else {
-        console.log('❌ No GPS data in EXIF:', exifData)
+        console.log('No GPS data in EXIF:', exifData)
         setDetectedGPS(null)
       }
     } catch (error) {
-      console.error('Error detecting GPS:', error)
+      // Es normal que algunas imágenes no tengan GPS, no es un error crítico
+      console.info('No se pudo detectar GPS en la imagen:', error instanceof Error ? error.message : 'Unknown file format')
       setDetectedGPS(null)
     } finally {
       setIsDetectingGPS(false)

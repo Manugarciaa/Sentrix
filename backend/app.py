@@ -134,10 +134,10 @@ allowed_origins = [
 if allowed_origins_env:
     allowed_origins.extend(allowed_origins_env.split(","))
 
-# Only allow * in development, but specify localhost for credentials
+# In development, extend (not replace) with localhost origins
 if os.getenv("ENVIRONMENT", "development") == "development":
-    # In development, allow common dev ports explicitly for credentials support
-    allowed_origins = [
+    # Add common dev ports for development
+    dev_origins = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:5174",
@@ -151,6 +151,7 @@ if os.getenv("ENVIRONMENT", "development") == "development":
         "http://127.0.0.1:4173",
         "http://127.0.0.1:8080",
     ]
+    allowed_origins.extend(dev_origins)
 
 app.add_middleware(
     CORSMiddleware,
@@ -191,6 +192,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     - Request context logging with structured logging
     - Consistent JSON structure
     - Automatic request_id from context
+    - CORS headers for cross-origin error responses
     """
     error_id = str(uuid.uuid4())
 
@@ -205,7 +207,10 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         error_detail=str(exc.detail)
     )
 
-    return JSONResponse(
+    # Get origin from request for CORS
+    origin = request.headers.get("origin")
+
+    response = JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
@@ -218,6 +223,15 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         }
     )
 
+    # Add CORS headers if origin is allowed
+    if origin and origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+
+    return response
+
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -229,6 +243,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     - Full validation error details
     - Structured logging with request context
     - Automatic request_id from context
+    - CORS headers for cross-origin error responses
     """
     error_id = str(uuid.uuid4())
 
@@ -242,7 +257,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         validation_errors=exc.errors()
     )
 
-    return JSONResponse(
+    # Get origin from request for CORS
+    origin = request.headers.get("origin")
+
+    response = JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "error": {
@@ -256,6 +274,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }
     )
 
+    # Add CORS headers if origin is allowed
+    if origin and origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+
+    return response
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
@@ -268,6 +295,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     - Production error masking
     - Request context capture
     - Automatic request_id from context
+    - CORS headers for cross-origin error responses
     """
     import traceback
 
@@ -307,7 +335,11 @@ async def general_exception_handler(request: Request, exc: Exception):
         message = f"{type(exc).__name__}: {str(exc)}"
         error_type = type(exc).__name__
 
-    return JSONResponse(
+    # Get origin from request for CORS
+    origin = request.headers.get("origin")
+
+    # Build response with CORS headers
+    response = JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": {
@@ -321,6 +353,15 @@ async def general_exception_handler(request: Request, exc: Exception):
             }
         }
     )
+
+    # Add CORS headers if origin is allowed
+    if origin and origin in allowed_origins:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+
+    return response
 
 
 # ============================================
