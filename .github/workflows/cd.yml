@@ -94,7 +94,7 @@ jobs:
           tags: ${{ steps.meta-yolo.outputs.tags }}
           labels: ${{ steps.meta-yolo.outputs.labels }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min
 
   # ============================================
   # Deploy to Staging
