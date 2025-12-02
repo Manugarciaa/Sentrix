@@ -1,5 +1,11 @@
 {
     "framework": "vite",
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "https://backend.sentrix.pro/api/:path*"
+        }
+    ],
     "routes": [
         {
             "src": "/assets/js/(.*)",
