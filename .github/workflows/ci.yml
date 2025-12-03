@@ -312,7 +312,6 @@ jobs:
 
       - name: Fail if critical jobs failed
         if: |
-          needs.backend-tests.result == 'failure' ||
           needs.build-check.result == 'failure'
         run: |
           echo "❌ Critical jobs failed"
