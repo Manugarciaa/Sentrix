@@ -82,7 +82,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   })
 
   return (
-    <div className="flex flex-col md:flex-row w-full h-screen overflow-hidden bg-primary/5 dark:bg-primary/10">
+    <div className="flex flex-col md:flex-row w-full h-screen overflow-hidden bg-background">
       <Sidebar open={true} setOpen={() => {}}>
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
@@ -163,7 +163,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="flex flex-1 flex-col overflow-hidden">
 
         {/* Main Content - Scrollable */}
-        <main className="flex-1 overflow-y-auto bg-primary/5 dark:bg-primary/10">
+        <main className="flex-1 overflow-y-auto bg-background">
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: 10 }}
