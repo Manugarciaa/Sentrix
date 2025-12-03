@@ -3,6 +3,15 @@ import { Button } from '@/components/ui/Button'
 import { CheckCircle, ArrowRight, MapPin } from 'lucide-react'
 
 const HeroSection: React.FC = () => {
+  // Smooth scroll handler for section navigation
+  const handleScrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
     <section
       id="hero"
@@ -33,26 +42,24 @@ const HeroSection: React.FC = () => {
 
           {/* CTAs principales */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6 sm:pt-8 px-4">
-            <a href="#demo" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                className="group bg-primary hover:bg-primary/90 dark:hover:bg-primary/80 text-white px-8 py-6 text-lg font-semibold rounded-lg w-full sm:w-auto transition-colors duration-300"
-              >
-                Probar detector IA
-                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              onClick={() => handleScrollToSection('demo')}
+              className="group bg-primary hover:bg-primary/90 dark:hover:bg-primary/80 text-white px-8 py-6 text-lg font-semibold rounded-lg w-full sm:w-auto transition-colors duration-300"
+            >
+              Probar detector IA
+              <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
 
-            <a href="#mapa" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-secondary text-secondary hover:text-secondary hover:bg-secondary/10 hover:border-secondary/80 dark:text-secondary dark:hover:text-secondary dark:hover:bg-secondary/20 dark:hover:border-secondary px-8 py-6 text-lg font-semibold transition-all duration-300 rounded-lg w-full sm:w-auto flex items-center justify-center"
-              >
-                <MapPin className="mr-2 h-5 w-5" />
-                Ver zonas afectadas
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => handleScrollToSection('mapa')}
+              className="border-2 border-secondary text-secondary hover:text-secondary hover:bg-secondary/10 hover:border-secondary/80 dark:text-secondary dark:hover:text-secondary dark:hover:bg-secondary/20 dark:hover:border-secondary px-8 py-6 text-lg font-semibold transition-all duration-300 rounded-lg w-full sm:w-auto flex items-center justify-center"
+            >
+              <MapPin className="mr-2 h-5 w-5" />
+              Ver zonas afectadas
+            </Button>
           </div>
 
           {/* Nota pequeña */}
