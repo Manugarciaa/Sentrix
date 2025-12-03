@@ -6,32 +6,37 @@
             "destination": "https://backend.sentrix.pro/api/:path*"
         }
     ],
-    "routes": [
+    "headers": [
         {
-            "src": "/assets/js/(.*)",
-            "headers": {
-                "Content-Type": "application/javascript; charset=utf-8",
-                "Cache-Control": "public, max-age=31536000, immutable"
-            }
+            "source": "/assets/js/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript; charset=utf-8"
+                },
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
         },
         {
-            "src": "/(.*)\\.js",
-            "headers": {
-                "Content-Type": "application/javascript; charset=utf-8"
-            }
+            "source": "/(.*)\\.js",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript; charset=utf-8"
+                }
+            ]
         },
         {
-            "src": "/(.*)\\.mjs",
-            "headers": {
-                "Content-Type": "application/javascript; charset=utf-8"
-            }
-        },
-        {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
+            "source": "/(.*)\\.mjs",
+            "headers": [
+                {
+                    "key": "Content-Type",
+                    "value": "application/javascript; charset=utf-8"
+                }
+            ]
         }
     ]
 }
