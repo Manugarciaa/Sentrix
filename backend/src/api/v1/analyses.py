@@ -677,9 +677,9 @@ async def list_analyses(
 
     # Apply authentication-aware limit
     if current_user is None:
-        # Public access: limit to 3 recent analyses for demo
-        if limit is None or limit > 3:
-            limit = 3
+        # Public access: limit to 12 analyses for demo (increased from 3)
+        if limit is None or limit > 12:
+            limit = 12
         # Ignore user_id filter for unauthenticated users
         user_id = None
     else:

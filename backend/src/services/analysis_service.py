@@ -361,12 +361,13 @@ class AnalysisService:
 
             # 9. Crear registro de análisis en base de datos
             # Note: Don't include created_at/updated_at - Supabase handles these with server defaults
-            # Note: processed_image_url and processed_image_filename are not in the analyses table schema
             basic_analysis_data = {
                 "id": analysis_id,
                 "user_id": user_id,  # Add user_id to allow RLS access
                 "image_url": image_url,
                 "image_filename": image_filename,
+                "processed_image_url": processed_image_url,
+                "processed_image_filename": processed_image_filename,
                 "image_size_bytes": len(processed_image_data),
                 "total_detections": len(detections),
                 "risk_level": "BAJO",  # Default risk level, will be updated after detections

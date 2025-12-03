@@ -62,6 +62,8 @@ def sanitize_filename(filename: str) -> str:
         'etc_passwd.jpg'
         >>> sanitize_filename("my<script>.jpg")
         'my_script_.jpg'
+        >>> sanitize_filename("c:\\Users\\manolo\\image.jpg")
+        'image.jpg'
     """
     # Get basename to remove any path components
     safe_name = os.path.basename(filename)
