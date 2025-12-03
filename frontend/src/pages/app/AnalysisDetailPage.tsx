@@ -236,50 +236,52 @@ const AnalysisDetailPage: React.FC = () => {
   ).length || 0
 
   return (
-    <div className="space-y-6 pb-8">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
+    <div className="space-y-4 sm:space-y-6 pb-8">
+      {/* Header - Responsive */}
+      <div className="flex flex-col gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             onClick={() => navigate('/app/analysis')}
             variant="outline"
             size="sm"
+            className="flex-shrink-0"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Análisis #{analysis.id.slice(0, 8)}
               </h1>
               <RiskBadge level={analysis.risk_assessment?.level || 'BAJO'} />
             </div>
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                <span>{formatDate(analysis.created_at)}</span>
+                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="truncate">{formatDate(analysis.created_at)}</span>
               </div>
               {analysis.image_filename && (
                 <>
-                  <span>•</span>
-                  <div className="flex items-center gap-1.5">
-                    <ImageIcon className="h-4 w-4" />
-                    <span className="max-w-xs truncate">{analysis.image_filename}</span>
+                  <span className="hidden sm:inline">•</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{analysis.image_filename}</span>
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Button
               onClick={handleExportJSON}
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto justify-center"
             >
               <Download className="h-4 w-4 mr-2" />
               JSON
@@ -288,6 +290,7 @@ const AnalysisDetailPage: React.FC = () => {
               onClick={handleExportPDF}
               variant="outline"
               size="sm"
+              className="w-full sm:w-auto justify-center"
             >
               <FileText className="h-4 w-4 mr-2" />
               PDF
@@ -298,10 +301,10 @@ const AnalysisDetailPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="space-y-4">
-        {/* Images and Map Grid - 3 columns */}
+        {/* Images and Map Grid - Responsive */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Images - Takes 2 columns */}
-          <Card className="lg:col-span-2">
+          {/* Images - Takes 2 columns on large screens */}
+          <Card className="lg:col-span-2 order-1 lg:order-1">
             <div className="p-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
               <h2 className="text-base font-semibold">Análisis Visual</h2>
             </div>
@@ -341,29 +344,29 @@ const AnalysisDetailPage: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Legend - Compact */}
+                    {/* Legend - Responsive */}
                     {detectionCount > 0 && (
-                      <div className="bg-gradient-to-br from-card to-muted/10 border border-primary/10 rounded-lg p-2.5">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <Info className="h-3.5 w-3.5 text-primary" />
-                          <h3 className="text-xs font-semibold">Tipos de Criadero</h3>
+                      <div className="bg-gradient-to-br from-card to-muted/10 border border-primary/10 rounded-lg p-2 sm:p-2.5">
+                        <div className="flex items-center gap-1.5 mb-1.5 sm:mb-2">
+                          <Info className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary" />
+                          <h3 className="text-[10px] sm:text-xs font-semibold">Tipos de Criadero</h3>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                          <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-background/80 border border-muted">
-                            <div className="w-3 h-3 rounded-full bg-[rgb(255,140,0)] shadow-sm" />
-                            <span className="text-xs font-medium">Basura</span>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+                          <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-md bg-background/80 border border-muted">
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[rgb(255,140,0)] shadow-sm flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs font-medium truncate">Basura</span>
                           </div>
-                          <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-background/80 border border-muted">
-                            <div className="w-3 h-3 rounded-full bg-[rgb(0,100,255)] shadow-sm" />
-                            <span className="text-xs font-medium">Agua</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-md bg-background/80 border border-muted">
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[rgb(0,100,255)] shadow-sm flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs font-medium truncate">Agua</span>
                           </div>
-                          <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-background/80 border border-muted">
-                            <div className="w-3 h-3 rounded-full bg-[rgb(0,200,0)] shadow-sm" />
-                            <span className="text-xs font-medium">Huecos</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-md bg-background/80 border border-muted">
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[rgb(0,200,0)] shadow-sm flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs font-medium truncate">Huecos</span>
                           </div>
-                          <div className="flex items-center gap-1.5 p-1.5 rounded-md bg-background/80 border border-muted">
-                            <div className="w-3 h-3 rounded-full bg-[rgb(255,0,0)] shadow-sm" />
-                            <span className="text-xs font-medium">Calles</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 rounded-md bg-background/80 border border-muted">
+                            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-[rgb(255,0,0)] shadow-sm flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs font-medium truncate">Calles</span>
                           </div>
                         </div>
                       </div>
@@ -428,8 +431,8 @@ const AnalysisDetailPage: React.FC = () => {
             </Tabs>
           </Card>
 
-          {/* Detalles del Análisis - Takes 1 column */}
-          <Card className="lg:col-span-1">
+          {/* Detalles del Análisis - Takes 1 column on large screens */}
+          <Card className="lg:col-span-1 order-2 lg:order-2">
             <div className="p-3 border-b">
               <h2 className="text-base font-semibold">Detalles del Análisis</h2>
             </div>
@@ -628,7 +631,7 @@ const AnalysisDetailPage: React.FC = () => {
 
               <TabsContent value="all" className="p-3">
                 {detectionCount > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {analysis.detections.map((detection) => (
                       <DetectionCard
                         key={detection.id}
@@ -647,7 +650,7 @@ const AnalysisDetailPage: React.FC = () => {
 
               <TabsContent value="pending" className="p-3">
                 {pendingValidationCount > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {analysis.detections
                       .filter(d => d.validation_status === 'pending_validation')
                       .map((detection) => (
@@ -668,7 +671,7 @@ const AnalysisDetailPage: React.FC = () => {
 
               <TabsContent value="validated" className="p-3">
                 {detectionCount - pendingValidationCount > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {analysis.detections
                       .filter(d =>
                         d.validation_status === 'validated_positive' ||
@@ -693,7 +696,7 @@ const AnalysisDetailPage: React.FC = () => {
             /* Vista simple para usuarios regulares - sin tabs */
             <div className="p-3">
               {detectionCount > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {analysis.detections.map((detection) => (
                     <DetectionCard
                       key={detection.id}
@@ -720,47 +723,47 @@ const AnalysisDetailPage: React.FC = () => {
         >
           <button
             onClick={closeImageModal}
-            className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2.5 transition-colors"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full p-2 sm:p-2.5 transition-colors"
           >
-            <X className="h-6 w-6 text-white" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </button>
 
-          <div className="absolute top-4 left-4 z-10 flex gap-2">
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex gap-1.5 sm:gap-2">
             <button
               onClick={(e) => { e.stopPropagation(); handleZoomOut(); }}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 transition-colors"
             >
-              <ZoomOut className="h-5 w-5 text-white" />
+              <ZoomOut className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </button>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-              <span className="text-sm text-white font-semibold">{Math.round(zoomLevel * 100)}%</span>
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:px-4 sm:py-2">
+              <span className="text-xs sm:text-sm text-white font-semibold">{Math.round(zoomLevel * 100)}%</span>
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); handleZoomIn(); }}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:px-3 sm:py-2 transition-colors"
             >
-              <ZoomIn className="h-5 w-5 text-white" />
+              <ZoomIn className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </button>
           </div>
 
           {detectionCount > 0 && modalImageType === 'processed' && (
-            <div className="absolute bottom-4 left-4 z-10 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2.5">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[rgb(255,140,0)]" />
-                  <span className="text-xs text-white font-medium">Basura</span>
+            <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 z-10 bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1.5 sm:px-4 sm:py-2.5">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[rgb(255,140,0)] flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-white font-medium">Basura</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[rgb(0,100,255)]" />
-                  <span className="text-xs text-white font-medium">Agua</span>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[rgb(0,100,255)] flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-white font-medium">Agua</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[rgb(0,200,0)]" />
-                  <span className="text-xs text-white font-medium">Huecos</span>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[rgb(0,200,0)] flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-white font-medium">Huecos</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-[rgb(255,0,0)]" />
-                  <span className="text-xs text-white font-medium">Calles</span>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-[rgb(255,0,0)] flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs text-white font-medium">Calles</span>
                 </div>
               </div>
             </div>
@@ -782,8 +785,8 @@ const AnalysisDetailPage: React.FC = () => {
             />
           </div>
 
-          <div className="absolute bottom-4 right-4 z-10 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-            <p className="text-xs text-white/90 font-medium">ESC o click fuera para cerrar</p>
+          <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-4 z-10 bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1 sm:px-4 sm:py-2">
+            <p className="text-[10px] sm:text-xs text-white/90 font-medium">ESC o click fuera para cerrar</p>
           </div>
         </div>
       )}

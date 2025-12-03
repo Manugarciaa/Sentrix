@@ -103,21 +103,24 @@ const AnalysisPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-bold text-foreground">Análisis</h1>
-          <p className="text-base text-muted-foreground mt-2">
-            Visualiza y gestiona los análisis procesados ({pagination.total} total)
-          </p>
+      {/* Header - Responsive */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Análisis</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+              Visualiza y gestiona los análisis procesados ({pagination.total} total)
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowUploadModal(true)}
+            className="gap-2 w-full sm:w-auto"
+            size="default"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo Análisis
+          </Button>
         </div>
-        <Button
-          onClick={() => setShowUploadModal(true)}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Nuevo Análisis
-        </Button>
       </div>
 
       {/* Filter Bar */}

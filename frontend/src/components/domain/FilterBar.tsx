@@ -91,9 +91,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
       </div>
 
-      {/* Filters - Horizontal Row Layout */}
+      {/* Filters - Responsive Grid */}
       <div className={cn(
-        'px-4 py-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3',
+        'px-4 py-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3',
         !isExpanded && 'hidden md:grid'
       )}>
         {/* Risk Level Filter */}

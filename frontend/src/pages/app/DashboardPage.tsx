@@ -145,11 +145,11 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-4 pb-12">
-      {/* Header - Compacto */}
-      <div className="flex items-center justify-between py-2">
+      {/* Header - Responsive */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-2">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Monitoreo de detecciones de Aedes aegypti
           </p>
         </div>
@@ -158,17 +158,17 @@ const DashboardPage: React.FC = () => {
           size="sm"
           onClick={fetchData}
           disabled={isRefreshing}
-          className="gap-2 h-8"
+          className="gap-2 h-8 w-full sm:w-auto"
         >
           <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
           <span className="text-xs">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
         </Button>
       </div>
 
-      {/* Main Content - 2 columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Column - 1/3 width */}
-        <div className="space-y-4">
+      {/* Main Content - Responsive Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Left Column - Stats & Charts */}
+        <div className="space-y-4 md:col-span-2 lg:col-span-1">
           {/* Stats Card */}
           <div className="bg-card border border-border rounded-lg p-3 shadow-sm">
             <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -350,40 +350,40 @@ const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column - 2/3 width */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* Right Column - Map & Trends */}
+        <div className="md:col-span-2 lg:col-span-2 space-y-4">
           {/* Mapa de Calor */}
           <div className="bg-card rounded-lg p-3 border border-border shadow-sm">
-            {/* Selector de modo de visualización */}
-            <div className="mb-3 flex items-center justify-between">
+            {/* Selector de modo de visualización - Responsive */}
+            <div className="mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
                 Mapa de Detecciones
               </h2>
-              <div className="flex gap-2 bg-muted/50 p-1 rounded-lg">
+              <div className="flex gap-1 sm:gap-2 bg-muted/50 p-1 rounded-lg w-full sm:w-auto">
                 <button
                   onClick={() => setVisualizationMode('risk-level')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-all ${
+                  className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs font-medium rounded transition-all ${
                     visualizationMode === 'risk-level'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  Nivel de Riesgo
+                  Riesgo
                 </button>
                 <button
                   onClick={() => setVisualizationMode('breeding-type')}
-                  className={`px-3 py-1.5 text-xs font-medium rounded transition-all ${
+                  className={`flex-1 sm:flex-none px-2 sm:px-3 py-1.5 text-xs font-medium rounded transition-all ${
                     visualizationMode === 'breeding-type'
                       ? 'bg-primary text-primary-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  Tipo de Criadero
+                  Criadero
                 </button>
               </div>
             </div>
-            <div className="relative h-80 md:h-[450px] z-0">
+            <div className="relative h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] z-0">
               {isLoadingHeatmap ? (
                 // Skeleton para mapa
                 <div className="absolute inset-0 bg-muted rounded-xl animate-pulse flex items-center justify-center">
@@ -401,26 +401,26 @@ const DashboardPage: React.FC = () => {
                     className="h-full w-full rounded-xl overflow-hidden"
                     visualizationMode={visualizationMode}
                   />
-                  {/* Leyenda para modo breeding-type */}
+                  {/* Leyenda para modo breeding-type - Responsive */}
                   {visualizationMode === 'breeding-type' && heatMapData.length > 0 && (
-                    <div className="absolute bottom-4 left-4 bg-card/70 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-primary/15 z-[1000] max-w-[200px]">
-                      <h4 className="text-xs font-semibold text-foreground/90 mb-2">Tipos de Criadero</h4>
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#FF8C00' }}></div>
-                          <span className="text-xs text-muted-foreground">Basura</span>
+                    <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-card/80 backdrop-blur-sm rounded-lg p-2 sm:p-3 shadow-lg border border-primary/15 z-[1000] max-w-[180px] sm:max-w-[200px]">
+                      <h4 className="text-[10px] sm:text-xs font-semibold text-foreground/90 mb-1.5 sm:mb-2">Tipos de Criadero</h4>
+                      <div className="space-y-1 sm:space-y-1.5">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: '#FF8C00' }}></div>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">Basura</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#0064FF' }}></div>
-                          <span className="text-xs text-muted-foreground">Charcos/Agua</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: '#0064FF' }}></div>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">Charcos/Agua</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#00C800' }}></div>
-                          <span className="text-xs text-muted-foreground">Huecos</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: '#00C800' }}></div>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">Huecos</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#A9A9A9' }}></div>
-                          <span className="text-xs text-muted-foreground">Calles</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0" style={{ backgroundColor: '#A9A9A9' }}></div>
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">Calles</span>
                         </div>
                       </div>
                     </div>
